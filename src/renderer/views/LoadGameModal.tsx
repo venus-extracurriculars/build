@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, type AnimationPlaybackControls } from 'motion/react'
 import { toAppError } from '@shared/errors'
 import { classifySaveId, manualSlotOf } from '@shared/saveRules'
+import { hasNextTerm, seasonOf, seasonWords, termIndexOf, termLabel } from '@shared/term'
 import {
   MANUAL_SAVE_SLOTS,
   MAX_SLOT_SAVES,
@@ -37,7 +38,9 @@ import {
 } from '../stores/gameLoop'
 import { useGameStore } from '../stores/gameStore'
 import { runningReplayIds } from '../stores/loop/replay'
-import { stageEnrollment } from '../stores/newGame'
+import { CONTINUING_SEMESTERS } from '@shared/mods'
+import { useModOn, useModOption } from '../stores/modsStore'
+import { resolveContinuation, stageContinuation, stageEnrollment } from '../stores/newGame'
 import {
   castOf,
   unloadableReason,
@@ -120,7 +123,12 @@ function cardOf(entry: ResolvedSave, sticker: string): SaveGridCard {
     headline: summary
       ? summary.graduationSeen
         ? GOODBYES_SAVE_LABEL
-        : formatDateBanner(summary.date, summary.time)
+        : // Dated in the season of the playthrough the save is in, whatever game is running.
+          formatDateBanner(
+            summary.date,
+            summary.time,
+            seasonOf(entry.record ? termIndexOf(entry.record) : 0)
+          )
       : 'Unreadable save',
     meta: `Saved ${writtenAtShort(savedAt)}`,
     reason: unloadable ? `Cannot load — ${unloadable}` : null,
@@ -204,6 +212,13 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
   const [confirmingResume, setConfirmingResume] = useState<PlaythroughSummary | null>(null)
   // The open playthrough's name being asked for.
   const [renaming, setRenaming] = useState<PlaythroughSummary | null>(null)
+  // A save from after a semester's last day, which can be loaded or carried into the next one.
+  const [choosingFinished, setChoosingFinished] = useState<ResolvedSave | null>(null)
+  // Continuing Semesters' offer here is the mod's switch and its own option together; with
+  // either off a finished save loads like any other.
+  const semestersOn = useModOn(CONTINUING_SEMESTERS)
+  const offerHere = useModOption(CONTINUING_SEMESTERS, 'offer-in-load-game')
+  const continuingOffered = semestersOn && offerHere
   // Captured with the promise so the hand-off uses the roster on screen at the click.
   const [entering, setEntering] = useState<Entering | null>(null)
   // Which row is under the cursor: the ✕ is revealed from React rather than by CSS.
@@ -364,6 +379,43 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
   }
 
   /**
+   * Starts the semester after the one a finished save closed: the save is read whole and the
+   * break before that semester opened on it under a plain cut, as the registrar is. A refusal has reported
+   * itself.
+   */
+  async function beginNextTerm(playthroughId: string, entry: ResolvedSave): Promise<void> {
+    const next = await resolveContinuation(playthroughId, entry.saveId)
+    if (!next) return
+
+    // From the Game menu the running game says its last word and is torn down first, under the
+    // one curtain, as reopening the registrar from there does.
+    if (onClose) {
+      if (!beginCrossing(undefined, menuCrossing(theme))) return
+      coverSwap(() => {
+        void (async () => {
+          await leaveToMenu({ keepCrossing: true })
+          setMenuTheme(theme)
+          stageContinuation(next)
+          setView('break')
+          onClose()
+          endCrossing()
+        })()
+      })
+      return
+    }
+
+    const cut = beginCrossing(
+      () => {
+        stageContinuation(next)
+        close()
+        setView('break')
+      },
+      { from: theme }
+    )
+    if (cut) endCrossing()
+  }
+
+  /**
    * The player's own way out, a no-op while covered since the panel is not on screen to dismiss.
    * `inert` stops the pointer and the Tab ring, but not Escape: the shell's Escape rides
    * `window`, which no attribute reaches, so this checks `covered` for itself.
@@ -397,7 +449,7 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
 
   /** Whether a question stands over the panel, which then answers no key of its own. */
   const asking = Boolean(
-    deletingSave || deletingPlaythrough || confirmingLoad || confirmingResume || renaming
+    deletingSave || deletingPlaythrough || confirmingLoad || confirmingResume || renaming || choosingFinished
   )
 
   // A name is written onto the record, so a playthrough whose record was refused takes none.
@@ -499,8 +551,17 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
                   const entry = saves.find((candidate) => candidate.saveId === card.saveId)
                   // Neither half loads without the other.
                   if (!entry?.summary || !entry.record) return
-                  // Loading over a running game asks first; from the Main Menu the click loads.
-                  if (onClose) setConfirmingLoad(entry)
+                  // A save that closed a semester another one follows asks which, wherever it is
+                  // picked from; otherwise loading over a running game asks first, and from the
+                  // Main Menu the click loads.
+                  if (
+                    continuingOffered &&
+                    entry.summary.graduationSeen &&
+                    !entry.unloadable &&
+                    hasNextTerm(termIndexOf(entry.record))
+                  ) {
+                    setChoosingFinished(entry)
+                  } else if (onClose) setConfirmingLoad(entry)
                   else void load(selected.playthroughId, entry)
                 }}
                 onDelete={(card) => {
@@ -683,6 +744,35 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
           />
         )}
 
+        {choosingFinished && choosingFinished.record && (
+          <ConfirmModal
+            key="finished-save"
+            id="finished-save"
+            theme={theme}
+            title="The semester is over"
+            message={`You can load this save to say your goodbyes, or carry it on through ${seasonWords(seasonOf(termIndexOf(choosingFinished.record))).endBreak} into the ${termLabel(termIndexOf(choosingFinished.record) + 1)}.${
+              onClose
+                ? hasDecisionPoint()
+                  ? ' Either way, progress since the last action in the game you are in will be lost.'
+                  : ' Either way, progress since the last autosave in the game you are in will be lost.'
+                : ''
+            }`}
+            confirmText="Load"
+            extraText={`Start ${seasonWords(seasonOf(termIndexOf(choosingFinished.record))).endBreak}`}
+            onExtra={() => {
+              const entry = choosingFinished
+              setChoosingFinished(null)
+              if (selected) void beginNextTerm(selected.playthroughId, entry)
+            }}
+            onCancel={() => setChoosingFinished(null)}
+            onConfirm={() => {
+              const entry = choosingFinished
+              setChoosingFinished(null)
+              if (selected) void load(selected.playthroughId, entry)
+            }}
+          />
+        )}
+
         {confirmingResume && (
           <ConfirmModal
             key="resume-enrollment"
@@ -750,7 +840,7 @@ function PlaythroughRow({
           ? 'Unreadable'
           : playthrough.enrolling
             ? 'Class registration'
-            : formatDateBanner(playthrough.date, playthrough.time)}
+            : formatDateBanner(playthrough.date, playthrough.time, seasonOf(playthrough.term ?? 0))}
       </span>
 
       {/* The faces stand where a list of their names would: recognised, not read. */}

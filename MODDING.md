@@ -4,9 +4,8 @@ This branch is a proposal for how the community mods share one build: every mod'
 always in the game, and a switch decides whether it acts. Players turn mods on and off from
 **Mods** on the main menu; nothing is chosen at install time.
 
-It carries no mods yet. This is the frame alone, on the game as Venus Dev released it (0.3.1),
-so any mod can start from it. The `extracurriculars-base` branch adds Continuing Semesters on
-top as a worked example.
+The frame alone, with no mods, is the `core` branch, on the game as Venus Dev released it
+(0.3.1). This branch, `mod/continuing-semesters`, adds Continuing Semesters on top of it.
 
 ## The three things a mod does
 
@@ -96,11 +95,21 @@ optionGroups: [{ id: 'loader', label: 'Loading animation', hint: 'The animation 
 | `src/renderer/mods/index.ts` | Registers every mod's hooks at boot. |
 | `test/mods.test.ts` | The rules, tested against a list with every shape of mod. |
 
-## A rule in shared code
+## How Continuing Semesters uses it
 
-Shared code holds no switches. Where a rule there has to follow one, give the rule a flag with
-a setter, and set it from `modsStore.ts` at boot and whenever a switch moves
-(`useModsStore.subscribe`). Continuing Semesters does this for its seniors option.
+Its entry in `MODS` is `CONTINUING_SEMESTERS_MOD` from `src/shared/continuingSemestersMod.ts`,
+so its name, text and options live with the mod and `mods.ts` only lists it. That is the
+convention: each mod keeps its own entry in a file of its own.
+
+It is `anytime`. Off, the ending screen and Load Game stop offering the next semester (two
+checks: `GameView.tsx`, `LoadGameModal.tsx`). A semester or a break already started keeps
+working, because the code is still there. It has three options: one skips the break between
+semesters as it opens (`BreakView.tsx`), one keeps seniors from graduating, and one turns the
+Load Game offer off alone.
+
+The seniors option shows how a rule in shared code reads a switch without holding any: the
+rule keeps a flag (`setSeniorsGraduate` in `shared/term.ts`), and `modsStore.ts` sets it at
+boot and whenever a switch moves.
 
 ## Hook points
 

@@ -1,3 +1,4 @@
+import { CONTINUING_SEMESTERS, CONTINUING_SEMESTERS_MOD } from './continuingSemestersMod'
 import type { PlaythroughRecord } from './types'
 
 /**
@@ -63,11 +64,12 @@ export interface ModDef {
   optionGroups?: readonly ModOptionGroup[]
 }
 
-/**
- * Every mod in this build, in the order the Mods screen lists them. None yet: this is the
- * frame alone, on the game as Venus Dev released it. A mod adds itself here (see MODDING.md).
- */
-export const MODS: readonly ModDef[] = []
+export { CONTINUING_SEMESTERS }
+
+/** Every mod in this build, in the order the Mods screen lists them. */
+export const MODS: readonly ModDef[] = [
+  CONTINUING_SEMESTERS_MOD
+]
 
 /**
  * What the player has set, as `data/mods.json` holds it. A mod or an option that is not in
