@@ -44,9 +44,11 @@ can finish its discussion without regenerating the article.
 
 ## The secret columnist
 
-The first publication chooses one enrolled character and saves that choice **before** the
-paid writing request. A failed request never rerolls her. New, unrelated games choose their
-own author. Loading an earlier save restores the identity and publications in that save.
+The first settled slot with the mod enabled chooses one enrolled character, retained in the
+normal boundary save. This lets her start collecting sightings before the first Wednesday.
+If publication happens first (for example, enabling the mod midweek), it saves that choice
+**before** the paid writing request. A failed request never rerolls her. New, unrelated games
+choose their own author. Loading an earlier save restores the identity and publications in that save.
 
 The author occasionally joins the comments under her ordinary account (a 25% inclusion roll
 per batch, or when explicitly addressed). She receives the same comment-generation task as
@@ -56,9 +58,14 @@ It prohibits identity guesses, insider hints, knowing winks, and conspicuous den
 validator rejects several obvious self-identification patterns. Model compliance with tone
 and discretion still needs playtesting: a pattern guard cannot understand every implication.
 
-The article request receives a bounded temperament with cast names redacted, not the author's
-ID, handle, biography, save memories, relationships, or private conversations. It asks for an
-editorial voice without biographical clues or recognizable catchphrases.
+The article request receives a bounded temperament and one rotating preference from up to
+three saved character likes, with names/handles redacted. It does not receive an author ID,
+handle, biography, save memories, private conversations, or full timetable. It asks for **one
+small incidental clue per issue**: a preference-based metaphor, a personality tell, or a broad
+classmate/worker/bystander perspective supported by a recorded sighting. This gives attentive
+readers something to connect across issues without printing a signature or announcing the
+answer. A preference is writing flavor, not proof that an incident happened. Comments still
+receive ordinary public profiles and are never told the secret role or the private clue data.
 
 Continuing Semesters carries the **same author**, profile snapshot, issues, comments, reply
 links and deletion markers. The identity stays even if she graduates, is omitted from the
@@ -72,8 +79,27 @@ save or code can discover the stored identity. No reveal mechanic is implemented
 
 ## Evidence and roleplay
 
-The editor selects one supported lead from known characters' public posts and the game's
-public NPC encounter summaries, then sends at most six relevant snippets. The prompt asks
+The editor selects one supported lead from known characters' public posts and **recorded
+firsthand sightings**, then sends at most six relevant snippets. At each settled slot, the
+collector checks newly settled native NPC encounters against the author's actual class,
+work shift, or whereabouts. It reuses the native timetable's holiday, absence, mood, and
+current-overlay rules. A rolled run-in that moves her away from her usual haunt wins over
+that haunt. Being in the same dorm does not prove she heard a conversation: dorm run-ins
+qualify only when the encounter actually includes her. Characters involved in the player's
+scene are excluded; no private scene is mined for gossip. This mod never rolls extra meetings
+or changes anyone's schedule.
+
+Sightings keep their original semester, day, time, public venue and broad outcome. The native
+encounter only establishes getting along or a tense interaction, not exact dialogue, motives,
+or a romance. A later timetable change cannot retroactively manufacture an eyewitness. A
+Wednesday-morning issue excludes the completed Wednesday day-slot, including delayed delivery.
+Public posts need no physical proximity but are labeled as posts; the writer must attribute
+them instead of pretending the columnist was there. Alumni can still read public posts but
+do not gain physical campus sightings while absent from the enrolled roster.
+
+Existing saves keep their author and published issues. There is **no retrospective invention
+of sightings** for old encounters lacking a slot-specific record. The next issues may rely on
+public posts or a quiet editorial while new observations accumulate. The prompt asks
 for a scandalous, mischievous column about one specific person and incident, with at most
 one other central figure. It discourages ensemble roundups and gives the previous issue's
 subjects a small selection penalty to encourage variety. Held/pending photo posts, future posts, private
@@ -100,7 +126,8 @@ to what the reader subsequently does in a scene.
 | `src/shared/venusWhisper.ts` | Types, optional save augmentation, normalizer, identity selection, public sources, commenter selection, validation, carryover and bounded recall. Pure functions take randomness as an argument. |
 | `src/renderer/prompts/venusWhisperPrompt.ts` | Separate editorial and unprivileged public-comment requests; bounded JSON schemas. |
 | `src/renderer/stores/venusWhisper.ts` | Publication/comment actions, cancellation and stale-game checks. No component calls the writer directly. |
-| `src/renderer/stores/whisperDelivery.ts`, `views/GameView.tsx` | Game-lifetime Wednesday delivery, cancellation, retry backoff and checkpoint waiting, independent of Bunnyboard. |
+| `src/renderer/stores/whisperDelivery.ts`, `src/renderer/mods/venusWhisper.tsx` | Game-lifetime Wednesday delivery and hook registration; cancellation, retry backoff and checkpoint waiting, independent of Bunnyboard. |
+| `src/renderer/stores/whisperObservations.ts` | Settled-slot collector using native timetable lookups; no encounter rerolls, additional writer calls or private-scene access. |
 | `src/renderer/stores/loop/saves.ts` | `writeWhisper` uses the existing serialized autosave lane and current scene checkpoint. Visible state changes only after a successful write. |
 | `src/renderer/views/VenusWhisperModal.tsx` | Archive, article, comment thread, replies, mentions, typing presentation, retry and delete. |
 | `src/renderer/vu_styles/VenusWhisper.css` | Game palette/font roles, bounded panel and internal scrollers; native hover/motion presets. |
@@ -108,11 +135,11 @@ to what the reader subsequently does in a scene.
 | `src/shared/whisperCarry.ts` | Registers optional semester retention; no Continuing Semesters import is required. |
 | `src/renderer/stores/gameStore.ts`, `src/shared/saveRules.ts` | Default, load, reset, optional-field acceptance and save projection. |
 | `src/main/ipc.ts`, `src/preload/api.d.ts`, `src/preload/index.ts`, `src/web/bridge.ts` | Cancellable `llm:completeWhisper` structured requests on desktop and browser. |
-| `src/renderer/stores/loop/promptState.ts`, `prompts/scenePrompt.ts` | Scene injection of public excerpts only. |
-| `src/renderer/stores/textingLoop.ts`, `prompts/textingPrompt.ts` | Same public recall for normal and regenerated texts. |
+| `src/renderer/mods/venusWhisper.tsx` | Independent scene/DM prompt hooks supply only public excerpts, including regenerated texts through the common DM hook. |
 | `src/renderer/views/BunnyboardModal.tsx`, `VenusWhisperModal.tsx` | Optional rail tab and embedded newsletter page, independent of character profiles and Updates. |
 | `test/venusWhisper.test.ts` | Identity persistence, repeated term rollover, bounded imports, privacy boundaries, duplicate prevention, failed writes and stale requests. |
 | `test/whisperDelivery.test.ts` | Wednesday scheduling with the phone closed, catch-up, upgrades, read status, save failure, cancellation and safe delayed delivery. |
+| `test/whisperObservations.test.ts` | Timetable/presence filtering, private and unknown encounters, slot/term cutoffs, bounded save/load/carry data, redacted writer input and concurrent sighting retention. |
 
 ## Bunnyboard navigation
 
@@ -128,11 +155,20 @@ when both features are off. No SQLite integration is required.
 ## Save format and integration
 
 `GameSave.exVenusWhisper` is an optional version-1 object with `author`, `people`, `issues` and
-`dismissed`. Existing saves normalize to an empty newsletter. It is declared through module
+`dismissed`, plus optional `observations` and `author.interests`. Saves without the feature
+normalize to an empty newsletter; older newsletter saves keep their existing data. It is declared through module
 augmentation, and does not increase the required native save schema. The normalizer copies
 only recognized fields, caps articles at 2,400 characters, comments at 600, discussions at
 40 comments, public profiles at 128, and the archive/deletion list at 1,000 entries each. This covers the normal
 four-year course with room for its weekly publications and older daily editions; exceeding the cap retains newer entries.
+
+Observation storage is capped at 128 entries. Collection retains at most 21 days from the
+current term so late-week Wednesday catch-up can still use the correct preceding week;
+only that issue's seven-day window reaches the writer. Each observation is validated against
+the saved author and a stable `witness:<term>:<day>:<time>:<pair>` key. Duplicate or malformed
+entries are dropped. Only the public snippet and broad perspective reach generation; the
+local author identifier stays out of that request. Three preference strings are capped at
+120 characters each, and at most one is sent per issue. None of this requires SQLite.
 
 New issues add optional `weekly: true` and `read: false` fields without changing the format
 version. Legacy issues lacking those fields count as already read and retain their two-day
@@ -146,7 +182,7 @@ links are scoped to an issue; a normalizer drops duplicate IDs and invalid paren
 Discussion and delivery gates compare both semester and day, so an old day-zero issue cannot
 become today's issue in a new semester.
 
-Turning the mod off retains the saved identity/archive and disables its tab, generation and
+Turning the mod off retains the saved identity/archive and disables observation collection, its tab, generation and
 extra prompt context. Semester carryover retains it even while off. Saves/backup exports
 already carry optional save fields; no sidecar database or new installer is required.
 This does not import legacy EX journal archives or any person's playthrough data.
@@ -155,11 +191,9 @@ The mod depends on neither Story Memory/SQLite, Breakthrough, City Life, Meanwhi
 Feature. It respects held photo posts when that optional field exists. Story Memory remains
 save-authoritative; the newsletter does not write rumors as confirmed SQLite facts.
 
-For integration with the separate semester-carryover PR, retain both additions to
-`TermCarry` and `carriedOpening`. The newsletter's carry call remains independent of
-`carryModState`: its original term/day stamps deliberately are not shifted at a break.
-For integration with the text-regeneration memory fix, retain both `storyMemory` and
-`publicGossip` in the regeneration prompt state; they serve separate purposes.
+The optional term-carry registry retains newsletter data with its original term/day stamps;
+these deliberately are not shifted at a break. Old sightings never become evidence for a
+new term. The settled-slot and scene/DM hooks keep this mod independent of other features.
 
 ## Validation and handoff
 

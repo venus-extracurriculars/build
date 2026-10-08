@@ -9,7 +9,20 @@ export const WHISPER_TEXT = 600
 
 /** A public profile snapshot survives a change of roster without carrying private history. */
 export interface WhisperPerson { id: string; name: string; handle: string; voice: string }
-export interface WhisperAuthor extends WhisperPerson { known: boolean }
+export interface WhisperAuthor extends WhisperPerson { known: boolean; interests?: string[] }
+/** Saved when a slot settles, never reconstructed from today's timetable. */
+export interface WhisperObservation {
+  id: string
+  author: string
+  term: number
+  day: number
+  time: TimeSlot
+  subjects: string[]
+  where: string
+  positive: boolean
+  perspective: 'classmate' | 'on shift' | 'nearby' | 'participant'
+}
+export const WHISPER_OBSERVATIONS = 128
 export interface WhisperComment {
   id: string
   person: Omit<WhisperPerson, 'voice'>
@@ -41,6 +54,7 @@ export interface VenusWhisper {
   issues: WhisperIssue[]
   /** Deleting an issue cannot cause a second issue on that day. */
   dismissed: string[]
+  observations?: WhisperObservation[]
 }
 export interface WhisperContext {
   date: number
@@ -53,7 +67,11 @@ export interface WhisperContext {
   npcRelationships: NpcRelationshipMap
   exVenusWhisper: VenusWhisper
 }
-export interface WhisperSource { id: string; text: string; subjects: string[] }
+export interface WhisperSource {
+  id: string; text: string; subjects: string[]
+  basis?: 'public-post' | 'witnessed'
+  perspective?: WhisperObservation['perspective']
+}
 export interface WhisperDraft { title: string; body: string; sources: string[]; comments: { speaker: string; text: string }[] }
 export interface WhisperReply { comments: { speaker: string; text: string }[] }
 
@@ -131,8 +149,21 @@ export function normalizeWhisper(value: unknown): VenusWhisper {
     const profile = person(p)
     return profile ? [[profile.id, profile] as const] : []
   })).values()] : []
-  return { version: 1, people, ...(author ? { author: { ...author, known: record(value.author) && value.author.known === true } } : {}),
-    issues: issues.filter(i => !dismissed.includes(i.id)), dismissed }
+  const interests = record(value.author) && Array.isArray(value.author.interests)
+    ? value.author.interests.filter(s => text(s, 120)).slice(0, 3) as string[] : undefined
+  const observations: WhisperObservation[] = []
+  if (Array.isArray(value.observations)) for (const o of value.observations.slice(-WHISPER_OBSERVATIONS)) {
+    if (!record(o) || !author || o.author !== author.id || !stamp(o.term) || !stamp(o.day) ||
+        (o.time !== 0 && o.time !== 1) || !text(o.where, 200) || typeof o.positive !== 'boolean' ||
+        !['classmate', 'on shift', 'nearby', 'participant'].includes(o.perspective as string)) continue
+    const subjects = ids(o.subjects).sort()
+    if (subjects.length !== 2 || o.id !== `witness:${o.term}:${o.day}:${o.time}:${subjects.join('|')}` || observations.some(s => s.id === o.id)) continue
+    observations.push({ id: o.id as string, author: author.id, term: o.term as number, day: o.day as number,
+      time: o.time, subjects, where: o.where, positive: o.positive, perspective: o.perspective as WhisperObservation['perspective'] })
+  }
+  return { version: 1, people, ...(author ? { author: { ...author, known: record(value.author) && value.author.known === true,
+    ...(interests ? { interests } : {}) } } : {}), issues: issues.filter(i => !dismissed.includes(i.id)), dismissed,
+    ...(Array.isArray(value.observations) ? { observations } : {}) }
 }
 
 /** Select once from the enrolled cast. A saved author wins even after she graduates or is dropped. */
@@ -141,12 +172,15 @@ export function ensureWhisperAuthor(game: WhisperContext, rand: () => number): V
   state.people = [...new Map([...state.people, ...game.chars.filter(id => game.characters[id] && game.charInfo[id]?.nameKnown)
     .map(id => whisperPerson(game.characters[id], game.charInfo[id]))].map(p => [p.id, p])).values()].slice(-128)
   if (state.author) {
-    return { ...state, author: { ...state.author, known: state.author.known || !!game.charInfo[state.author.id]?.nameKnown } }
+    const interests = state.author.interests ?? game.characters[state.author.id]?.likes?.slice(0, 3).map(s => s.slice(0, 120))
+    return { ...state, author: { ...state.author, known: state.author.known || !!game.charInfo[state.author.id]?.nameKnown,
+      ...(interests ? { interests } : {}) } }
   }
   const eligible = game.chars.filter(id => game.characters[id] && game.charInfo[id])
   if (!eligible.length) throw Error('No enrolled characters are available yet.')
   const id = eligible[Math.min(eligible.length - 1, Math.max(0, Math.floor(rand() * eligible.length)))]
-  return { ...state, author: { ...whisperPerson(game.characters[id], game.charInfo[id]), known: !!game.charInfo[id].nameKnown } }
+  return { ...state, author: { ...whisperPerson(game.characters[id], game.charInfo[id]), known: !!game.charInfo[id].nameKnown,
+    interests: game.characters[id].likes.slice(0, 3).map(s => s.slice(0, 120)) } }
 }
 
 /** Strip a character down to a bounded public writing profile. */
@@ -172,18 +206,57 @@ export function whisperSources(game: WhisperContext, days = 7, visible: (post: i
     for (const post of (game.charInfo[id].feed ?? []).slice(-30)) {
       if (post.date < game.date - days + 1 || post.date > game.date || (post.date === game.date && post.time > game.time) ||
           !visible(post) || !post.text?.trim()) continue
-      sources.push({ id: `post:${id}:${post.id}`, text: `${fullNameOf(c)} posted publicly: ${post.text.slice(0, 900)}`, subjects: [id] })
+      sources.push({ id: `post:${id}:${post.id}`, text: `${fullNameOf(c)} posted publicly: ${post.text.slice(0, 900)}`, subjects: [id], basis: 'public-post' })
     }
   }
-  for (const [pair, { encounter: e }] of Object.entries(game.npcRelationships)) {
-    const people = pair.split('|')
-    if (!e || people.length !== 2 || !people.every(id => known.has(id)) || e.date > game.date || e.date < game.date - days + 1 || e.ref === 'room') continue
-    const where = e.kind === 'class' ? (game.classes[e.ref]?.name ?? e.ref) : e.kind === 'dorm' ? 'a dorm common area' : locationLabel(e.ref)
-    sources.push({ id: `encounter:${pair}:${e.date}:${e.ref}`, subjects: people,
-      text: `${people.map(id => fullNameOf(game.characters[id])).join(' and ')} ${e.positive ? 'got along' : 'argued'} at ${where}. No further details are established.` })
+  for (const o of game.exVenusWhisper.observations ?? []) {
+    // A completed Wednesday day-slot did not happen before Wednesday morning's edition.
+    if (o.author !== game.exVenusWhisper.author?.id || o.term !== whisperTerm(game) ||
+        o.day * 2 + o.time >= game.date * 2 + game.time || o.day < game.date - days + 1 || !o.subjects.every(id => known.has(id))) continue
+    sources.push({ id: o.id, subjects: o.subjects, basis: 'witnessed', perspective: o.perspective,
+      text: `On day ${o.day + 1} ${o.time ? 'at night' : 'during the day'}, ${o.subjects.map(id => fullNameOf(game.characters[id])).join(' and ')} ${o.positive ? 'got along' : 'had a tense interaction'} at ${o.where}. The columnist was present. No dialogue, motives, or further details are established.` })
   }
   // Rank the whole eligible pool locally; only the selected six snippets reach the writer.
   return sources
+}
+
+/** Actual presence supplied by the native timetable, after commitments and absences. */
+export interface WhisperPresence { classCode?: string; location?: string; working?: boolean }
+
+/** Bank only newly settled public encounters within this author's field of view. */
+export function observeWhisperSlot(game: WhisperContext, before: NpcRelationshipMap, presence: WhisperPresence | null,
+  excluded: readonly string[] = []): VenusWhisper {
+  const state = normalizeWhisper(game.exVenusWhisper), author = state.author
+  if (!author) return state
+  const term = whisperTerm(game)
+  const observations = (state.observations ?? []).filter(o => o.term === term && o.day >= game.date - 20 && o.day <= game.date)
+  if (presence && game.chars.includes(author.id) && !excluded.includes(author.id)) {
+    // A rolled run-in can move her away from her standing haunt. Its settled location wins,
+    // even if the partner is unknown or the encounter itself is private and cannot be printed.
+    if (!presence.classCode && !presence.working) {
+      const own = Object.entries(game.npcRelationships).find(([pair, { encounter: e }]) =>
+        pair.split('|').includes(author.id) && e?.date === game.date && JSON.stringify(e) !== JSON.stringify(before[pair]?.encounter))?.[1].encounter
+      if (own) presence = own.kind === 'hangout' ? { location: own.ref } : {}
+    }
+    for (const [pair, { encounter: e }] of Object.entries(game.npcRelationships)) {
+      const subjects = pair.split('|').sort()
+      if (!e || e.date !== game.date || e.ref === 'room' || subjects.length !== 2 ||
+          subjects.some(id => excluded.includes(id) || !game.characters[id] || !game.charInfo[id]?.nameKnown) ||
+          JSON.stringify(e) === JSON.stringify(before[pair]?.encounter)) continue
+      let perspective: WhisperObservation['perspective'] | undefined
+      if (e.kind === 'class' && presence.classCode === e.ref) perspective = 'classmate'
+      else if (e.kind === 'hangout' && presence.location === e.ref) perspective = presence.working ? 'on shift' : 'nearby'
+      // A new native run-in can place the author at a public spot outside her standing haunt.
+      else if (e.kind !== 'class' && subjects.includes(author.id) && !presence.classCode && !presence.working) perspective = 'participant'
+      if (!perspective) continue
+      const id = `witness:${term}:${game.date}:${game.time}:${subjects.join('|')}`
+      if (observations.some(o => o.id === id)) continue
+      const where = e.kind === 'class' ? (game.classes[e.ref]?.name ?? 'a class') : e.kind === 'dorm' ? 'a dorm common area' : locationLabel(e.ref)
+      observations.push({ id, author: author.id, term, day: game.date, time: game.time, subjects,
+        where: where.slice(0, 200), positive: e.positive, perspective })
+    }
+  }
+  return { ...state, observations: observations.slice(-WHISPER_OBSERVATIONS) }
 }
 
 /** One evidence-backed spotlight, avoiding the last lead when equally supported alternatives exist. */
@@ -266,6 +339,7 @@ export function carryWhisper(value: unknown, term: number, day: number, known: R
   const state = normalizeWhisper(value)
   const allowed = (t: number, d: number): boolean => t < term || (t === term && d <= day)
   return { ...state, ...(state.author ? { author: { ...state.author, known: state.author.known || !!known[state.author.id]?.nameKnown } } : {}),
+    ...(state.observations ? { observations: state.observations.filter(o => allowed(o.term, o.day)) } : {}),
     issues: state.issues.filter(i => allowed(i.term, i.day)),
     dismissed: state.dismissed.filter(id => { const [, t, d] = id.split(':'); return allowed(Number(t), Number(d)) }) }
 }

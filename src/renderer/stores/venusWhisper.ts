@@ -65,8 +65,12 @@ export async function publishWhisper(group: string, active: () => boolean, autom
     const editorial = whisperSpotlight(whisperSources({ ...game, date: day, time: 0 }, 7, postVisible), previous?.subjects)
     const sources = editorial.sources, author = game.exVenusWhisper.author!
     const person = whisperPeople(game).find(p => p.id === editorial.focus)
-    const voice = anonymousVoice(author.voice, [author.name, ...Object.values(game.characters).map(fullNameOf)])
-    const response = await window.api.llm.completeWhisper(buildWhisperIssue(sources, voice, person ? { name: person.name, handle: person.handle } : undefined), group)
+    const names = [author.name, author.handle, author.id, ...game.exVenusWhisper.people.flatMap(p => [p.name, p.handle]), ...Object.values(game.characters).map(fullNameOf)]
+    const voice = anonymousVoice(author.voice, names)
+    const interests = author.interests ?? []
+    const hint = interests.length ? anonymousVoice(interests[Math.floor(day / 7) % interests.length], names).slice(0, 120) : undefined
+    const response = await window.api.llm.completeWhisper(buildWhisperIssue(sources, voice, person ? { name: person.name, handle: person.handle } : undefined,
+      hint ? [hint] : []), group)
     if (!current()) throw Error('The game changed. No issue was published.')
     if (!response.ok) throw Error(response.error.message)
     const draft = validateWhisperDraft(response.data, sources, [])

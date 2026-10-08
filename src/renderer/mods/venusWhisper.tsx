@@ -5,6 +5,7 @@ import { VenusWhisperPage } from '../views/VenusWhisperModal'
 import { WhisperIcon } from '../components/BunnyboardFeatureIcons'
 import { modIsOn, useModsStore } from '../stores/modsStore'
 import { registerHooks } from './hooks'
+import { recordWhisperObservations } from '../stores/whisperObservations'
 
 function Mark() {
   const unread = useGameStore(s => whisperHasUnread(s.exVenusWhisper, whisperTerm(s), s.date))
@@ -14,6 +15,7 @@ let stopDelivery: (() => void) | undefined
 registerHooks(VENUS_WHISPER_MOD, {
   bunnyboardPage: { id: 'whisper', word: 'WHISPER', Mark, Page: VenusWhisperPage },
   gameEntered: () => { stopDelivery?.(); stopDelivery = startWhisperDelivery() },
+  slotSettled: recordWhisperObservations,
   prompts: {
     scene: { lines: ({ cast, state }) => {
       const game = useGameStore.getState()
