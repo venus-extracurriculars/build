@@ -1,3 +1,4 @@
+import type { WhisperDraft, WhisperReply } from '../shared/venusWhisper'
 import type { ClassifierPromptRequest, ClassifierVerdict } from '@shared/classifier'
 import type {
   BgVariant,
@@ -168,6 +169,7 @@ export interface VenusUniversityApi {
       group: string
     ) => Promise<Result<EndingPostsResponse>>
     /** Sends a Bunnyboard texting turn; `group` enables cancellation. */
+    completeWhisper: (request: StructuredRequest, group: string) => Promise<Result<WhisperDraft | WhisperReply>>
     completeTexting: (
       request: StructuredRequest,
       group: string

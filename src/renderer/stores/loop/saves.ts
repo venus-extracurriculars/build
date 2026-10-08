@@ -1,3 +1,5 @@
+import { modIsOn } from '../modsStore'
+import { normalizeWhisper, VENUS_WHISPER_MOD, type VenusWhisper } from '@shared/venusWhisper'
 import { toAppError } from '@shared/errors'
 import { gameOverReasonOf, type GameOverReason } from '@shared/gameOver'
 import { isGameOver, spentOf } from '@shared/money'
@@ -298,7 +300,9 @@ export function endingGameOver(): GameOverReason | null {
 export type ManualSaveOffer = 'open' | 'waiting' | 'none'
 
 /** What the Save Game button offers at this moment. */
-export function manualSaveOffer(): ManualSaveOffer {
+export function manualSaveOffer(): ManualSaveOffer { return saveOffer(true) }
+
+function saveOffer(includeWriter: boolean): ManualSaveOffer {
   const game = useGameStore.getState()
   if (!game.playthroughId || game.activeGameOver !== null) return 'none'
   // The goodbye menu past the floor: the next press meets the collectors, and the goodbyes
@@ -326,7 +330,7 @@ export function manualSaveOffer(): ManualSaveOffer {
     loopState.hangoutPrefetch !== null ||
     useBunnyboardStore.getState().armedHangout !== null ||
     textingUnsettled() ||
-    manualWriting
+    (includeWriter && manualWriting)
   return unsettled ? 'waiting' : 'open'
 }
 
@@ -386,4 +390,33 @@ export async function writeManualSave(slot: number): Promise<boolean> {
     manualWriting = false
   }
   return saved
+}
+
+/** Newsletter edits join the native save lane, preserving the current scene checkpoint. */
+export async function writeWhisper(next: VenusWhisper, previous: VenusWhisper, active: () => boolean): Promise<void> {
+  const start = useGameStore.getState()
+  const current = (): boolean => {
+    const now = useGameStore.getState()
+    return active() && modIsOn(VENUS_WHISPER_MOD) && now.playthroughId === start.playthroughId && now.loads === start.loads &&
+      now.exVenusWhisper === previous && now.date === start.date && now.time === start.time && !now.sceneEnding
+  }
+  if (!current() || manualSaveOffer() !== 'open') throw Error('Wait for a safe save point.')
+  let written = false
+  manualWriting = true
+  try {
+    await queueWrite(async () => {
+      if (!current() || saveOffer(false) !== 'open') return
+      const now = useGameStore.getState()
+      const draft = manualSaveDraft() ?? (!sceneActiveOf(now) ? { ...now.toGameSave(), scene: null } : null)
+      if (!draft || !now.playthroughId) throw Error('No safe save point is available.')
+      const saved = normalizeWhisper(next)
+      const result = await window.api.saves.autosave(now.playthroughId, { ...draft, exVenusWhisper: saved })
+      if (!result.ok) throw Error(result.error.message)
+      if (!current()) return
+      if (loopState.statusBase) loopState.statusBase = { ...loopState.statusBase, exVenusWhisper: saved }
+      useGameStore.setState({ exVenusWhisper: saved })
+      written = true
+    })
+    if (!written) throw Error('The game changed. Reopen the newsletter.')
+  } finally { manualWriting = false }
 }

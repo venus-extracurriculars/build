@@ -1,3 +1,4 @@
+import type { WhisperDraft, WhisperReply } from '@shared/venusWhisper'
 import {
   app,
   BrowserWindow,
@@ -243,6 +244,10 @@ async function enqueueComfyJob<T>(
 
 /** Registers every IPC channel; keep this, preload and the d.ts in sync. */
 export function registerIpcHandlers(): void {
+  handle('llm:completeWhisper', (_event, request: StructuredRequest, group: string) =>
+    runAbortable(group, signal => completeStructured<WhisperDraft | WhisperReply>(request, signal))
+  )
+
   // The key the cloud calls need never leaves main; the transport reads it through this port.
   useSettingsSource(getSettings)
   // Fixed channel: jobs can outlive their original `invoke`, so broadcast progress.
