@@ -1,3 +1,4 @@
+import { normalizeBreakthrough, reconcileBreakthrough, type BreakthroughState } from '@shared/breakthrough'
 import { create } from 'zustand'
 import {
   affectionFor,
@@ -232,6 +233,8 @@ function sceneKindFields(scene: SceneKind | null | undefined) {
  * `gameLoop.ts` drives this store imperatively outside React.
  */
 interface GameStoreState {
+  exBreakthrough: BreakthroughState
+  breakthroughFlash: { id: string; playthroughId: string; name: string } | null
   /** The playthrough being played; every save this session writes goes into it. */
   playthroughId: string | null
   /** The Scene Creator's scene being played, with no playthrough; null in a game. */
@@ -1335,6 +1338,8 @@ function nextLineFields(
 }
 
 const initialState = {
+  exBreakthrough: normalizeBreakthrough(),
+  breakthroughFlash: null as GameStoreState['breakthroughFlash'],
   playthroughId: null,
   createdScene: null as CreatedScene | null,
   replaying: null as { over?: true } | null,
@@ -1474,6 +1479,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       ),
       classes: record.classes,
       playerSchedule: save.playerSchedule,
+      exBreakthrough: normalizeBreakthrough(save.exBreakthrough, true),
       history: save.history,
       // Younger than the save format: a save from before it keeps none.
       replays: save.replays ?? {},
@@ -1685,7 +1691,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   restoreScene: (scene) =>
-    set({
+    set((state) => ({
+      exBreakthrough: reconcileBreakthrough(state.exBreakthrough, scene?.transcript ?? [], state.date, state.time),
       pendingLines: scene ? [...scene.pendingLines] : [],
       cast: scene ? [...scene.cast] : [],
       ...sceneKindFields(scene),
@@ -1715,7 +1722,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       currentLine: scene?.currentLine ?? null,
       // Nothing ahead of a restored line counts as read.
       reread: 0
-    }),
+    })),
 
   setStatusModal: (modal) => set({ statusModal: modal }),
 
@@ -1733,6 +1740,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const queued = Math.min(count, state.pendingLines.length)
       const pendingLines = state.pendingLines.slice(0, state.pendingLines.length - queued)
       const dropped = {
+        exBreakthrough: reconcileBreakthrough(state.exBreakthrough, transcript.slice(0, kept), state.date, state.time),
         currentSceneTranscript: transcript.slice(0, kept),
         pendingLines,
         // The beats still ahead that were read before are only those left on the queue.
@@ -1800,6 +1808,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set((state) => {
       const kept = cutLengthOf(state)
       return {
+        exBreakthrough: reconcileBreakthrough(state.exBreakthrough, state.currentSceneTranscript.slice(0, kept), state.date, state.time),
         currentSceneTranscript: state.currentSceneTranscript.slice(0, kept),
         pendingLines: [],
         reread: 0,
@@ -1880,6 +1889,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       // files the whole recap.
       ...(mirrored
         ? {
+            exBreakthrough: reconcileBreakthrough(state.exBreakthrough, transcript.map((line, i) => (i === tAt ? edited : line)), state.date, state.time),
             currentSceneTranscript: transcript.map((line, i) => (i === tAt ? edited : line)),
             ...(state.sceneEnding
               ? { endingEditAt: Math.min(state.endingEditAt ?? tAt, tAt) }
@@ -2799,6 +2809,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         Object.entries(state.charInfo).map(([charId, info]) => [charId, charStateOf(info)])
       ),
       playerSchedule: state.playerSchedule,
+      exBreakthrough: normalizeBreakthrough(state.exBreakthrough),
       history: state.history,
       // Omitted while it names none, as an absent optional is.
       ...(Object.keys(state.replays).length > 0 ? { replays: state.replays } : {}),
