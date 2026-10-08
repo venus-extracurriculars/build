@@ -1,3 +1,4 @@
+import { carryModFields, carriedModFields, type ModCarryFields } from './modCarry'
 import { FINAL_DATE } from './classes'
 import { isBossChat } from './jobs'
 import { pairKeyOf, type NpcFriendship, type NpcRelationshipMap } from './npcRelationships'
@@ -6,6 +7,7 @@ import { emptyTallies } from './tallies'
 import { daysToNextTerm, graduatesAfter, seasonOf, termIndexOf, type Season } from './term'
 import type {
   BunnyboardState,
+  Character,
   CharMemory,
   CharState,
   Conversation,
@@ -153,7 +155,8 @@ export interface CarriedTerm {
 export function carryTerm(
   save: GameSave,
   record: PlaythroughRecord,
-  kept: readonly string[]
+  kept: readonly string[],
+  characters: Record<string, Character> = {}
 ): CarriedTerm {
   const back = daysToNextTerm(seasonOf(termIndexOf(record)))
   const roster = new Set(record.chars)
@@ -164,6 +167,7 @@ export function carryTerm(
     stats: rustedStats(save.stats),
     ...(save.bio ? { bio: save.bio } : {}),
     carry: {
+      ...carryModFields(save, { term: termIndexOf(record), back, characters }),
       money: save.money,
       ...(save.tallies ? { tallies: { ...save.tallies } } : {}),
       inventory: save.inventory.map((item) => ({ ...item })),
@@ -216,6 +220,7 @@ export function carriedOpening(draft: SaveDraft, carry: TermCarry): SaveDraft {
   )
   return {
     ...draft,
+    ...carriedModFields(carry),
     money: carry.money,
     tallies: {
       ...emptyTallies(),
@@ -249,7 +254,7 @@ export function carriedOpening(draft: SaveDraft, carry: TermCarry): SaveDraft {
  * the table exists so that a field added to the save fails to compile here until somebody has
  * decided which it is.
  */
-const _SAVE_FIELDS: Record<keyof SaveDraft, 'carried' | 'fresh'> = {
+const _SAVE_FIELDS: Record<Exclude<keyof SaveDraft, keyof ModCarryFields>, 'carried' | 'fresh'> = {
   schemaVersion: 'fresh',
   stats: 'carried',
   money: 'carried',
