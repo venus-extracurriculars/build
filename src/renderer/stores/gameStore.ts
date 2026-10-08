@@ -1,3 +1,4 @@
+import { normalizeStoryMemory, type StoryMemory } from '@shared/storyMemory'
 import { create } from 'zustand'
 import {
   affectionFor,
@@ -275,6 +276,7 @@ interface GameStoreState {
    */
   playerSchedule: Record<number, string>
   /** The playthrough log — every finished scene's summary, by day and slot. Persisted. */
+  exStoryMemory: StoryMemory
   history: GameHistory
   /** The replay of each finished scene this save can play, by day and slot. Persisted. */
   replays: GameReplays
@@ -1350,6 +1352,7 @@ const initialState = {
   charInfo: {} as Record<string, CharInfo>,
   classes: {} as Record<string, ClassEntry>,
   playerSchedule: {} as Record<number, string>,
+  exStoryMemory: normalizeStoryMemory(undefined),
   history: {} as GameHistory,
   replays: {} as GameReplays,
   bunnyboard: emptyBunnyboard(),
@@ -1474,6 +1477,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       ),
       classes: record.classes,
       playerSchedule: save.playerSchedule,
+      exStoryMemory: normalizeStoryMemory(save.exStoryMemory),
       history: save.history,
       // Younger than the save format: a save from before it keeps none.
       replays: save.replays ?? {},
@@ -2799,6 +2803,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         Object.entries(state.charInfo).map(([charId, info]) => [charId, charStateOf(info)])
       ),
       playerSchedule: state.playerSchedule,
+      exStoryMemory: normalizeStoryMemory(state.exStoryMemory),
       history: state.history,
       // Omitted while it names none, as an absent optional is.
       ...(Object.keys(state.replays).length > 0 ? { replays: state.replays } : {}),

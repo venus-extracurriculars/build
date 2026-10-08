@@ -157,6 +157,7 @@ export interface ProjectSceneContext {
 
 /** Everything the builders read out of `gameStore`. */
 export interface PromptState {
+  storyMemory?: import('@shared/storyMemory').StorySnapshot
   /** The cloud-LLM cache key: the playthrough id, never the save's. */
   playthroughId: string
   date: number

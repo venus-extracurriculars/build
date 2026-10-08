@@ -1,4 +1,5 @@
 import { slotSettled } from '../mods/hooks'
+import { currentStorySnapshot } from './storyMemory'
 import { GAME_OVER_SCENES, gameOverReasonOf } from '@shared/gameOver'
 import { earnLine, spendLine, spentOf } from '@shared/money'
 import {
@@ -869,6 +870,7 @@ async function fetchSlotIntro(
   // Built once and re-sent verbatim on retry; only a hand edit replaces it.
   let request = buildSlotIntroPrompt(
     {
+      storyMemory: currentStorySnapshot(),
       playthroughId: game.playthroughId ?? 'unsaved',
       date,
       time,

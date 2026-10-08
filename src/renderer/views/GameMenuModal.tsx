@@ -32,6 +32,7 @@ export interface GameMenuModalProps {
   onFeedback: () => void
   onSettings: () => void
   /** Opens the community mods' switches in the menu's place. Absent drops the entry. */
+  onStoryMemory?: () => void
   onMods?: () => void
   /** A reply is on its way: a rule is not changed under a turn already being written. */
   modsWaiting?: boolean
@@ -59,6 +60,7 @@ export function GameMenuModal({
   onLoadGame,
   onFeedback,
   onSettings,
+  onStoryMemory,
   onMods,
   modsWaiting = false,
   onControls,
@@ -131,6 +133,10 @@ export function GameMenuModal({
           >
             Settings
           </motion.button>
+          {onStoryMemory && (
+            <motion.button type="button" className="vu-btn vu-btn--outline vu-paper" variants={dealtItem}
+              {...gestures(false, lift, press)} onClick={onStoryMemory}>Story Memory…</motion.button>
+          )}
           {onMods && (
             <DeadNote note={modsWaiting ? 'Waiting for LLM response' : null} align="center">
               <motion.button
