@@ -1,4 +1,4 @@
-import { whisperTerm } from '@shared/venusWhisper'
+import { whisperTerm, WHISPER_TITLE, WHISPER_PEN_NAME } from '@shared/venusWhisper'
 import { retryWhisperDelivery, useWhisperDelivery } from '../stores/whisperDelivery'
 import { WhisperIcon } from '../components/BunnyboardFeatureIcons'
 import '../vu_styles/BunnyboardFeature.css'
@@ -91,9 +91,9 @@ export function VenusWhisperPage(): JSX.Element | null {
     }, 'Someone is reading your comment…')
   }
 
-  return <section className="vu-bb-feature vu-whisper" aria-label="The Venus Whisper">
+  return <section className="vu-bb-feature vu-whisper" aria-label={WHISPER_TITLE}>
       <header className="vu-bb-feature-heading">
-        <div><span className="vu-whisper-meta">Campus correspondence</span><h1>The Venus Whisper</h1><p>Everybody has a story. Somebody has a column.</p></div>
+        <div><span className="vu-whisper-meta">Campus correspondence</span><h1>{WHISPER_TITLE}</h1><p>Everybody has a story. Somebody has a column.</p></div>
         <motion.span className="vu-bb-feature-seal" animate={breatheMark} aria-hidden="true"><WhisperIcon /></motion.span>
       </header>
       <div className="vu-bb-feature-columns">
@@ -123,7 +123,7 @@ export function VenusWhisperPage(): JSX.Element | null {
               <article className="vu-whisper-article">
                 <span className="vu-whisper-meta">Semester {issue.term + 1} · Day {issue.day + 1} · Anonymous editorial</span>
                 <h2>{issue.title}</h2><div className="vu-whisper-copy">{issue.body}</div>
-                <p className="vu-whisper-signature">Yours, somewhere on campus.</p>
+                <p className="vu-whisper-signature">— {WHISPER_PEN_NAME}</p>
               </article>
               <section className="vu-whisper-discussion" aria-label="Comments">
                 <h3>The campus replies <span>{issue.comments.length}</span></h3>

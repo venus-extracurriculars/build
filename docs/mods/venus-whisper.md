@@ -1,19 +1,21 @@
-# The Venus Whisper
+# The Hare & Quill
 
-An optional campus gossip newsletter, accessed from **Bunnyboard → Whisper**.
+An optional campus gossip newsletter, accessed from **Bunnyboard → Hare & Quill**.
 It gives the former Journals concept one shared column and discussion, separate from
 character profiles, Bunnyboard Updates, and Meanwhile's spectator conversations.
 
 ## Playing
 
-- Enable **The Venus Whisper** in Mods. It works with every other optional mod off.
+- Enable **The Hare & Quill** in Mods. It works with every other optional mod off.
 - One issue arrives automatically each **in-game Wednesday**, while the game is running,
   even with Bunnyboard closed. It uses the past week's public material as of Wednesday
-  morning. An unread dot on the Whisper tab stays until you read all unread issues.
+  morning. An unread dot on the Hare & Quill tab stays until you read all unread issues.
   Reading saved issues makes no AI call. Delivery waits for a safe save checkpoint.
 - Enabling the mod or loading a save later in the week catches up only the latest Wednesday;
   it does not generate an entire missed backlog. No issue arrives before the first Wednesday.
-- The byline is anonymous. NPC comments use their regular names, handles and profile pictures.
+- Every article ends with **— Lady Harewood**, the columnist’s pen name. Her real identity
+  stays secret. This signature is rendered by the app, so it appears on archived issues too
+  without rewriting their saved text. NPC comments use their regular names, handles and profile pictures.
 - Player comments use the player's Bunnyboard profile name and a name-derived handle (for
   example, Sam Rowe becomes `@sam_rowe`). The base game has no separately editable player
   handle. Older player comments saved as `@reader` display and reach reply prompts with the
@@ -63,8 +65,9 @@ three saved character likes, with names/handles redacted. It does not receive an
 handle, biography, save memories, private conversations, or full timetable. It asks for **one
 small incidental clue per issue**: a preference-based metaphor, a personality tell, or a broad
 classmate/worker/bystander perspective supported by a recorded sighting. This gives attentive
-readers something to connect across issues without printing a signature or announcing the
-answer. A preference is writing flavor, not proof that an incident happened. Comments still
+readers something to connect across issues without printing her real name or announcing the
+answer. Lady Harewood is a shared public pen name, not a clue to a particular character.
+A preference is writing flavor, not proof that an incident happened. Comments still
 receive ordinary public profiles and are never told the secret role or the private clue data.
 
 Continuing Semesters carries the **same author**, profile snapshot, issues, comments, reply
@@ -74,8 +77,34 @@ continue to comment through her saved public profile. Other known readers' publi
 are kept too, so alumni participation does not single her out. Graduation does not put her back on
 the map or change enrollment. Missing portraits fall back to an initial.
 
-Anonymity is a story rule, not encryption: this is a local game, and a player inspecting the
-save or code can discover the stored identity. No reveal mechanic is implemented.
+Pseudonymity is a story rule, not encryption: this is a local game, and a player inspecting the
+save or code can discover the stored identity.
+
+### A private confession
+
+The player can ask the actual author whether she writes the column or is Lady Harewood.
+A first confession is available only at the native **trusted or devoted** relationship tier,
+in a one-to-one scene outside class, the player’s work shift, or a visit to her on-shift job.
+The scene writer must also find the conversation private/out of earshot. These gates use
+native affection rather than a separate trust meter. A respectful question favors an honest
+admission; threats, coercion, public confrontations, jokes, and player-dictated outcomes do
+not guarantee one. Another character cannot become the author just because the player guesses.
+
+The existing end-of-scene ledger classifies whether a genuine exchange happened and returns
+short exact quotations. Local validation requires a real player question followed by dialogue
+from the correct author, plus affirmative asked/admitted/private flags. Narrative text, another
+character’s dialogue, fabricated excerpts, and texting-ledger results cannot file the discovery.
+This adds no separate AI call. Saving during the scene keeps its transcript; the permanent
+private discovery is filed when the scene finishes and the native boundary save runs. Abandoned
+bookkeeping does not certify a discovery. Old completed scenes are not retrospectively scanned.
+
+Later scenes with the author remember the discovery even if affection falls. Ordinary comments
+and newsletter generation never receive it, and the public byline stays Lady Harewood. It is
+not automatically shared with other NPCs or added to DMs. The optional discovery survives save,
+load, mod toggles and repeated semester carryover; rewinding to an older save restores that
+save’s knowledge. Replays, the scene creator, stale requests, and unrelated games are inert.
+The model still judges privacy and sincerity; exact quotations guard attribution, not every
+possible implication of prose. Playtest those judgments with the configured model.
 
 ## Evidence and roleplay
 
@@ -113,7 +142,8 @@ change the world's facts.
 
 Scenes and both normal/regenerated DMs can receive at most two relevant issues whose
 discussion windows are still open, with selected recent comments. The excerpt is capped at 6,500 characters,
-plus a short attribution instruction. The secret identity is never included. The prompt
+plus a short attribution instruction. The public excerpt never includes the secret identity;
+a separate, gated scene-only continuity block supports the private confession described above. The prompt
 labels it unreliable public gossip, permits natural reactions when relevant, and grants no
 firsthand knowledge or automatic relationship changes. Publication itself does not award
 affection, spirit, stats, money or Story Memory facts. Normal scene bookkeeping still applies
@@ -127,6 +157,7 @@ to what the reader subsequently does in a scene.
 | `src/renderer/prompts/venusWhisperPrompt.ts` | Separate editorial and unprivileged public-comment requests; bounded JSON schemas. |
 | `src/renderer/stores/venusWhisper.ts` | Publication/comment actions, cancellation and stale-game checks. No component calls the writer directly. |
 | `src/renderer/stores/whisperDelivery.ts`, `src/renderer/mods/venusWhisper.tsx` | Game-lifetime Wednesday delivery and hook registration; cancellation, retry backoff and checkpoint waiting, independent of Bunnyboard. |
+| `src/shared/whisperIdentity.ts`, `src/renderer/stores/whisperIdentity.ts` | Native trust/scene gates, private prompt continuity, structured ledger evidence, transcript validation and boundary persistence. |
 | `src/renderer/stores/whisperObservations.ts` | Settled-slot collector using native timetable lookups; no encounter rerolls, additional writer calls or private-scene access. |
 | `src/renderer/stores/loop/saves.ts` | `writeWhisper` uses the existing serialized autosave lane and current scene checkpoint. Visible state changes only after a successful write. |
 | `src/renderer/views/VenusWhisperModal.tsx` | Archive, article, comment thread, replies, mentions, typing presentation, retry and delete. |
@@ -135,7 +166,7 @@ to what the reader subsequently does in a scene.
 | `src/shared/whisperCarry.ts` | Registers optional semester retention; no Continuing Semesters import is required. |
 | `src/renderer/stores/gameStore.ts`, `src/shared/saveRules.ts` | Default, load, reset, optional-field acceptance and save projection. |
 | `src/main/ipc.ts`, `src/preload/api.d.ts`, `src/preload/index.ts`, `src/web/bridge.ts` | Cancellable `llm:completeWhisper` structured requests on desktop and browser. |
-| `src/renderer/mods/venusWhisper.tsx` | Independent scene/DM prompt hooks supply only public excerpts, including regenerated texts through the common DM hook. |
+| `src/renderer/mods/venusWhisper.tsx` | Public scene/DM excerpts, private scene-only identity continuity, and ledger/settled-slot registration. Regenerated texts share the ordinary public DM hook. |
 | `src/renderer/views/BunnyboardModal.tsx`, `VenusWhisperModal.tsx` | Optional rail tab and embedded newsletter page, independent of character profiles and Updates. |
 | `test/venusWhisper.test.ts` | Identity persistence, repeated term rollover, bounded imports, privacy boundaries, duplicate prevention, failed writes and stale requests. |
 | `test/whisperDelivery.test.ts` | Wednesday scheduling with the phone closed, catch-up, upgrades, read status, save failure, cancellation and safe delayed delivery. |
@@ -143,7 +174,7 @@ to what the reader subsequently does in a scene.
 
 ## Bunnyboard navigation
 
-Whisper and Meanwhile each have their own rail tab and shared outline icon in the page header.
+The Hare & Quill and Meanwhile each have their own rail tab and shared outline icon in the page header.
 Neither occupies the Game menu. The phone owns dismissal and theme; changing tabs unmounts
 the page, cancels its unfinished comment requests and typing timers, and keeps already saved replies.
 Scheduled delivery continues when the phone closes or changes tabs. The unread dot clears
@@ -155,7 +186,7 @@ when both features are off. No SQLite integration is required.
 ## Save format and integration
 
 `GameSave.exVenusWhisper` is an optional version-1 object with `author`, `people`, `issues` and
-`dismissed`, plus optional `observations` and `author.interests`. Saves without the feature
+`dismissed`, plus optional `observations`, `author.interests` and `discovery`. Saves without the feature
 normalize to an empty newsletter; older newsletter saves keep their existing data. It is declared through module
 augmentation, and does not increase the required native save schema. The normalizer copies
 only recognized fields, caps articles at 2,400 characters, comments at 600, discussions at
@@ -169,6 +200,12 @@ the saved author and a stable `witness:<term>:<day>:<time>:<pair>` key. Duplicat
 entries are dropped. Only the public snippet and broad perspective reach generation; the
 local author identifier stays out of that request. Three preference strings are capped at
 120 characters each, and at most one is sent per issue. None of this requires SQLite.
+
+Discovery stores only `{ author, term, day, time }`, matched to the saved author. It is
+separate from `author.known`, which only means the reader knows her ordinary name. Malformed
+or mismatched discoveries are dropped; future stamps cannot grant knowledge early. The
+internal mod ID (`venus-whisper`), tab ID, issue keys and `exVenusWhisper` save field stay
+stable across the new display name, so existing switches and archives continue to work.
 
 New issues add optional `weekly: true` and `read: false` fields without changing the format
 version. Legacy issues lacking those fields count as already read and retain their two-day
@@ -201,7 +238,9 @@ Automated checks cover repeated carryover when the author leaves the roster; sav
 new-game isolation; malformed archive/thread data; private/future/held material exclusion;
 ordinary author comments without privileged prompt fields; repeat publication/reply guards;
 closing, loading, time changes and switching off while a response is outstanding; disk failure;
-and switching off without erasing data. The native save-field inventory includes the new field.
+and switching off without erasing data. `test/whisperIdentity.test.ts` also covers private
+confession eligibility, quoted speaker attribution, stale/replay guards, ledger composition,
+public-context isolation and discovery persistence through save/load/rewind/carryover. The native save-field inventory includes the new field.
 Delivery can finish generating while a scene is busy, then waits to persist into the live
 checkpoint without rolling back its date or money. Loading another save, leaving the game,
 or disabling the mod cancels the job. Advancing the clock alone does not waste its response.

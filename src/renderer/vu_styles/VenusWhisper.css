@@ -43,3 +43,6 @@
 .vu-whisper-unread { color: var(--vu-accent); font: 11px var(--font-mono); text-transform: uppercase; }
 
 .vu-bb-unread-dot { position: absolute; top: 12px; right: 14px; width: 9px; height: 9px; border-radius: 50%; background: var(--vu-accent); }
+
+/* Keep the two-word masthead inside the native rail tile. */
+.vu-bb-tile[aria-label="HARE & QUILL"] .vu-bb-tile-word { max-width: 72px; white-space: normal; text-align: center; line-height: 1.1; }

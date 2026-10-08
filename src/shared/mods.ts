@@ -1,6 +1,6 @@
 import './whisperCarry'
 import type { PlaythroughRecord } from './types'
-import { VENUS_WHISPER_MOD } from './venusWhisper'
+import { VENUS_WHISPER_MOD, WHISPER_TITLE } from './venusWhisper'
 
 /**
  * The community mods built into this copy of the game, and the switches a player turns them on
@@ -71,7 +71,7 @@ export interface ModDef {
  */
 export const MODS: readonly ModDef[] = [
   {
-    id: VENUS_WHISPER_MOD, name: 'The Venus Whisper', author: 'Maestro Leeds', version: '1.0.0',
+    id: VENUS_WHISPER_MOD, name: WHISPER_TITLE, author: 'Maestro Leeds', version: '1.0.0',
     scope: 'anytime', defaultOn: true,
     blurb: 'An anonymous Wednesday gossip column, delivered weekly with unread alerts, public comments, replies and mentions.',
     offNote: 'Keeps the secret columnist and archive, including across continued semesters. Stops new issues, comments and gossip context.'

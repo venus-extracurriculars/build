@@ -214,7 +214,7 @@ These hooks add to the existing API; existing hooks and their arguments are unch
 
 - `bunnyboardPage` registers an independently gated tab with `id`, `word`, `Mark` and `Page`. Disabling its mod unmounts the page and returns the phone to Chats. Native tab IDs cannot be replaced. Other screen integration remains direct.
 
-## Venus Whisper
+## The Hare & Quill
 
 See `docs/mods/venus-whisper.md`. Newsletter publication, recall and its phone page register through the shared hooks. The base game uses semester zero; a continuing-semester build supplies the term index.
 

@@ -6,6 +6,8 @@ import { WhisperIcon } from '../components/BunnyboardFeatureIcons'
 import { modIsOn, useModsStore } from '../stores/modsStore'
 import { registerHooks } from './hooks'
 import { recordWhisperObservations } from '../stores/whisperObservations'
+import { whisperIdentityLines } from '@shared/whisperIdentity'
+import { recordWhisperConfession, whisperConfessionRequest, whisperIdentityContext } from '../stores/whisperIdentity'
 
 function Mark() {
   const unread = useGameStore(s => whisperHasUnread(s.exVenusWhisper, whisperTerm(s), s.date))
@@ -13,14 +15,17 @@ function Mark() {
 }
 let stopDelivery: (() => void) | undefined
 registerHooks(VENUS_WHISPER_MOD, {
-  bunnyboardPage: { id: 'whisper', word: 'WHISPER', Mark, Page: VenusWhisperPage },
+  bunnyboardPage: { id: 'whisper', word: 'HARE & QUILL', Mark, Page: VenusWhisperPage },
   gameEntered: () => { stopDelivery?.(); stopDelivery = startWhisperDelivery() },
-  slotSettled: recordWhisperObservations,
+  slotSettled: ctx => { recordWhisperConfession(ctx); recordWhisperObservations(ctx) },
+  requests: { ledger: whisperConfessionRequest },
   prompts: {
     scene: { lines: ({ cast, state }) => {
       const game = useGameStore.getState()
       if (!game.playthroughId || game.createdScene || game.replaying || game.playthroughId !== state.playthroughId) return []
-      return whisperRecall(game.exVenusWhisper, whisperTerm(game), state.date, cast.map(c => c.charId))
+      const identity = whisperIdentityContext(state, cast)
+      return [...whisperRecall(game.exVenusWhisper, whisperTerm(game), state.date, cast.map(c => c.charId)),
+        ...(identity ? whisperIdentityLines(identity) : [])]
     } },
     dm: { lines: ({ character, state }) => {
       const game = useGameStore.getState()
