@@ -1584,7 +1584,7 @@ export interface PlaythroughRecord {
   /** The settled half of every character's entry, keyed by charId. */
   profiles: Record<string, CharProfile>
   /**
-   * The player's own name for the playthrough, given from Load Game — the one field written
+   * The player's own name for the playthrough, given from Load Game â€” the one field written
    * after New Game. Absent, the playthrough goes by its place in creation order.
    */
   name?: string
