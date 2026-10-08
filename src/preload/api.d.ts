@@ -6,6 +6,7 @@ import type {
 } from '@shared/customBackgrounds'
 import type { PromptEdit } from '@shared/imagePrompt'
 import type { ModSwitches } from '@shared/mods'
+import type { SoundtracksApi } from '@shared/soundtracks'
 import type {
   PhotoEntry,
   PhotoMeta,
@@ -72,6 +73,7 @@ import type {
 export interface VenusUniversityApi {
   /** Which build the renderer is running in; the one thing on here that is not a call. */
   platform: 'desktop' | 'web'
+  soundtracks: SoundtracksApi
   assets: {
     /** Poses that have both a manifest entry and a skeleton PNG. */
     getPoseManifest: () => Promise<Result<PoseManifest>>
