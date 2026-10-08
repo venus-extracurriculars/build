@@ -217,3 +217,7 @@ These hooks add to the existing API; existing hooks and their arguments are unch
 ### Optional semester carryover
 
 A mod may augment `ModCarryFields` and register its own pure adapter with `registerTermCarry` in `shared/modCarry.ts`, imported by its `shared/mods.ts` entry. A semester extension calls `carryModFields` with the outgoing semester, native date offset, and roster, and `carriedModFields` when creating the opening save. These adapters retain saved data even with a switch off; they must not trigger generation. The registry itself requires neither Continuing Semesters nor any feature mod.
+
+## 0.3.1 branch integration
+
+This branch ports text-regeneration onto the shared 0.3.1 core. Its own feature guide is under `docs/mods`. Other feature mods are optional. Shared request, phone-page and retention hooks replace duplicated integration where available. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior.
