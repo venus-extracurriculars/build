@@ -13,7 +13,9 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { AUDIO_FILES, pitchSemitonesOf, VOICE_PITCH_DEFAULT } from '@shared/audio'
 import { isPermanent } from '@shared/errors'
-import { GAME_OVER_SCENES } from '@shared/gameOver'
+import { gameOverSceneOf } from '@shared/gameOver'
+import { readerGraduatesNow } from '@shared/term'
+import { loopState } from '../stores/loop/state'
 import { hashString } from '@shared/hash'
 import { isGameOver } from '@shared/money'
 import { quizAnswers, type QuizAnswer } from '@shared/academics'
@@ -763,8 +765,8 @@ export function GameView(): JSX.Element {
   const classRecords = useGameStore((s) => s.classRecords)
   const occasions = useGameStore((s) => s.occasions)
 
-  /** The playthrough ended badly, and which way (`shared/gameOver.ts`). */
-  const gameOver = activeGameOver ? GAME_OVER_SCENES[activeGameOver] : null
+  /** The playthrough has ended, and which way (`shared/gameOver.ts`). */
+  const gameOver = activeGameOver ? gameOverSceneOf(activeGameOver, readerGraduatesNow()) : null
 
   // A mod's way on from the ending being prepared: the ending's buttons are locked until it is.
   const [preparingWayOn, setPreparingWayOn] = useState(false)
@@ -1011,9 +1013,12 @@ export function GameView(): JSX.Element {
   // The same cache-buster for the speaker's portrait: the player can reframe one mid-playthrough.
   const spriteVersions = useCharacterStore((s) => s.spriteVersion)
   // Which half of the day the layer resolves; the epilogue is always night.
-  const half = isEpilogueNight(date, time, graduationSeen) ? 'night' : slotHalf(time)
+  // A scene a break is running names its own half.
+  const half =
+    loopState.trip?.half ?? (isEpilogueNight(date, time, graduationSeen) ? 'night' : slotHalf(time))
   // The sky over this slot, which picks the background's render and the mark the chromes wear.
-  const slotSky = slotWeather(weather, date, time, graduationSeen)
+  // A break's scene is not under the university's sky on the day the semester ended.
+  const slotSky = loopState.trip ? 'clear' : slotWeather(weather, date, time, graduationSeen)
   const wet = isWet(slotSky)
 
   /**
@@ -2028,6 +2033,7 @@ export function GameView(): JSX.Element {
         <SceneChrome
           theme={half}
           date={date}
+          stamp={loopState.trip?.stamp}
           night={half === 'night'}
           weather={slotSky}
           covered={covered}
