@@ -23,6 +23,17 @@ Turn the mod off in **Mods** to stop extraction, indexing and additional prompt 
 facts and corrections remain, so turning it on again restores access. Mod settings themselves
 still follow the framework's existing storage/backup rules.
 
+## Architecture summary
+
+Story Memory keeps lasting facts and recall corrections in `GameSave.exStoryMemory`.
+An enabled ledger extracts candidates backed by generated scene evidence; the slot boundary
+validates and files them. Pure builders attach a local snapshot, and the platform bridge
+selects bounded recall before stripping that snapshot from the cloud request. The desktop's
+per-playthrough SQLite file is a replaceable index of the active save, never an authority
+over it. The browser and unavailable native indexes use the same save-based selector. The
+dedicated Game-menu editor commits through the serialized save lane before changing visible
+state. Off retains data and stops extraction/recall; native character notes are unchanged.
+
 ## Ownership: the save is authoritative
 
 `GameSave.exStoryMemory` is optional. A base save without it loads with an empty collection;
