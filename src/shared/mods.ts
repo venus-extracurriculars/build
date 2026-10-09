@@ -69,7 +69,7 @@ export interface ModDef {
  * A mod adds itself here (see MODDING.md).
  */
 export const MODS: readonly ModDef[] = [{
-  id: 'breakthrough', name: 'Breakthrough', author: 'maestromods', version: '1.0.0',
+  id: 'breakthrough', name: 'Breakthrough', author: 'Maestro Leeds', version: '1.0.0',
   scope: 'anytime', defaultOn: true,
   blurb: 'Build spirit with each character and spend a full bar for a strong, grounded narrative opportunity.',
   offNote: 'Keeps saved spirit and outcomes. Stops earning, activation, and extra continuity prompts.'
