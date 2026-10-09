@@ -12,6 +12,7 @@ import {
 import { setSeniorsGraduate } from '@shared/term'
 import type { PlaythroughRecord } from '@shared/types'
 import { setHookRules } from '../mods/hooks'
+import { loopState } from './loop/state'
 import { useUiStore } from './uiStore'
 
 interface ModsStoreState {
@@ -80,9 +81,11 @@ function tellSharedRules(switches: ModSwitches): void {
 }
 tellSharedRules(useModsStore.getState().switches)
 useModsStore.subscribe((state) => tellSharedRules(state.switches))
-// The game's hooks ask only the mods that are on, in the order the list names them.
+// The game's hooks ask only the mods that are on, in the order the list names them. Inside a
+// game, a mod scoped to the playthrough is on as the game's record says, not as the switch now
+// stands; on the menus, with no game entered, the switches decide.
 setHookRules({
-  isOn: (modId) => modOn(useModsStore.getState().switches, modId),
+  isOn: (modId) => modOn(useModsStore.getState().switches, modId, loopState.record),
   order: (modId) => MODS.findIndex((mod) => mod.id === modId)
 })
 
