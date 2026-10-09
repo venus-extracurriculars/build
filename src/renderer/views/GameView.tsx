@@ -172,7 +172,8 @@ import { ClassScheduleModal } from './ClassScheduleModal'
 import { EditPromptModal } from './EditPromptModal'
 import { FeedbackModal } from './FeedbackModal'
 import { GameMenuModal } from './GameMenuModal'
-import { endingChoice, type WayOn } from '../mods/hooks'
+import { endingChoice, prepareWayOn, type WayOn } from '../mods/hooks'
+import { currentRun, runStale } from '../stores/loop/state'
 import { ModsModal } from './ModsModal'
 import { LoadGameModal } from './LoadGameModal'
 import { MilestoneModal } from './MilestoneModal'
@@ -761,11 +762,16 @@ export function GameView(): JSX.Element {
   /** The playthrough has ended, and which way (`shared/gameOver.ts`). */
   const gameOver = activeGameOver ? gameOverSceneOf(activeGameOver, readerGraduatesNow()) : null
 
-  /**
-   * Writes the last decision point back and leaves, under a cover. The way out is a crossing like
-   * the three ways in, keeping the hour at both ends — no polarity turn — so the menu is handed
-   * that hour rather than reading the clock, and a night scene closes to a night menu.
-   */
+  // A mod's way on from the ending being prepared: the ending's buttons are locked until it is.
+  const [preparingWayOn, setPreparingWayOn] = useState(false)
+  const viewMounted = useRef(true)
+  useEffect(() => {
+    viewMounted.current = true
+    return () => {
+      viewMounted.current = false
+    }
+  }, [])
+
   /** What a mod offers from the ending in place of the menu, asked while the ending is up. */
   const endingOffer =
     activeGameOver && !useGameStore.getState().createdScene && !useGameStore.getState().replaying
@@ -778,8 +784,16 @@ export function GameView(): JSX.Element {
    */
   function toModChoice(choice: WayOn): void {
     const leftIn = half
+    const run = currentRun()
+    setPreparingWayOn(true)
     void (async () => {
-      const enter = await choice.prepare()
+      let enter: Awaited<ReturnType<typeof prepareWayOn>> = null
+      try {
+        // An answer that lands after the game was left, or the view unmounted, opens nothing.
+        enter = await prepareWayOn(choice, () => viewMounted.current && !runStale(run))
+      } finally {
+        if (viewMounted.current) setPreparingWayOn(false)
+      }
       if (!enter) return
       cancelCrossing()
       beginCrossing(undefined, menuCrossing(leftIn))
@@ -794,6 +808,11 @@ export function GameView(): JSX.Element {
     })()
   }
 
+  /**
+   * Writes the last decision point back and leaves, under a cover. The way out is a crossing like
+   * the three ways in, keeping the hour at both ends — no polarity turn — so the menu is handed
+   * that hour rather than reading the clock, and a night scene closes to a night menu.
+   */
   function toMenu(): void {
     // A created scene's way out is the creator it came from, by its save question.
     if (useGameStore.getState().createdScene) {
@@ -2542,6 +2561,7 @@ export function GameView(): JSX.Element {
             id="game-over"
             theme={modalTheme}
             lockOut
+            busy={preparingWayOn}
             title={gameOver.title}
             message={gameOver.message}
             extraText={activeGameOver === 'gameComplete' ? 'Download ending CG' : undefined}
