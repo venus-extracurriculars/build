@@ -69,7 +69,7 @@ export interface ModDef {
  * A mod adds itself here (see MODDING.md).
  */
 export const MODS: readonly ModDef[] = [{
-  id: 'story-memory', name: 'Story Memory', author: 'maestromods', version: '1.0.0',
+  id: 'story-memory', name: 'Story Memory', author: 'Maestro Leeds', version: '1.0.0',
   scope: 'anytime', defaultOn: true,
   blurb: 'Remember lasting story developments and find relevant past encounters with a local SQLite index.',
   offNote: 'Keeps facts and corrections in saves. Stops extraction and extra recall. Native character notes stay available.'
