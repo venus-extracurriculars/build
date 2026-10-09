@@ -1,3 +1,4 @@
+import { carryModFiles } from '@shared/modCarry'
 import { useEffect, useMemo, useRef, useState, type JSX } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { bytesToBase64 } from '@shared/base64'
@@ -899,6 +900,8 @@ export function NewGameView(): JSX.Element {
         const copied = await window.api.saves.writeProfilePicture(to, bytesToBase64(picture.data))
         if (!copied.ok) console.warn('[new game] the profile picture was not carried over')
       }
+      // What other mods keep in the old folder follows the same way, each mod copying its own.
+      await carryModFiles({ from: term.continuedFrom, to })
     }
 
     // Under the cover: the game boots and opens its first slot behind the splash announcing it,
