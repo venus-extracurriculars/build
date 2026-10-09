@@ -3,3 +3,4 @@
  * here, in the order `MODS` lists it: an import of the file where it calls `registerHooks`.
  */
 import './plotTwist'
+import './photoFeature'
