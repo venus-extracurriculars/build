@@ -3,12 +3,6 @@
 Plot Twist is an independent, default-on `anytime` mod (`plot-twist`). Its only dependency is
 the shared mod framework. It does not need Story Memory, SQLite, or another community feature.
 
-## 0.3.1 branch integration
-
-This branch ports Plot Twist onto the shared 0.3.1 core. Other feature mods are optional.
-Shared hooks replace duplicated integration where available. Native character notes,
-scene-creator saves and calendar replays retain their 0.3.1 behavior.
-
 ## Player behavior
 
 Turn it on in **Mods**, then open **Game menu → Plot Twist** during a playthrough. Write one
@@ -92,3 +86,10 @@ Run `npm run typecheck`, `npm test`, `npm run build`, and `npm run build:web`. C
 and menu in both themes, with a long twist, during an unsafe save point, after a failed write,
 and after turning the switch off and back on. Check that queued reply lines survive reload.
 Use synthetic saves; no personal save data is needed for any of these checks.
+
+## Registration on core 0.3.1
+
+- `src/shared/modEntries/plot-twist.ts` supplies its existing mod definition and carry registration.
+- `src/renderer/modEntries/plot-twist.ts` loads the hooks automatically at boot.
+
+The stable IDs, defaults, dependencies, save fields and gameplay behavior are unchanged. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior. Merge framework updates from `core` into this mod branch; resolve conflicts with `main` on a separate `integrate/plot-twist` branch.
