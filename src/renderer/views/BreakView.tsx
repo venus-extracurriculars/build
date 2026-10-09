@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, type JSX } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 
 import { appError } from '@shared/errors'
-import { CONTINUING_SEMESTERS } from '@shared/mods'
+import { CONTINUING_SEMESTERS } from '@shared/continuingSemestersMod'
 import { seasonOf, seasonWords, termIndexOf, type Season } from '@shared/term'
 import {
   breakClock,

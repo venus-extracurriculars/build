@@ -1,9 +1,9 @@
+import { CONTINUING_SEMESTERS } from '../src/shared/continuingSemestersMod'
 import { describe, expect, it } from 'vitest'
 import {
   BUILD,
   buildLine,
   cleanSwitches,
-  CONTINUING_SEMESTERS,
   missingRequirement,
   modNames,
   modOn,

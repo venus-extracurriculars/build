@@ -4,15 +4,19 @@ This branch is a proposal for how the community mods share one build: every mod'
 always in the game, and a switch decides whether it acts. Players turn mods on and off from
 **Mods** on the main menu; nothing is chosen at install time.
 
-The frame alone, with no mods, is the `core` branch, on the game as Venus Dev released it
-(0.3.1). This branch, `mod/continuing-semesters`, adds Continuing Semesters on top of it.
+It carries no mods yet. This is the frame alone, on the game as Venus Dev released it (0.3.1),
+so any mod can start from it. The `extracurriculars-base` branch adds Continuing Semesters on
+top as a worked example.
 
 ## The three things a mod does
 
-**1. Register** in `MODS`, in `src/shared/mods.ts`:
+**1. Register** by adding one file, `src/shared/modEntries/<id>.ts`, named for the mod's id,
+whose default export is its entry:
 
 ```ts
-{
+import type { ModDef } from '../mods'
+
+const mod: ModDef = {
   id: 'city-life-locations',        // written to disk: never changes once shipped
   name: 'City Life locations',
   author: 'Maestro Leeds',
@@ -23,9 +27,13 @@ The frame alone, with no mods, is the `core` branch, on the game as Venus Dev re
   requires: [],                     // ids of mods this one cannot act without
   options: [{ id: 'some-option', label: '…', hint: '…', default: true }]
 }
+export default mod
 ```
 
-That is all the Mods screen, the main menu's count and the log need.
+That is all the Mods screen, the main menu's count and the log need. Nothing else names the mod:
+`MODS` in `src/shared/mods.ts` is built from whatever files that folder holds, sorted by id, so
+two mods added side by side never edit the same line. A test holds each file's name to its id.
+The entry may import the mod's own modules for what they set up (a `registerTermCarry`, say).
 
 **2. Ask before acting**, wherever the mod would do something:
 
@@ -88,28 +96,20 @@ optionGroups: [{ id: 'loader', label: 'Loading animation', hint: 'The animation 
 | File | What it is |
 | --- | --- |
 | `src/shared/mods.ts` | The list, the switches' shape and every rule above. No dependencies. |
+| `src/shared/modEntries/` | One file per mod, named for its id: its entry. |
 | `src/main/services/modsService.ts` | Reads and writes `data/mods.json`. |
 | `src/renderer/stores/modsStore.ts` | The switches in the renderer, and the hooks. |
 | `src/renderer/views/ModsModal.tsx` | The Mods screen. |
 | `src/renderer/mods/hooks.ts` | The hook points (below). |
-| `src/renderer/mods/index.ts` | Registers every mod's hooks at boot. |
+| `src/renderer/modEntries/` | One file per mod with hooks, named for its id: its `registerHooks`. |
+| `src/renderer/mods/index.ts` | Loads every file in `modEntries/` at boot. |
 | `test/mods.test.ts` | The rules, tested against a list with every shape of mod. |
 
-## How Continuing Semesters uses it
+## A rule in shared code
 
-Its entry in `MODS` is `CONTINUING_SEMESTERS_MOD` from `src/shared/continuingSemestersMod.ts`,
-so its name, text and options live with the mod and `mods.ts` only lists it. That is the
-convention: each mod keeps its own entry in a file of its own.
-
-It is `anytime`. Off, the ending screen and Load Game stop offering the next semester (two
-checks: `GameView.tsx`, `LoadGameModal.tsx`). A semester or a break already started keeps
-working, because the code is still there. It has three options: one skips the break between
-semesters as it opens (`BreakView.tsx`), one keeps seniors from graduating, and one turns the
-Load Game offer off alone.
-
-The seniors option shows how a rule in shared code reads a switch without holding any: the
-rule keeps a flag (`setSeniorsGraduate` in `shared/term.ts`), and `modsStore.ts` sets it at
-boot and whenever a switch moves.
+Shared code holds no switches. Where a rule there has to follow one, give the rule a flag with
+a setter, and set it from `modsStore.ts` at boot and whenever a switch moves
+(`useModsStore.subscribe`). Continuing Semesters does this for its seniors option.
 
 ## Hook points
 
@@ -134,15 +134,16 @@ registerHooks(PHOTO_FEATURE, {
 })
 ```
 
-and one line in `src/renderer/mods/index.ts` (`import './photoFeature'`), which `App.tsx`
-imports at boot.
+in a file of its own, `src/renderer/modEntries/photo-feature.ts`, named for the mod's id.
+`src/renderer/mods/index.ts`, which `App.tsx` imports, loads every file there at boot; nothing
+else names it.
 
 ### The rules
 
 - **Only mods that are on are asked.** The mods store hands the hooks its switches
   (`setHookRules`), so a mod that is off is never called and the game runs as it would without
   it. A mod rarely needs to check its own switch at a hook.
-- **Mods are asked in the order `MODS` lists them**, whatever order they registered in.
+- **Mods are asked in the order `MODS` lists them**, by id, whatever order they registered in.
 - **Adding to the game, not replacing it.** Lines, fields and events from every mod are all
   used. Where only one answer can win (likes), the first mod that answers decides and the game's
   own roll is the fallback.
@@ -234,8 +235,4 @@ These hooks add to the existing API; existing hooks and their arguments are unch
 
 ### Optional semester carryover
 
-A mod may augment `ModCarryFields` and register its own pure adapter with `registerTermCarry` in `shared/modCarry.ts`, imported by its `shared/mods.ts` entry. A semester extension calls `carryModFields` with the outgoing semester, native date offset, and roster, and `carriedModFields` when creating the opening save. These adapters retain saved data even with a switch off; they must not trigger generation. The registry itself requires neither Continuing Semesters nor any feature mod.
-
-## 0.3.1 branch integration
-
-This branch ports semester-carryover onto the shared 0.3.1 core. Its own feature guide is under `docs/mods`. Other feature mods are optional except Continuing Semesters, which owns the new-semester flow. Shared request, phone-page and retention hooks replace duplicated integration where available. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior.
+A mod may augment `ModCarryFields` and register its own pure adapter with `registerTermCarry` in `shared/modCarry.ts`, imported by its entry in `shared/modEntries/`. A semester extension calls `carryModFields` with the outgoing semester, native date offset, and roster, and `carriedModFields` when creating the opening save. These adapters retain saved data even with a switch off; they must not trigger generation. The registry itself requires neither Continuing Semesters nor any feature mod.

@@ -252,7 +252,8 @@ export function carriedOpening(draft: SaveDraft, carry: TermCarry): SaveDraft {
  * Every field of a save, and what a continued semester does with it: `carried` is taken over
  * from the semester before, `fresh` opens as New Game composes it. Nothing reads the values;
  * the table exists so that a field added to the save fails to compile here until somebody has
- * decided which it is.
+ * decided which it is. A field another mod registers in `modCarry.ts` is left out: that mod
+ * decides what its own field carries.
  */
 const _SAVE_FIELDS: Record<Exclude<keyof SaveDraft, keyof ModCarryFields>, 'carried' | 'fresh'> = {
   schemaVersion: 'fresh',

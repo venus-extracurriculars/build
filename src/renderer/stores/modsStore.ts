@@ -1,6 +1,6 @@
 import { create } from 'zustand'
+import { CONTINUING_SEMESTERS } from '@shared/continuingSemestersMod'
 import {
-  CONTINUING_SEMESTERS,
   modOn,
   MODS,
   NO_SWITCHES,
