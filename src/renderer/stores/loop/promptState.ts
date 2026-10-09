@@ -1,3 +1,4 @@
+import { currentStorySnapshot } from '../storyMemory'
 import { SENIOR_YEAR, slotFullLabel } from '@shared/classes'
 import { activePlotTwist, PLOT_TWIST_MOD } from '@shared/plotTwists'
 import { modIsOn } from '../modsStore'
@@ -314,6 +315,7 @@ export function promptState(): PromptState {
     : null
 
   return {
+    storyMemory: currentStorySnapshot(),
     playthroughId: game.playthroughId ?? 'unsaved',
     exPlotTwist: activePlotTwist(game.exPlotTwist, modIsOn(PLOT_TWIST_MOD)),
     date: game.date,
