@@ -1529,6 +1529,7 @@ describe('toGameSave', () => {
       'exBreakthrough',
       'exNpcWatch',
       'exPlotTwist',
+      'exVenusWhisper',
       'expelled',
       'farewellsDone',
       'feedExtras',

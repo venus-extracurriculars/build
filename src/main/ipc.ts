@@ -1,3 +1,4 @@
+import type { WhisperDraft, WhisperReply } from '@shared/venusWhisper'
 import type { MeanwhileResponse } from '@shared/meanwhile'
 import {
   app,
@@ -249,6 +250,10 @@ async function enqueueComfyJob<T>(
 
 /** Registers every IPC channel; keep this, preload and the d.ts in sync. */
 export function registerIpcHandlers(): void {
+  handle('llm:completeWhisper', (_event, request: StructuredRequest, group: string) =>
+    runAbortable(group, signal => completeStructured<WhisperDraft | WhisperReply>(request, signal))
+  )
+
   // The photo feature's three channels, which keep their own module and their own queue.
   registerPhotoIpc(handle)
   // The key the cloud calls need never leaves main; the transport reads it through this port.

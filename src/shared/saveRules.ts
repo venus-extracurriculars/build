@@ -42,6 +42,7 @@ const SAVE_REQUIRED: Record<
     GameSave,
     | 'playthroughId'
     | 'saveId'
+    | 'exVenusWhisper'
     | 'npcFriendships'
     | 'exNpcWatch'
     | 'slotRumor'

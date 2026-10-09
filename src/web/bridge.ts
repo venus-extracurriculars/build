@@ -1,3 +1,4 @@
+import type { WhisperDraft, WhisperReply } from '@shared/venusWhisper'
 import type { MeanwhileResponse } from '@shared/meanwhile'
 import type { ClassifierPromptRequest, ClassifierVerdict } from '@shared/classifier'
 import { base64ToBytes } from '@shared/base64'
@@ -260,6 +261,8 @@ export function buildApi(): VenusUniversityApi {
           runAbortable(group, signal => completeStructured<MeanwhileResponse>(request, signal))
         ),
       // Several texting calls can stream at once, so every delta carries its `group`.
+      completeWhisper: (request, group) => result('write the newsletter', () =>
+        runAbortable(group, signal => completeStructured<WhisperDraft | WhisperReply>(request, signal))),
       completeTexting: (request, group) =>
         result('write the text', () =>
           runAbortable(group, (signal) =>
