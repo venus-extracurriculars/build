@@ -2,6 +2,8 @@ import { appError, toAppError } from '@shared/errors'
 import { PLOT_TWIST_MOD, validatePlotTwist } from '@shared/plotTwists'
 import { normalizeStoryMemory, type StoryMemory } from '@shared/storyMemory'
 import { modIsOn } from '../modsStore'
+import { withMeanwhile, type MeanwhileScene } from '@shared/meanwhile'
+import type { Conversation } from '@shared/types'
 import { gameOverReasonOf, type GameOverReason } from '@shared/gameOver'
 import { isGameOver, spentOf } from '@shared/money'
 import { replayIdOf, type SlotReplay } from '@shared/replays'
@@ -62,6 +64,32 @@ function queueWrite(write: () => Promise<void>): Promise<void> {
 /** True while a save write is still queued or in flight. */
 export function writesPending(): boolean {
   return pending > 0
+}
+
+/** Persist a replacement before exposing it to scene prompts, in the native save write lane. */
+export async function persistRegeneratedConversation(
+  charId: string, conversation: Conversation, isCurrent: () => boolean
+): Promise<Result<null>> {
+  let outcome: Result<null> = { ok: false, error: appError('TEXT_REGEN_STALE', 'The game changed. Your original reply was kept.') }
+  try {
+    await queueWrite(async () => {
+      if (!isCurrent()) return
+      const game = useGameStore.getState()
+      if (!game.playthroughId || sceneActiveOf(game)) return
+      const next = { ...conversation, unread: game.bunnyboard.conversations[charId].unread }
+      const draft = { ...game.toGameSave(), scene: null,
+        bunnyboard: { ...game.bunnyboard, conversations: { ...game.bunnyboard.conversations, [charId]: next } }
+      }
+      const result = await window.api.saves.autosave(game.playthroughId, draft)
+      if (!isCurrent()) return
+      if (!result.ok) { outcome = result; return }
+      useGameStore.setState(s => ({ bunnyboard: { ...s.bunnyboard, conversations: {
+        ...s.bunnyboard.conversations, [charId]: { ...next, unread: s.bunnyboard.conversations[charId].unread }
+      } } }))
+      outcome = { ok: true, data: null }
+    })
+  } catch (error) { outcome = { ok: false, error: toAppError(error, 'SAVE_WRITE_FAILED') } }
+  return outcome
 }
 
 /** Resolves once every write queued so far, and any queued behind them meanwhile, has settled. */
@@ -484,4 +512,22 @@ export async function writeStoryMemory(next: StoryMemory, expected: { playthroug
     })
     if (!written) throw Error('The playthrough changed. Reopen Story Memory to edit this save.')
   } finally { manualWriting = false }
+}
+
+/** Cache a spectator scene without ever inserting it into canonical history or memories. */
+export async function persistMeanwhileScene(scene: MeanwhileScene, isCurrent: () => boolean): Promise<void> {
+  let completed = false
+  await queueWrite(async () => {
+    if (!isCurrent() || manualSaveOffer() !== 'open') return
+    const game = useGameStore.getState()
+    const draft = manualSaveDraft() ?? (!sceneActiveOf(game) ? { ...game.toGameSave(), scene: null } : null)
+    if (!draft || !game.playthroughId) throw Error('No safe save point is available yet.')
+    const next = withMeanwhile(game.exNpcWatch,scene)
+    const result = await window.api.saves.autosave(game.playthroughId,{ ...draft, exNpcWatch: next })
+    if (!result.ok) throw Error(result.error.message)
+    if (!isCurrent()) return
+    useGameStore.setState({ exNpcWatch: next })
+    completed = true
+  })
+  if (!completed) throw Error('The game changed. Reopen Meanwhile to view saved conversations.')
 }

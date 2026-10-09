@@ -1,5 +1,6 @@
 import { prepareStoryRequest, inspectStoryMemory } from './services/storyMemoryService'
 import type { StoryRecallRequest } from '@shared/storyMemory'
+import type { MeanwhileResponse } from '@shared/meanwhile'
 import {
   app,
   BrowserWindow,
@@ -111,6 +112,7 @@ import {
   saveExportFile
 } from './services/characterTransferService'
 import { exportBackup, importBackup } from './services/backupService'
+import { exportLocalPhotos, importLocalPhotos } from './localPhotoBackup'
 import {
   addCustomBackground,
   listCustomBackgrounds,
@@ -151,6 +153,7 @@ import {
   runAbortable,
   setProgressSink
 } from '@shared/jobQueue'
+import { registerPhotoIpc } from './photoIpc'
 import { copyEndingArtTo, generateEndingArt, readEndingArt } from './services/endingArtService'
 import {
   deleteProfilePicture,
@@ -247,6 +250,8 @@ async function enqueueComfyJob<T>(
 
 /** Registers every IPC channel; keep this, preload and the d.ts in sync. */
 export function registerIpcHandlers(): void {
+  // The photo feature's three channels, which keep their own module and their own queue.
+  registerPhotoIpc(handle)
   // The key the cloud calls need never leaves main; the transport reads it through this port.
   useSettingsSource(getSettings)
   // Fixed channel: jobs can outlive their original `invoke`, so broadcast progress.
@@ -356,6 +361,10 @@ export function registerIpcHandlers(): void {
   // The epilogue's status updates: one call for the whole week after graduation.
   handle('llm:completeEndingPosts', (_event, request: StructuredRequest, group: string) =>
     runAbortable(group, (signal) => completeStructured<EndingPostsResponse>(request, signal))
+  )
+
+  handle('llm:completeMeanwhile', (_event, request: StructuredRequest, group: string) =>
+    runAbortable(group, signal => completeStructured<MeanwhileResponse>(request, signal))
   )
 
   // A Bunnyboard texting turn, streamed. Several can stream at once, so every
@@ -762,6 +771,7 @@ export function registerIpcHandlers(): void {
     if (canceled || filePath === undefined || filePath === '') return null
 
     await exportBackup(filePath)
+    await exportLocalPhotos(filePath)
     return filePath
   })
   // A backup read back over everything here; a dismissed dialog resolves `false`.
@@ -774,6 +784,7 @@ export function registerIpcHandlers(): void {
     if (canceled || filePaths.length === 0) return false
 
     await importBackup(filePaths[0])
+    await importLocalPhotos(filePaths[0])
     return true
   })
 

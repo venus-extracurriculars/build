@@ -1,4 +1,5 @@
 import { normalizeStoryMemory, type StoryMemory } from '@shared/storyMemory'
+import { normalizeMeanwhile, type MeanwhileStore } from '@shared/meanwhile'
 import { create } from 'zustand'
 import { savedPlotTwist } from '@shared/plotTwists'
 import {
@@ -244,6 +245,8 @@ interface GameStoreState {
    * opened from is held in memory; `over` once its last line has turned. Null in a game.
    */
   replaying: { over?: true } | null
+  /** Immutable mod choices read from the playthrough record, never duplicated into slot saves. */
+  playthroughMods: readonly string[]
   date: number
   time: TimeSlot
   /** charIds loaded into the current save. */
@@ -334,6 +337,7 @@ interface GameStoreState {
   addedClasses: Record<string, AddedClass>
   /** What the roster thinks of each other, keyed by `pairKeyOf`. Persisted. */
   npcRelationships: NpcRelationshipMap
+  exNpcWatch: MeanwhileStore
   /** The first time each pair of them became friends, oldest first. Persisted. */
   npcFriendships: NpcFriendship[]
   /** Who is with whom this slot, stamped with the slot it describes. Persisted. */
@@ -1346,6 +1350,7 @@ const initialState = {
   playthroughId: null,
   createdScene: null as CreatedScene | null,
   replaying: null as { over?: true } | null,
+  playthroughMods: [] as readonly string[],
   date: 0,
   time: 0 as TimeSlot,
   chars: [] as string[],
@@ -1390,6 +1395,7 @@ const initialState = {
   droppedClasses: {} as Record<string, DroppedClass>,
   addedClasses: {} as Record<string, AddedClass>,
   npcRelationships: {} as NpcRelationshipMap,
+  exNpcWatch: normalizeMeanwhile(null),
   npcFriendships: [] as NpcFriendship[],
   npcOverlay: null as NpcSlotOverlay | null,
   slotRumor: null as SlotRumor | null,
@@ -1467,6 +1473,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       loads: get().loads + 1,
       termIndex: termIndexOf(record),
       playthroughId: save.playthroughId,
+      playthroughMods: record.mods ?? [],
       date: save.date,
       time: save.time,
       chars: record.chars,
@@ -1520,6 +1527,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       droppedClasses: save.droppedClasses,
       addedClasses: save.addedClasses,
       npcRelationships: save.npcRelationships,
+      exNpcWatch: normalizeMeanwhile(save.exNpcWatch),
       npcFriendships: save.npcFriendships ?? [],
       npcOverlay: save.npcOverlay,
       slotRumor: save.slotRumor ?? null,
@@ -2844,6 +2852,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       droppedClasses: state.droppedClasses,
       addedClasses: state.addedClasses,
       npcRelationships: state.npcRelationships,
+      exNpcWatch: normalizeMeanwhile(state.exNpcWatch),
       npcFriendships: state.npcFriendships,
       occasionsDeclined: state.occasionsDeclined,
       npcOverlay: state.npcOverlay,

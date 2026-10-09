@@ -1,4 +1,5 @@
 import { currentStorySnapshot } from '../storyMemory'
+import { cityLifeBackgrounds } from '@shared/cityLife'
 import { slotFullLabel } from '@shared/classes'
 import { activePlotTwist, PLOT_TWIST_MOD } from '@shared/plotTwists'
 import { graduatesNow, readerGraduatesNow } from '@shared/term'
@@ -353,9 +354,11 @@ export function promptState(): PromptState {
     exPlotTwist: activePlotTwist(game.exPlotTwist, modIsOn(PLOT_TWIST_MOD)),
     date: game.date,
     time: game.time,
-    backgrounds: loopState.trip
-      ? offCampus(useAssetStore.getState().backgrounds)
-      : useAssetStore.getState().backgrounds,
+    backgrounds: cityLifeBackgrounds(
+      loopState.trip
+        ? offCampus(useAssetStore.getState().backgrounds)
+        : useAssetStore.getState().backgrounds
+    ),
     charInfo: game.charInfo,
     npcRelationships: game.npcRelationships,
     // Everyone the scene is not carrying — `game.cast`, not the departed-filtered list, or a

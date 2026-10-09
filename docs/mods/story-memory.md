@@ -177,21 +177,12 @@ one side wholesale. This PR does not bundle or require the other features.
 - **Meanwhile:** its dramatized NPC-only conversations are deliberately not indexed as things
   the reader witnessed or as verified memories for the participants. Keep that optional cache
   separate. A generated watch scene must never run this scene-ledger extraction path.
-- **Text Regeneration:** normal texting receives `storyMemory: currentStorySnapshot()` through
-  `TextingPromptState`. When merging that PR's *second* `buildTextingPrompt` call for a retry,
-  add the same optional field to the state object there:
-
-  ```ts
-  import { currentStorySnapshot } from './storyMemory'
-  // In the state argument to buildTextingPrompt:
-  storyMemory: currentStorySnapshot(),
-  ```
-
-  Do not index discarded messages or the superseded thread summary. This port indexes history
-  and durable facts, **not raw text bubbles**; the Text Regeneration port owns the replacement
-  conversation. If Breakthrough is merged too, pass its documented optional state in that
-  second call as well. No bridge changes are needed: all `completeTexting` requests already
-  pass through this mod's platform preparation wrapper.
+- **Text Regeneration:** normal and regenerated replies use the same `buildTextingPrompt`
+  builder and its enabled DM request hooks. The Story Memory adapter uses a supplied
+  `storyMemory` snapshot or reads `currentStorySnapshot()` when it is absent. The regeneration
+  call needs no separate memory-specific field. This port indexes history and durable facts,
+  not raw text bubbles or the rejected thread summary; Text Regeneration owns the replacement
+  conversation. Both requests pass through the platform's story preparation wrapper.
 
 ## Code map
 
@@ -211,7 +202,8 @@ one side wholesale. This PR does not bundle or require the other features.
 | `src/renderer/views/StoryMemoryModal.tsx` and `vu_styles/StoryMemory.css` | Dedicated themed editor, sources, hide/restore and native button motion |
 | `src/shared/types.ts`, `saveRules.ts`, `renderer/stores/gameStore.ts` | Optional state load/save, request and ledger types |
 | `src/main/ipc.ts`, `preload/api.d.ts`, `preload/index.ts`, `web/bridge.ts` | Typed inspection API and provider-boundary preparation |
-| `src/shared/mods.ts`, `GameMenuModal.tsx`, `GameView.tsx` | Independent switch and dedicated menu entry |
+| `src/shared/modEntries/story-memory.ts`, `GameMenuModal.tsx`, `GameView.tsx` | Independent switch, carry registration and dedicated menu entry |
+| `src/renderer/modEntries/story-memory.ts` | Automatically discovered request and settled-slot hooks |
 | `test/storyMemory.test.ts`, `test/storyMemoryService.test.ts` | Save integrity, real SQLite behavior, isolation, fallback, failure and switch tests |
 
 ## Verification and limits
