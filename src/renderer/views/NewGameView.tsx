@@ -10,6 +10,7 @@ import { rollSemesterWeather } from '@shared/weather'
 import { initialFlags } from '@shared/relationship'
 import { npcFriendsOf, rollInitialNpcRelationships } from '@shared/npcRelationships'
 import { rollPostLikes } from '@shared/feed'
+import { postLikes } from '../mods/hooks'
 import { andList } from '@shared/sentences'
 import { shuffle } from '@shared/shuffle'
 import {
@@ -60,6 +61,8 @@ import {
 } from '../stores/crossingStore'
 import { slotStampOf } from '../stores/slotCrossing'
 import { lockedIdsOf, spriteUrl, useCharacterStore, visibleOrderOf } from '../stores/characterStore'
+import { playthroughMods } from '@shared/mods'
+import { useModsStore } from '../stores/modsStore'
 import { useSaveStore } from '../stores/saveStore'
 import { useUiStore } from '../stores/uiStore'
 import { CharacterHeightModal } from './CharacterHeightModal'
@@ -111,7 +114,11 @@ const WINTER_FIRST_DAY = -49
 const WINTER_LAST_DAY = -6
 
 /** Files a character's winter posts on actual days. */
-function dealWinterPosts(texts: readonly string[], friends: number): SocialPost[] {
+function dealWinterPosts(
+  texts: readonly string[],
+  friends: number,
+  author: { character: Character; playthroughId: string | null }
+): SocialPost[] {
   const slots = new Set<number>()
   // Distinct slots by redraw: the window holds 88 and nobody posts more than three times.
   while (slots.size < texts.length) {
@@ -127,7 +134,10 @@ function dealWinterPosts(texts: readonly string[], friends: number): SocialPost[
       date: Math.floor(slot / 2),
       // `%` keeps the dividend's sign and every slot is negative, so the remainder is floored into 0/1.
       time: (((slot % 2) + 2) % 2) as TimeSlot,
-      likes: rollPostLikes(friends)
+      likes: postLikes(
+        { kind: 'winter', author: author.character.charId, friends, ...author },
+        () => rollPostLikes(friends)
+      )
     }))
 }
 
@@ -659,7 +669,10 @@ export function NewGameView(): JSX.Element {
           c.charId,
           roster.map((entry) => entry.charId)
         ).length
-        return [c.charId, dealWinterPosts(assignment?.winterPosts ?? [], friends)] as const
+        return [
+          c.charId,
+          dealWinterPosts(assignment?.winterPosts ?? [], friends, { character: c, playthroughId })
+        ] as const
       })
     )
 
@@ -686,8 +699,11 @@ export function NewGameView(): JSX.Element {
       })
     )
 
+    const startingMods = playthroughMods(useModsStore.getState().switches)
     const written = await useSaveStore.getState().createPlaythrough(
       {
+        // The per-playthrough mods this one starts with; none in a build that has none.
+        ...(startingMods.length > 0 ? { mods: startingMods } : {}),
         chars: roster.map((c) => c.charId),
         playerFirstName: playerName.first,
         playerLastName: playerName.last,

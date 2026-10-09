@@ -31,8 +31,15 @@ export interface GameMenuModalProps {
   onLoadGame?: () => void
   onFeedback: () => void
   onSettings: () => void
-  /** Opens the list of the keys the app answers, in the menu's place. */
-  onControls: () => void
+  /** Opens the community mods' switches in the menu's place. Absent drops the entry. */
+  onMods?: () => void
+  /** A reply is on its way: a rule is not changed under a turn already being written. */
+  modsWaiting?: boolean
+  /**
+   * Opens the list of the keys the app answers, in the menu's place. Absent on a screen those
+   * keys do not reach, which drops the entry.
+   */
+  onControls?: () => void
   onLeave: () => void
   /** What the leave entry says, where it leads somewhere other than the main menu. */
   leaveLabel?: string
@@ -52,6 +59,8 @@ export function GameMenuModal({
   onLoadGame,
   onFeedback,
   onSettings,
+  onMods,
+  modsWaiting = false,
   onControls,
   onLeave,
   leaveLabel,
@@ -122,16 +131,33 @@ export function GameMenuModal({
           >
             Settings
           </motion.button>
-          <motion.button
-            id="game-menu-controls"
-            className="vu-btn vu-btn--outline vu-paper"
-            type="button"
-            variants={dealtItem}
-            {...gestures(false, lift, press)}
-            onClick={onControls}
-          >
-            Controls
-          </motion.button>
+          {onMods && (
+            <DeadNote note={modsWaiting ? 'Waiting for LLM response' : null} align="center">
+              <motion.button
+                id="game-menu-mods"
+                className="vu-btn vu-btn--outline vu-paper"
+                type="button"
+                variants={modsWaiting ? dealtItemDead : dealtItem}
+                {...gestures(modsWaiting, lift, press)}
+                disabled={modsWaiting}
+                onClick={onMods}
+              >
+                Mods
+              </motion.button>
+            </DeadNote>
+          )}
+          {onControls && (
+            <motion.button
+              id="game-menu-controls"
+              className="vu-btn vu-btn--outline vu-paper"
+              type="button"
+              variants={dealtItem}
+              {...gestures(false, lift, press)}
+              onClick={onControls}
+            >
+              Controls
+            </motion.button>
+          )}
           <motion.button
             id="game-menu-feedback"
             className="vu-btn vu-btn--outline vu-paper"

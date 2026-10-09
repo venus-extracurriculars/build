@@ -101,6 +101,7 @@ import {
   useGameStore,
   type SceneKind
 } from './gameStore'
+import { gameEntered, playerActs } from '../mods/hooks'
 import { useCharacterStore } from './characterStore'
 import { castOf, useSaveStore } from './saveStore'
 import {
@@ -449,8 +450,11 @@ async function beginSlot(): Promise<void> {
   // The texts the girls he left wrote, filed on the same terms.
   deliverSlotBreakups(opening.breakups)
 
-  // The status updates the same call wrote, filed before the fold on the same terms.
-  deliverSlotPosts(opening.posts)
+  // The status updates the same call wrote, filed before the fold on the same terms. Awaited,
+  // since a mod may need a moment with a post before the fold writes it down.
+  await deliverSlotPosts(opening.posts)
+  // A game left while a mod filed one is not this opening's to fold into.
+  if (runStale(run)) return
 
   // Folded into the slot-save minted before the call went out, which is the start-of-slot
   // decision point.
@@ -1183,6 +1187,7 @@ export async function submitAction(
   game.setInputDraft('')
   game.setAwaitingInput(false)
   game.setBusy(true)
+  playerActs()
   // Stamped here, so the classifier's latency sits inside the reply floor.
   loopState.turnStartedAt = performance.now()
   // Set before `classifyAction`, so `advance()` never sees an empty queue with the scene not over.
@@ -2684,6 +2689,7 @@ export function enterGame(
   game.loadSave(save, record, characters)
   // A read nothing on screen is waiting on: the profile is not open yet.
   void loadProfilePicture()
+  gameEntered()
   // The file a slot opening is folded back into: a boundary's own save, never the autosave or a
   // manual one.
   loopState.slotSaveId = isSlotSaveId(save.saveId) ? save.saveId : null

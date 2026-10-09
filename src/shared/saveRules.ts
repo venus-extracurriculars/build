@@ -100,7 +100,7 @@ const SAVE_REQUIRED: Record<
  * What a playthrough record must carry; where it is kept names the playthrough, and the name
  * the player gives it is optional on the type and omitted here.
  */
-const RECORD_REQUIRED: Record<keyof Omit<PlaythroughRecord, 'name'>, true> = {
+const RECORD_REQUIRED: Record<keyof Omit<PlaythroughRecord, 'name' | 'mods'>, true> = {
   schemaVersion: true,
   chars: true,
   playerFirstName: true,
