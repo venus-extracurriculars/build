@@ -47,6 +47,7 @@ const SAVE_REQUIRED: Record<
     | 'bunnybotSeenTipSent'
     | 'occasionsDeclined'
     | 'bio'
+    | 'exPlotTwist'
     | 'tallies'
     | 'thumbnail'
     | 'replays'
