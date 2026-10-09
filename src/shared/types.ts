@@ -1,4 +1,5 @@
 import type { BreakthroughState } from './breakthrough'
+import type { MeanwhileStore } from './meanwhile'
 /** Shared on-disk schema and IPC result types. */
 
 // Type-only, so the import cycles erase: most of these modules import back from here.
@@ -831,6 +832,8 @@ export type ChatSender = 'player' | 'contact' | 'system'
 
 /** One Bunnyboard text message. */
 export interface ChatMessage {
+  /** Optional response grouping retained by the Text Regeneration mod. */
+  exReplyTo?: string
   /** crypto.randomUUID(); the stable list key. */
   id: string
   sender: ChatSender
@@ -849,6 +852,8 @@ export interface ChatMessage {
 
 /** One Bunnyboard conversation with a contact, keyed by her charId. */
 export interface Conversation {
+  /** Summary before the last generated reply; retained while its mod is disabled. */
+  exTextBase?: { replyTo: string; summary: string | null; regenerable?: boolean }
   charId: string
   messages: ChatMessage[]
   /** Messages the player has not opened the conversation to see. */
@@ -1226,6 +1231,8 @@ export type BunnybotHandover = 'contact' | 'haunt'
 export interface GameSave {
   /** Optional, character-specific spirit and committed outcomes. */
   exBreakthrough?: BreakthroughState
+  /** Optional, noncanonical spectator conversations. */
+  exNpcWatch?: MeanwhileStore
   schemaVersion: 12
   /**
    * The playthrough this save belongs to. Derived from the containing folder

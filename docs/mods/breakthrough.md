@@ -104,22 +104,29 @@ output is subsequently edited or cut; only unfinished/failed attempts are refund
 | `src/renderer/stores/loop/saves.ts` | Align decision-point autosaves with their transcript. |
 | `src/renderer/stores/gameStore.ts` | Defaults, load recovery, save export, and edit/truncation hooks. |
 | `src/shared/types.ts`, `saveRules.ts` | Optional field, without changing required fields for old saves. |
-| `src/shared/mods.ts` | Independent anytime switch, with no requirements. |
+| `src/shared/modEntries/breakthrough.ts` | Independent anytime switch and pure semester carry registration, with no requirements. |
+| `src/renderer/modEntries/breakthrough.ts` | Automatically discovered scene/DM context and settled-slot hooks. |
 | `src/renderer/views/BreakthroughPanel.tsx`, `GameView.tsx` | Character selector, bar, action card, flourish, native scene gates. |
 | `src/renderer/views/motion.ts`, `vu_styles/Breakthrough.css` | Motion vocabulary and day/night layout. |
 | `test/breakthrough.test.ts` | Scoring, repeat settlement, failure/retry/refund, load recovery, native turn commits, edits, privacy, context budgets. |
 
 ## Integration with other feature ports and future SQLite
 
-This PR is based directly on `extracurriculars-core`. Merge its additive fields and hooks
-alongside other feature PRs; do not replace their registrations or save projections. The
-feature has no import from Plot Twist, Text Regeneration, City Life, or Meanwhile.
+The independent `mod/breakthrough` branch is based on `core`. Shared-build merges belong
+on `integrate/breakthrough`; preserve the other mods' registrations, optional save fields,
+and save projections when resolving overlaps.
 
-If merging the separate Text Regeneration port, its additional `buildTextingPrompt` call
-should also supply the same optional `breakthrough` field used by normal replies:
-`modIsOn(BREAKTHROUGH_MOD) ? game.exBreakthrough : undefined`. Otherwise regenerated replies
-would omit this extra context even though normal replies include it. The native character
-notes and memories remain present in both. Cover this extra call in integration testing.
+Normal and regenerated DM replies use the same `buildTextingPrompt` builder. Its enabled
+DM hooks include Breakthrough's continuity: the adapter uses the request's `breakthrough`
+state when supplied, or reads the active game's archive. Text Regeneration therefore does
+not need its own Breakthrough-specific prompt call. Native character notes and memories
+remain present in both paths.
+
+City Life's background filtering and Meanwhile's separate conversation archive remain
+independent of Breakthrough. The semester carry adapter preserves Breakthrough's saved
+state even while disabled; applying that adapter to a new semester is the separate
+semester-carryover integration. Breakthrough stores no external image or audio files,
+so it does not register a semester file-copy adapter.
 
 SQLite is intentionally not implemented here. Keep the JSON save authoritative. The pure
 `breakthroughFacts` function exposes stable IDs, character IDs, timestamps, and accepted
