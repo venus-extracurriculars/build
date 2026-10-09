@@ -1,3 +1,4 @@
+import type { MeanwhileStore } from './meanwhile'
 /** Shared on-disk schema and IPC result types. */
 
 // Type-only, so the import cycles erase: most of these modules import back from here.
@@ -1222,6 +1223,8 @@ export type BunnybotHandover = 'contact' | 'haunt'
 
 /** On-disk save file — `/data/saves/{playthroughId}/{saveId}.json`. */
 export interface GameSave {
+  /** Optional, noncanonical spectator conversations. */
+  exNpcWatch?: MeanwhileStore
   schemaVersion: 12
   /**
    * The playthrough this save belongs to. Derived from the containing folder
@@ -1579,7 +1582,7 @@ export interface PlaythroughRecord {
   /** The settled half of every character's entry, keyed by charId. */
   profiles: Record<string, CharProfile>
   /**
-   * The player's own name for the playthrough, given from Load Game � the one field written
+   * The player's own name for the playthrough, given from Load Game — the one field written
    * after New Game. Absent, the playthrough goes by its place in creation order.
    */
   name?: string
