@@ -60,3 +60,11 @@ Breakthrough, or custom character package is required.
 Future SQLite indexing can read the same native scene history, character/job IDs, and location
 IDs that already describe visits. No private database or parallel narrative history ships
 here. Combined memory behavior must still be tested when Story Memory is ported.
+
+## Registration on core 0.3.1
+
+- `src/shared/modEntries/city-life-locations.ts` supplies its existing mod definition.
+- `src/shared/modEntries/city-life-jobs.ts` supplies its existing mod definition.
+- This mod has no renderer hook registration; its existing switch-gated integration stays in place.
+
+The stable IDs, defaults, dependencies, save fields and gameplay behavior are unchanged. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior. Merge framework updates from `core` into this mod branch; resolve conflicts with `main` on a separate `integrate/city-life` branch.

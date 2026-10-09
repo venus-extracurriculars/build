@@ -1,4 +1,3 @@
-import { CITY_LIFE_LOCATIONS_MOD, CITY_LIFE_JOBS_MOD } from './cityLife'
 import type { PlaythroughRecord } from './types'
 
 /**
@@ -65,19 +64,19 @@ export interface ModDef {
 }
 
 /**
- * Every mod in this build, in the order the Mods screen lists them. None yet: this is the
- * frame alone, on the game as Venus Dev released it. A mod adds itself here (see MODDING.md).
+ * Each mod's entry, found rather than listed: every file in `src/shared/modEntries/`, named for
+ * the mod's id, whose default export is its {@link ModDef}. Nothing here names a mod, so two
+ * mods added side by side never touch the same line (see MODDING.md).
  */
-export const MODS: readonly ModDef[] = [
-  { id: CITY_LIFE_LOCATIONS_MOD, name: 'City Life locations', author: 'Maestro Leeds', version: '1.0.0',
-    scope: 'playthrough', defaultOn: true,
-    blurb: 'Lucky Strike Lanes, Starlight Roller Rink, and Purr & Pour Cat Café, with day/night backgrounds and NPC visits.',
-    offNote: 'Chosen when a playthrough starts. Existing playthroughs keep their locations.' },
-  { id: CITY_LIFE_JOBS_MOD, name: 'City Life jobs', author: 'Maestro Leeds', version: '1.0.0',
-    scope: 'playthrough', defaultOn: true, requires: [CITY_LIFE_LOCATIONS_MOD],
-    blurb: 'Part-time jobs for the player and NPCs at the three City Life venues.',
-    offNote: 'Requires City Life locations. Existing playthroughs keep their jobs and schedules.' }
-]
+const ENTRIES = import.meta.glob<ModDef>('./modEntries/*.ts', { eager: true, import: 'default' })
+
+/**
+ * Every mod in this build, in the order the Mods screen lists them and the hooks are asked: by
+ * id. None yet in `core`: this is the frame alone.
+ */
+export const MODS: readonly ModDef[] = Object.keys(ENTRIES)
+  .sort()
+  .map((file) => ENTRIES[file])
 
 /**
  * What the player has set, as `data/mods.json` holds it. A mod or an option that is not in
