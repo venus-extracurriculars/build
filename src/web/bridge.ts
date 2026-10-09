@@ -1,3 +1,4 @@
+import type { MeanwhileResponse } from '@shared/meanwhile'
 import type { ClassifierPromptRequest, ClassifierVerdict } from '@shared/classifier'
 import { base64ToBytes } from '@shared/base64'
 import { appError, toAppError } from '@shared/errors'
@@ -51,6 +52,7 @@ import {
 } from '@shared/types'
 import { truncate } from '@shared/errors'
 import type { VenusUniversityApi } from '../preload/api'
+import { photoBridge } from './photoBridge'
 import { imageBlob } from './blob'
 import { DESKTOP_ONLY_NOTE } from '../renderer/platform'
 import { exportBackup, importBackup } from './backup'
@@ -144,6 +146,7 @@ export function buildApi(): VenusUniversityApi {
       read: key => result('read a custom soundtrack', () => soundtrackLibrary.read(key)),
       cleanup: () => result('clean up imported music', () => soundtrackLibrary.cleanup())
     },
+    ...photoBridge,
     assets: {
       getPoseManifest: () => result('read the poses', getPoseManifest),
       getQuickstart: () => result('read the quickstart', getQuickstart),
@@ -251,6 +254,10 @@ export function buildApi(): VenusUniversityApi {
       completeEndingPosts: (request, group) =>
         result('write the status updates', () =>
           runAbortable(group, (signal) => completeStructured<EndingPostsResponse>(request, signal))
+        ),
+      completeMeanwhile: (request, group) =>
+        result('write the Meanwhile conversation', () =>
+          runAbortable(group, signal => completeStructured<MeanwhileResponse>(request, signal))
         ),
       // Several texting calls can stream at once, so every delta carries its `group`.
       completeTexting: (request, group) =>

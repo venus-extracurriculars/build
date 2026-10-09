@@ -1,14 +1,16 @@
 import { create } from 'zustand'
 import { CONTINUING_SEMESTERS } from '@shared/continuingSemestersMod'
 import {
-  modOn,
   MODS,
+  modOn,
   NO_SWITCHES,
   optionOn,
+  photoSwitchesOf,
   withMod,
   withOption,
   type ModSwitches
 } from '@shared/mods'
+import { setPhotoSwitches } from '@shared/photoSwitches'
 import { setSeniorsGraduate } from '@shared/term'
 import type { PlaythroughRecord } from '@shared/types'
 import { setHookRules } from '../mods/hooks'
@@ -78,9 +80,12 @@ function tellSharedRules(switches: ModSwitches): void {
     modOn(switches, CONTINUING_SEMESTERS) &&
     !optionOn(switches, CONTINUING_SEMESTERS, 'seniors-graduate')
   setSeniorsGraduate(!staying)
+  // Photo Feature reads its own switches; this hands them over.
+  setPhotoSwitches(photoSwitchesOf(switches))
 }
 tellSharedRules(useModsStore.getState().switches)
 useModsStore.subscribe((state) => tellSharedRules(state.switches))
+
 // The game's hooks ask only the mods that are on, in the order the list names them. Inside a
 // game, a mod scoped to the playthrough is on as the game's record says, not as the switch now
 // stands; on the menus, with no game entered, the switches decide.

@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { VenusUniversityApi } from './api'
+import { photoApi } from './photoApi'
 
 /**
  * The bridge implementation; every method's contract is documented on {@link VenusUniversityApi}
@@ -16,6 +17,7 @@ const api: VenusUniversityApi = {
     read: key => ipcRenderer.invoke('soundtracks:read', key),
     cleanup: () => ipcRenderer.invoke('soundtracks:cleanup')
   },
+  ...photoApi,
   assets: {
     getPoseManifest: () => ipcRenderer.invoke('assets:getPoseManifest'),
     getQuickstart: () => ipcRenderer.invoke('assets:getQuickstart'),
@@ -63,6 +65,7 @@ const api: VenusUniversityApi = {
     completeIntro: (request, group) => ipcRenderer.invoke('llm:completeIntro', request, group),
     completeEndingPosts: (request, group) =>
       ipcRenderer.invoke('llm:completeEndingPosts', request, group),
+    completeMeanwhile: (request, group) => ipcRenderer.invoke('llm:completeMeanwhile', request, group),
     completeTexting: (request, group) =>
       ipcRenderer.invoke('llm:completeTexting', request, group),
     onSceneDelta: (listener) => {

@@ -1,3 +1,4 @@
+import { normalizeMeanwhile, type MeanwhileStore } from '@shared/meanwhile'
 import { create } from 'zustand'
 import { savedPlotTwist } from '@shared/plotTwists'
 import {
@@ -332,6 +333,7 @@ interface GameStoreState {
   addedClasses: Record<string, AddedClass>
   /** What the roster thinks of each other, keyed by `pairKeyOf`. Persisted. */
   npcRelationships: NpcRelationshipMap
+  exNpcWatch: MeanwhileStore
   /** The first time each pair of them became friends, oldest first. Persisted. */
   npcFriendships: NpcFriendship[]
   /** Who is with whom this slot, stamped with the slot it describes. Persisted. */
@@ -1387,6 +1389,7 @@ const initialState = {
   droppedClasses: {} as Record<string, DroppedClass>,
   addedClasses: {} as Record<string, AddedClass>,
   npcRelationships: {} as NpcRelationshipMap,
+  exNpcWatch: normalizeMeanwhile(null),
   npcFriendships: [] as NpcFriendship[],
   npcOverlay: null as NpcSlotOverlay | null,
   slotRumor: null as SlotRumor | null,
@@ -1516,6 +1519,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       droppedClasses: save.droppedClasses,
       addedClasses: save.addedClasses,
       npcRelationships: save.npcRelationships,
+      exNpcWatch: normalizeMeanwhile(save.exNpcWatch),
       npcFriendships: save.npcFriendships ?? [],
       npcOverlay: save.npcOverlay,
       slotRumor: save.slotRumor ?? null,
@@ -2839,6 +2843,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       droppedClasses: state.droppedClasses,
       addedClasses: state.addedClasses,
       npcRelationships: state.npcRelationships,
+      exNpcWatch: normalizeMeanwhile(state.exNpcWatch),
       npcFriendships: state.npcFriendships,
       occasionsDeclined: state.occasionsDeclined,
       npcOverlay: state.npcOverlay,
