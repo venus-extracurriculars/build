@@ -1,3 +1,4 @@
+import { modRequest, promptLines } from '../mods/hooks'
 import { SUBJECT_TAGS } from '@shared/characterRules'
 import { slotFullLabel, yearLabel } from '@shared/classes'
 import { dormClause } from '@shared/dorms'
@@ -1448,18 +1449,19 @@ function castScenePrompt(
     rumor
   )
 
-  return {
+  return modRequest('scene', { cast, state, query: scan }, {
     system: systemPrompt(cast, state, setting),
     user: [
       ...whoBlock(cast, state, reader),
       ...nowBlock(cast, state),
       ...classBlock(state),
       ...lore,
+      ...promptLines('scene', { cast, state, query: scan }),
       ...tail
     ].join('\n'),
     schema: sceneSchema(state.backgrounds, cast, state, hasSummary, hasEndScene),
     cacheKey: state.playthroughId
-  }
+  })
 }
 
 /**
@@ -1593,6 +1595,7 @@ export function buildSoloPrompt(
   const user = [
     // With no cast, `nowBlock` is the date and semester lines.
     ...nowBlock([], state),
+    ...promptLines('scene', { cast: [], state, query: action }),
     ...lore,
     'READER',
     reader,
@@ -1613,7 +1616,7 @@ export function buildSoloPrompt(
     `Reader's action: ${action}`
   ].join('\n')
 
-  return {
+  return modRequest('scene', { cast: [], state, query: action }, {
     system: [
       ledgerPersonaFor(state.lessNsfwText),
       '',
@@ -1630,7 +1633,7 @@ export function buildSoloPrompt(
     // Routable: an hour by himself has nobody in it to be written badly, which is what
     // keeps every other scene call off the secondary model.
     kind: 'solo'
-  }
+  })
 }
 
 /** Builds the continuation request: summary and recent transcript after the cached prefix. */
@@ -2001,7 +2004,7 @@ export function buildLedgerPrompt(
     ''
   ].join('\n')
 
-  return {
+  return modRequest('ledger', { state, charKeys }, {
     system: ledgerPersonaFor(state.lessNsfwText),
     user: `${preamble}\n${rest}`,
     schema: ledgerSchema(charKeys, rosterKeys, classScene, castStats),
@@ -2010,5 +2013,5 @@ export function buildLedgerPrompt(
     logFrom: preamble.length + 1,
     // The bookkeeping is judged better at high, whatever the setting says.
     minThinking: 'high'
-  }
+  })
 }
