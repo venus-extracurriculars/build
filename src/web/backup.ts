@@ -194,9 +194,11 @@ export async function exportBackup(): Promise<string> {
     return backup
   })
 
-  const music = await soundtrackLibrary.snapshot()
-  record.exMusic = music.map
-  for (const [file, bytes] of Object.entries(music.files)) files[SOUNDTRACK_BACKUP_DIR + '/' + file] = bytes
+  const music = await soundtrackLibrary.snapshotForBackup()
+  if (music) {
+    record.exMusic = music.map
+    for (const [file, bytes] of Object.entries(music.files)) files[SOUNDTRACK_BACKUP_DIR + '/' + file] = bytes
+  }
   files[BACKUP_NAME] = encodeJson(record)
   return offerDownload(backupName(), buildPack(files), ZIP_TYPE)
 }

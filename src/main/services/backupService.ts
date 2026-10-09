@@ -292,14 +292,14 @@ export async function exportBackup(targetPath: string): Promise<void> {
     const backgrounds = await backupBackgrounds(scratch)
     const scenes = await backupScenes()
     const replays = await backupReplays(saves)
-    const music = await soundtrackLibrary.snapshot()
-    for (const [file, bytes] of Object.entries(music.files)) {
+    const music = await soundtrackLibrary.snapshotForBackup()
+    for (const [file, bytes] of Object.entries(music?.files ?? {})) {
       await mkdir(join(scratch, SOUNDTRACK_BACKUP_DIR), { recursive: true })
       await writeFile(join(scratch, SOUNDTRACK_BACKUP_DIR, file), bytes)
     }
 
     const record: BackupFile = {
-      exMusic: music.map,
+      ...(music ? { exMusic: music.map } : {}),
       schemaVersion: BACKUP_SCHEMA_VERSION,
       settings,
       grabbags,

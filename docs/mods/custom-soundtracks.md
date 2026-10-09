@@ -88,13 +88,14 @@ left alone, not silently replaced with an empty map. Hash-named files deduplicat
 imports; assigning one recording to multiple slots does not require multiple disk copies.
 
 The browser uses `soundtrackMeta` (key `tracks`) and `soundtrackFiles` (filename → Blob) in the
-existing IndexedDB database. Version 6 creates missing stores and preserves prior rows. A
+existing IndexedDB database. Version 8 creates missing stores and preserves prior rows from
+versions 5, 6 and 7. A
 write of the files and their assignment map is one transaction. Browser quota failures return
 through the usual error bridge; the previous committed map remains usable. Browser data is
 origin-specific. A desktop folder cannot automatically become browser data: use a backup.
 
-**Browser rollback:** once an origin's database reaches version 6, an older build that opens
-it explicitly at version 5 cannot open it. To turn this feature off, use its switch and keep
+**Browser rollback:** once an origin's database reaches version 8, an older build that opens
+it at version 7 or below cannot open it. To turn this feature off, use its switch and keep
 the additive database schema. Back up data before trying a different build. Do not solve a
 version mismatch by deleting an existing database or lowering its recorded schema version.
 
@@ -151,6 +152,17 @@ compiled mod. Referenced recordings appear as `exMusic/<sha256>.<ext>` beside `b
 Exports include assigned recordings, not unused imports or original source paths. They do
 include user filenames and user-selected audio: backups are personal data, not mod packages.
 
+The Custom soundtracks switch also controls backup exports on desktop and browser. When
+off, a new backup omits both `exMusic` metadata and the `exMusic/` audio files. Imported
+tracks and assignments stay in local storage, and enabling the mod again restores their use.
+When on, backups include the assigned music as described above.
+
+The official game's restore rejects a backup containing `exMusic/` files. Before exporting
+a backup for it, switch Custom soundtracks off and create a new backup; that copy contains
+no custom music. Keep a separate backup made with the switch on if you want to retain your
+music for another modded installation. This addresses soundtrack archive compatibility;
+other mods' data and the target game's save version still have their own requirements.
+
 Imports validate all referenced soundtrack names, byte limits and hashes **before changing
 game data**. A missing extension leaves the current music library alone; an explicit empty
 map restores original music assignments. Restoring music also works with the feature off.
@@ -170,8 +182,10 @@ subscriptions. Preserve one-shot completion and per-slot invalidation; repeatedl
 the cue defeats play-once even when `source.loop` is false. Keep the title override gated.
 
 Next check the bridge interface, native handler convention, backup entry classifier and the
-current IndexedDB schema version. If the target has independently introduced version 6,
-merge migrations and choose the next version rather than overwriting its schema. Keep a
+current IndexedDB schema version. This build already uses version 8. If the official game
+adds stores at version 8 or later, merge both sets of migrations and choose a version greater
+than either build's existing version, so players already on 8 receive the new stores too.
+Preserve existing rows and test upgrades from both official and modded schemas. Keep a
 separate soundtrack modal and the native gesture helpers when integrating Settings.
 
 Run type checks, the full tests, desktop and browser builds, then UI/audio tests with a short
