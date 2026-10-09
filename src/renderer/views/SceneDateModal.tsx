@@ -7,7 +7,7 @@ import { useModalShell } from '../components/useModalShell'
 import { TitleTab } from '../components/TitleTab'
 import { formatDatePart } from '../prompts/gameDate'
 import { occasionsOn } from '../prompts/occasions'
-import { dayOfMonth, gridCellsOf, MONTHS, monthIndexOf, monthName } from './calendarMonths'
+import { dayOfMonth, gridCellsOf, monthIndexOf, monthName, monthsOf } from './calendarMonths'
 import type { ScreenTheme } from './clockTheme'
 import {
   gestures,
@@ -46,10 +46,10 @@ export function SceneDateModal({
   const [month, setMonth] = useState(() => monthIndexOf(date))
   const { host, overlayProps } = useModalShell(onClose)
 
-  const { first, last } = MONTHS[month]
+  const { first, last } = monthsOf()[month]
   const firstMonth = month === 0
-  const lastMonth = month === MONTHS.length - 1
-  const cells = gridCellsOf(MONTHS[month])
+  const lastMonth = month === monthsOf().length - 1
+  const cells = gridCellsOf(monthsOf()[month])
 
   if (!host) return null
 
