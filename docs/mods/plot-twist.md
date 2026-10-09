@@ -23,7 +23,7 @@ facts; this is narrative guidance, not guaranteed obedience or a direct mechanic
 | File | Responsibility |
 | --- | --- |
 | `src/shared/plotTwists.ts` | Registry definition, limit, validation, legacy reading, bounded active text, optional save type |
-| `src/shared/mods.ts` | Registers the independent switch; no `requires` |
+| `src/shared/modEntries/plot-twist.ts` | Registers the independent switch; no `requires` |
 | `src/shared/saveRules.ts` | Keeps `exPlotTwist` optional for older saves |
 | `src/renderer/stores/gameStore.ts` | Initializes, loads, resets, and serializes `exPlotTwist` |
 | `src/renderer/stores/loop/saves.ts` | `writePlotTwist`, native save gating, serialization, failure handling and run/load fencing |
