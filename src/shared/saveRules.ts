@@ -101,7 +101,7 @@ const SAVE_REQUIRED: Record<
  * What a playthrough record must carry; where it is kept names the playthrough, and the name
  * the player gives it is optional on the type and omitted here.
  */
-const RECORD_REQUIRED: Record<keyof Omit<PlaythroughRecord, 'name' | 'mods'>, true> = {
+const RECORD_REQUIRED: Record<keyof Omit<PlaythroughRecord, 'name' | 'term' | 'mods'>, true> = {
   schemaVersion: true,
   chars: true,
   playerFirstName: true,
@@ -117,7 +117,10 @@ const RECORD_REQUIRED: Record<keyof Omit<PlaythroughRecord, 'name' | 'mods'>, tr
  * What an enrollment must carry; where it is kept names the playthrough it will become, and
  * the fields an enrollment written before them lacks are optional on the type and omitted here.
  */
-const ENROLLMENT_REQUIRED: Record<keyof Omit<Enrollment, 'bio' | 'tokensGenerated'>, true> = {
+const ENROLLMENT_REQUIRED: Record<
+  keyof Omit<Enrollment, 'bio' | 'tokensGenerated' | 'term' | 'carry'>,
+  true
+> = {
   schemaVersion: true,
   savedAt: true,
   chars: true,

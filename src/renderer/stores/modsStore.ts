@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { CONTINUING_SEMESTERS } from '@shared/continuingSemestersMod'
 import {
   modOn,
   MODS,
@@ -8,6 +9,7 @@ import {
   withOption,
   type ModSwitches
 } from '@shared/mods'
+import { setSeniorsGraduate } from '@shared/term'
 import type { PlaythroughRecord } from '@shared/types'
 import { setHookRules } from '../mods/hooks'
 import { loopState } from './loop/state'
@@ -64,6 +66,21 @@ export const useModsStore = create<ModsStoreState>((set, get) => {
   }
 })
 
+/**
+ * Rules that live in shared code, which holds no switches of its own, are told theirs here:
+ * at once, and again whenever a switch moves.
+ *
+ * Seniors stay only where Continuing Semesters is on and its option says so. With the mod off
+ * there is no next semester for them to stay for, and the ending is the game's own.
+ */
+function tellSharedRules(switches: ModSwitches): void {
+  const staying =
+    modOn(switches, CONTINUING_SEMESTERS) &&
+    !optionOn(switches, CONTINUING_SEMESTERS, 'seniors-graduate')
+  setSeniorsGraduate(!staying)
+}
+tellSharedRules(useModsStore.getState().switches)
+useModsStore.subscribe((state) => tellSharedRules(state.switches))
 // The game's hooks ask only the mods that are on, in the order the list names them. Inside a
 // game, a mod scoped to the playthrough is on as the game's record says, not as the switch now
 // stands; on the menus, with no game entered, the switches decide.
