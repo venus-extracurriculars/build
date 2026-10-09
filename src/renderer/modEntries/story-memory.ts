@@ -2,7 +2,7 @@ import { acceptStoryFacts, recallPayload } from '@shared/storyMemory'
 import { withStoryExtraction } from '../prompts/storyMemoryPrompt'
 import { currentStorySnapshot } from '../stores/storyMemory'
 import { useGameStore } from '../stores/gameStore'
-import { registerHooks } from './hooks'
+import { registerHooks } from '../mods/hooks'
 
 registerHooks('story-memory', {
   requests: {

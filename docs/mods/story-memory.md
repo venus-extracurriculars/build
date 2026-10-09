@@ -230,3 +230,10 @@ and both platform builds do pass. The fallback covers an unavailable native SQLi
 
 This source PR is reviewed independently. The other source PRs are not silently merged into
 it, and a combined runtime still needs the merge steps above and a full integration test.
+
+## Registration on core 0.3.1
+
+- `src/shared/modEntries/story-memory.ts` supplies its existing mod definition and carry registration.
+- `src/renderer/modEntries/story-memory.ts` loads the hooks automatically at boot.
+
+The stable IDs, defaults, dependencies, save fields and gameplay behavior are unchanged. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior. Merge framework updates from `core` into this mod branch; resolve conflicts with `main` on a separate `integrate/story-memory` branch.
