@@ -8,6 +8,13 @@ When those mods are installed, their adapters choose what to keep: Plot Twist pr
 
 SQLite remains a disposable per-playthrough index rebuilt from the new save. Native calendar replays keep Continuing Semesters' existing policy; this adapter does not reinterpret them. No migration can recover records already discarded by an older continuation; continue from its preceding ending save to retain them.
 
+External files have a separate path: core provides `registerTermFiles` and `carryModFiles`,
+and Continuing Semesters awaits the registered file adapters after copying the profile
+picture and before entering the new playthrough. Photo Feature registers its own adapter
+to copy the outgoing playthrough's photo files to the new one. Both the file adapters and
+the saved-field adapters retain data while their feature is disabled. This integration
+connects the saved fields; it preserves the existing file-copy call.
+
 ## Integration and verification
 
 This is a small extension of Continuing Semesters' continuation flow, with no separate switch. It calls the shared retention registry already provided by core. `mod/semester-carryover` is based on core and `mod/continuing-semesters`; main is combined on a separate integration branch when needed.
