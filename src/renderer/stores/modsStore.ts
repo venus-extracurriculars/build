@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { CONTINUING_SEMESTERS } from '@shared/continuingSemestersMod'
 import {
   MODS,
   modOn,
@@ -10,6 +11,7 @@ import {
   type ModSwitches
 } from '@shared/mods'
 import { setPhotoSwitches } from '@shared/photoSwitches'
+import { setSeniorsGraduate } from '@shared/term'
 import type { PlaythroughRecord } from '@shared/types'
 import { setHookRules } from '../mods/hooks'
 import { loopState } from './loop/state'
@@ -69,12 +71,20 @@ export const useModsStore = create<ModsStoreState>((set, get) => {
 /**
  * Rules that live in shared code, which holds no switches of its own, are told theirs here:
  * at once, and again whenever a switch moves.
+ *
+ * Seniors stay only where Continuing Semesters is on and its option says so. With the mod off
+ * there is no next semester for them to stay for, and the ending is the game's own.
  */
 function tellSharedRules(switches: ModSwitches): void {
+  const staying =
+    modOn(switches, CONTINUING_SEMESTERS) &&
+    !optionOn(switches, CONTINUING_SEMESTERS, 'seniors-graduate')
+  setSeniorsGraduate(!staying)
   // Photo Feature reads its own switches; this hands them over.
   setPhotoSwitches(photoSwitchesOf(switches))
 }
 tellSharedRules(useModsStore.getState().switches)
+useModsStore.subscribe((state) => tellSharedRules(state.switches))
 
 // The game's hooks ask only the mods that are on, in the order the list names them. Inside a
 // game, a mod scoped to the playthrough is on as the game's record says, not as the switch now
@@ -83,7 +93,6 @@ setHookRules({
   isOn: (modId) => modOn(useModsStore.getState().switches, modId, loopState.record),
   order: (modId) => MODS.findIndex((mod) => mod.id === modId)
 })
-useModsStore.subscribe((state) => tellSharedRules(state.switches))
 
 /** Whether a mod is on, for code outside a component; see `modOn` for what a record changes. */
 export function modIsOn(id: string, record?: Pick<PlaythroughRecord, 'mods'> | null): boolean {
