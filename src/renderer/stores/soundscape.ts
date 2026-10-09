@@ -109,6 +109,7 @@ const MENU_VIEWS: readonly ViewName[] = [
   'manageCharacters',
   'sceneCreator',
   'newGame',
+  'break',
   'quickstart',
   'classSelect',
   'apiKey',
