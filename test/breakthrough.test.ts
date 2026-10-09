@@ -1,4 +1,4 @@
-import '../src/renderer/mods/breakthrough'
+import '../src/renderer/modEntries/breakthrough'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BREAKTHROUGH_MOD, breakthroughFacts, normalizeBreakthrough, reconcileBreakthrough, settleBreakthrough } from '@shared/breakthrough'
 import { DEFAULT_MEMORY_BUDGETS } from '@shared/settingsRules'

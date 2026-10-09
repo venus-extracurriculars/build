@@ -137,3 +137,10 @@ UI review should cover both palettes and 16:9/4:3 stages, selecting another char
 typing without advancing playback, ordinary and mid-reply activation, the flourish,
 failed generation/refund, and reduced-motion behavior. Automated tests stub generation
 and saves; live-model narrative effectiveness is not a measured probability.
+
+## Registration on core 0.3.1
+
+- `src/shared/modEntries/breakthrough.ts` supplies its existing mod definition and carry registration.
+- `src/renderer/modEntries/breakthrough.ts` loads the hooks automatically at boot.
+
+The stable IDs, defaults, dependencies, save fields and gameplay behavior are unchanged. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior. Merge framework updates from `core` into this mod branch; resolve conflicts with `main` on a separate `integrate/breakthrough` branch.
