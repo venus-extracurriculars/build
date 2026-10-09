@@ -1,7 +1,7 @@
+import { slotSettled } from '../mods/hooks'
 import { GAME_OVER_SCENES, gameOverReasonOf, gameOverSceneOf } from '@shared/gameOver'
 import { affectionFor } from '@shared/relationship'
 import { readerGraduatesNow } from '@shared/term'
-import { slotSettled } from '../mods/hooks'
 import { earnLine, spendLine, spentOf } from '@shared/money'
 import {
   globalSlotOf,
