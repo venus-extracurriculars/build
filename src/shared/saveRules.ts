@@ -44,6 +44,7 @@ const SAVE_REQUIRED: Record<
     | 'saveId'
     | 'exVenusWhisper'
     | 'npcFriendships'
+    | 'exNpcWatch'
     | 'slotRumor'
     | 'bunnybotSeenTipSent'
     | 'occasionsDeclined'

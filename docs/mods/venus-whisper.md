@@ -156,17 +156,17 @@ to what the reader subsequently does in a scene.
 | `src/shared/venusWhisper.ts` | Types, optional save augmentation, normalizer, identity selection, public sources, commenter selection, validation, carryover and bounded recall. Pure functions take randomness as an argument. |
 | `src/renderer/prompts/venusWhisperPrompt.ts` | Separate editorial and unprivileged public-comment requests; bounded JSON schemas. |
 | `src/renderer/stores/venusWhisper.ts` | Publication/comment actions, cancellation and stale-game checks. No component calls the writer directly. |
-| `src/renderer/stores/whisperDelivery.ts`, `src/renderer/modEntries/venus-whisper.tsx` | Game-lifetime Wednesday delivery and hook registration; cancellation, retry backoff and checkpoint waiting, independent of Bunnyboard. |
+| `src/renderer/stores/whisperDelivery.ts`, `src/renderer/mods/venusWhisper.tsx` | Game-lifetime Wednesday delivery and hook registration; cancellation, retry backoff and checkpoint waiting, independent of Bunnyboard. |
 | `src/shared/whisperIdentity.ts`, `src/renderer/stores/whisperIdentity.ts` | Native trust/scene gates, private prompt continuity, structured ledger evidence, transcript validation and boundary persistence. |
 | `src/renderer/stores/whisperObservations.ts` | Settled-slot collector using native timetable lookups; no encounter rerolls, additional writer calls or private-scene access. |
 | `src/renderer/stores/loop/saves.ts` | `writeWhisper` uses the existing serialized autosave lane and current scene checkpoint. Visible state changes only after a successful write. |
 | `src/renderer/views/VenusWhisperModal.tsx` | Archive, article, comment thread, replies, mentions, typing presentation, retry and delete. |
 | `src/renderer/vu_styles/VenusWhisper.css` | Game palette/font roles, bounded panel and internal scrollers; native hover/motion presets. |
-| `src/shared/mods.ts` | Independent anytime switch `venus-whisper`. |
+| `src/shared/modEntries/venus-whisper.ts` | Independent anytime switch `venus-whisper` and carry registration. |
 | `src/shared/whisperCarry.ts` | Registers optional semester retention; no Continuing Semesters import is required. |
 | `src/renderer/stores/gameStore.ts`, `src/shared/saveRules.ts` | Default, load, reset, optional-field acceptance and save projection. |
 | `src/main/ipc.ts`, `src/preload/api.d.ts`, `src/preload/index.ts`, `src/web/bridge.ts` | Cancellable `llm:completeWhisper` structured requests on desktop and browser. |
-| `src/renderer/modEntries/venus-whisper.tsx` | Public scene/DM excerpts, private scene-only identity continuity, and ledger/settled-slot registration. Regenerated texts share the ordinary public DM hook. |
+| `src/renderer/modEntries/venus-whisper.ts`, `src/renderer/mods/venusWhisper.tsx` | Automatic hook discovery, public scene/DM excerpts, private scene-only identity continuity, and ledger/settled-slot registration. Regenerated texts share the ordinary public DM hook. |
 | `src/renderer/views/BunnyboardModal.tsx`, `VenusWhisperModal.tsx` | Optional rail tab and embedded newsletter page, independent of character profiles and Updates. |
 | `test/venusWhisper.test.ts` | Identity persistence, repeated term rollover, bounded imports, privacy boundaries, duplicate prevention, failed writes and stale requests. |
 | `test/whisperDelivery.test.ts` | Wednesday scheduling with the phone closed, catch-up, upgrades, read status, save failure, cancellation and safe delayed delivery. |
