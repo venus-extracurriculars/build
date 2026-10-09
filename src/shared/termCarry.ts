@@ -1,5 +1,5 @@
+import { carryModFields, carriedModFields, type ModCarryFields } from './modCarry'
 import { FINAL_DATE } from './classes'
-import type { ModCarryFields } from './modCarry'
 import { isBossChat } from './jobs'
 import { pairKeyOf, type NpcFriendship, type NpcRelationshipMap } from './npcRelationships'
 import { rustedStats, type PlayerStats } from './playerStats'
@@ -7,6 +7,7 @@ import { emptyTallies } from './tallies'
 import { daysToNextTerm, graduatesAfter, seasonOf, termIndexOf, type Season } from './term'
 import type {
   BunnyboardState,
+  Character,
   CharMemory,
   CharState,
   Conversation,
@@ -154,7 +155,8 @@ export interface CarriedTerm {
 export function carryTerm(
   save: GameSave,
   record: PlaythroughRecord,
-  kept: readonly string[]
+  kept: readonly string[],
+  characters: Record<string, Character> = {}
 ): CarriedTerm {
   const back = daysToNextTerm(seasonOf(termIndexOf(record)))
   const roster = new Set(record.chars)
@@ -165,6 +167,7 @@ export function carryTerm(
     stats: rustedStats(save.stats),
     ...(save.bio ? { bio: save.bio } : {}),
     carry: {
+      ...carryModFields(save, { term: termIndexOf(record), back, characters }),
       money: save.money,
       ...(save.tallies ? { tallies: { ...save.tallies } } : {}),
       inventory: save.inventory.map((item) => ({ ...item })),
@@ -217,6 +220,7 @@ export function carriedOpening(draft: SaveDraft, carry: TermCarry): SaveDraft {
   )
   return {
     ...draft,
+    ...carriedModFields(carry),
     money: carry.money,
     tallies: {
       ...emptyTallies(),
