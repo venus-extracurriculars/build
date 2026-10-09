@@ -1,19 +1,29 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { openDB } from 'idb'
+import { strFromU8, unzipSync } from 'fflate'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { APP_ID } from '@shared/appId'
+import { SOUNDTRACK_MOD } from '@shared/soundtracks'
 
 let root = ''
+let webEnabled = true
+let downloaded: Uint8Array | string | undefined
 vi.mock('electron', () => ({ app: { isPackaged: false, getAppPath: () => root, getPath: () => root } }))
-vi.mock('../src/web/mods', () => ({ readModSwitches: () => ({ on: {}, options: {} }) }))
+vi.mock('../src/web/mods', () => ({ readModSwitches: () => ({ on: { 'custom-soundtracks': webEnabled }, options: {} }) }))
+vi.mock('../src/web/download', () => ({ offerDownload: (name: string, content: Uint8Array | string) => {
+  downloaded = content
+  return name
+} }))
 const bytes = new Uint8Array([1, 2, 3, 4])
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'venus-soundtracks-'))
   globalThis.indexedDB = new IDBFactory()
+  webEnabled = true
+  downloaded = undefined
   vi.resetModules()
 })
 afterEach(async () => { await rm(root, { recursive: true, force: true }) })
@@ -79,15 +89,53 @@ it('moves a verified desktop snapshot to browser storage and back without changi
   const { database } = await import('../src/web/db/open'); (await database()).close()
 })
 
-it('round-trips the native backup ZIP including soundtrack files', async () => {
+it.each([true, false])('exports native music only while enabled (%s), retaining local tracks and restoring while off', async (enabled) => {
   const { soundtrackLibrary: lib } = await import('../src/main/services/soundtrackService')
   const { exportBackup, importBackup } = await import('../src/main/services/backupService')
+  const { setModSwitches } = await import('../src/main/services/modsService')
   const pick = await lib.pick('song.wav', bytes, 7)
   const map = await lib.commit('title', pick.token, 8, 7)
+  await setModSwitches({ on: { [SOUNDTRACK_MOD]: enabled }, options: {} })
   const archive = join(root, 'backup.zip')
   await exportBackup(archive)
-  await lib.remove('title'); await lib.cleanup()
+  const entries = unzipSync(await readFile(archive))
+  const record = JSON.parse(strFromU8(entries['backup.json']))
+  if (enabled) {
+    expect(record.exMusic).toEqual(map)
+    expect(entries['exMusic/' + map.title!.file]).toEqual(bytes)
+  } else {
+    expect(record).not.toHaveProperty('exMusic')
+    expect(Object.keys(entries).filter(name => name.startsWith('exMusic/'))).toEqual([])
+  }
+  expect(await lib.list()).toEqual(map)
+  expect(await lib.read('title')).toEqual(bytes)
+  if (enabled) { await lib.remove('title'); await lib.cleanup() }
+  await setModSwitches({ on: { [SOUNDTRACK_MOD]: false }, options: {} })
   await importBackup(archive)
   expect(await lib.list()).toEqual(map)
   expect(await lib.read('title')).toEqual(bytes)
+})
+
+it.each([true, false])('exports browser music only while enabled (%s), without changing its stored files', async (enabled) => {
+  const { soundtrackLibrary: lib } = await import('../src/web/soundtracks')
+  const { exportBackup } = await import('../src/web/backup')
+  const { database } = await import('../src/web/db/open')
+  try {
+    const pick = await lib.pick('song.wav', bytes, 0)
+    const map = await lib.commit('title', pick.token, 8, 0)
+    webEnabled = enabled
+    await exportBackup()
+    expect(downloaded).toBeInstanceOf(Uint8Array)
+    const entries = unzipSync(downloaded as Uint8Array)
+    const record = JSON.parse(strFromU8(entries['backup.json']))
+    if (enabled) {
+      expect(record.exMusic).toEqual(map)
+      expect(entries['exMusic/' + map.title!.file]).toEqual(bytes)
+    } else {
+      expect(record).not.toHaveProperty('exMusic')
+      expect(Object.keys(entries).filter(name => name.startsWith('exMusic/'))).toEqual([])
+    }
+    expect(await lib.list()).toEqual(map)
+    expect(await lib.read('title')).toEqual(bytes)
+  } finally { (await database()).close() }
 })

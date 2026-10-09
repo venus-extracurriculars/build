@@ -109,6 +109,15 @@ export class SoundtrackLibrary {
       await this.storage.map(), file => this.storage.read(file), this.storage.hash
     ))!)
   }
+  /** Disabled music stays local and contributes no extension metadata or files to a backup. */
+  snapshotForBackup(): Promise<SoundtrackSnapshot | null> {
+    return this.exclusive(async () => {
+      if (!await this.storage.enabled()) return null
+      return prepareSoundtrackSnapshot(
+        await this.storage.map(), file => this.storage.read(file), this.storage.hash
+      )
+    })
+  }
   /** Snapshot must already be validated; restoration also works while the feature is off. */
   restore(snapshot: SoundtrackSnapshot): Promise<void> {
     return this.exclusive(async () => {
