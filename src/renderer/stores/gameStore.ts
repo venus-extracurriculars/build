@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { savedPlotTwist } from '@shared/plotTwists'
 import {
   affectionFor,
   emptyFlags,
@@ -52,6 +53,7 @@ import {
 } from '@shared/shop'
 import type { GameOverReason } from '@shared/gameOver'
 import type { Weather } from '@shared/weather'
+import { setActiveTerm, termIndexOf } from '@shared/term'
 import { MAX_RAISES, newJobState, RAISE_EVERY } from '@shared/jobs'
 import type { ExamPeriod } from '@shared/academics'
 import type { DatingPassOutcome } from '@shared/dating'
@@ -262,6 +264,8 @@ interface GameStoreState {
    * Persisted; blank where he wrote nothing.
    */
   bio: string
+  /** Save-owned story direction; serialized even when its mod is switched off. */
+  exPlotTwist: string
   /**
    * Lifetime counts about the reader — money earned, kisses, nights, shifts worked, moved only
    * in boundary passes so a replay credits each of them once — and the output tokens the cloud
@@ -296,6 +300,8 @@ interface GameStoreState {
   jobClosures: Record<string, ShiftSlot[]>
   /** Every slot's sky, read off the record and never rewritten. */
   weather: Weather[]
+  /** Which semester of the reader's four years this playthrough is, off its record. */
+  termIndex: number
   /** What the reader has bought and not yet given away. Persisted. */
   inventory: OwnedItem[]
   /** What each of his classes has accumulated, keyed by class code. Persisted. */
@@ -1349,6 +1355,7 @@ const initialState = {
   stats: DEFAULT_PLAYER_STATS,
   money: STARTING_MONEY,
   bio: '',
+  exPlotTwist: '',
   tallies: emptyTallies(),
   charInfo: {} as Record<string, CharInfo>,
   classes: {} as Record<string, ClassEntry>,
@@ -1363,6 +1370,7 @@ const initialState = {
   jobsClosed: [] as string[],
   jobClosures: {} as Record<string, ShiftSlot[]>,
   weather: [] as Weather[],
+  termIndex: 0,
   inventory: [] as OwnedItem[],
   classRecords: {} as Record<string, ClassRecord>,
   gradesStanding: null as 'good' | 'bad' | null,
@@ -1451,10 +1459,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   ...initialState,
   loads: 0,
 
-  loadSave: (save, record, characters) =>
+  loadSave: (save, record, characters) => {
+    // The calendar every date and fixed occasion of this playthrough is read against.
+    setActiveTerm(termIndexOf(record))
     set({
       ...initialState,
       loads: get().loads + 1,
+      termIndex: termIndexOf(record),
       playthroughId: save.playthroughId,
       playthroughMods: record.mods ?? [],
       date: save.date,
@@ -1467,6 +1478,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       // Both are younger than the save format, so a playthrough started before them loads blank,
       // and a save written before a tally loads that tally at zero.
       bio: save.bio ?? '',
+      exPlotTwist: savedPlotTwist(save.exPlotTwist),
       tallies: { ...emptyTallies(), ...save.tallies },
       // The two halves rejoined; a save entry with no profile falls back to the blank one,
       // which is what a charId the record never knew about would land on.
@@ -1522,7 +1534,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       characters,
       charKeyToId: buildCharKeyToId(characters),
       ...freshStage()
-    }),
+    })
+  },
 
   loadCreatedScene: (scene, fields, characters) =>
     set({
@@ -2795,6 +2808,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       stats: state.stats,
       money: state.money,
       bio: state.bio,
+      exPlotTwist: state.exPlotTwist,
       tallies: state.tallies,
       date: state.date,
       time: state.time,

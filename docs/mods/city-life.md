@@ -34,7 +34,7 @@ workers appear at their workplace through the existing timetable and scene casti
   `ex_roller`, and `ex_cat_cafe` IDs from the earlier mod.
 - `src/shared/cityLife.ts`: shared availability rules. Catalog definitions remain readable
   when disabled so saved references can still be displayed. Only selection paths are gated.
-- `src/shared/mods.ts`: the two independent registry entries and the jobs requirement.
+- `src/shared/modEntries/city-life-locations.ts` and `city-life-jobs.ts`: the two independent definitions and the jobs requirement.
 - `src/renderer/stores/gameStore.ts`: `playthroughMods` reads the immutable record on load.
   It is runtime context, not a second copy inside each save.
 - `src/renderer/stores/modsStore.ts`: synchronizes shared availability with the current
@@ -56,6 +56,11 @@ workers appear at their workplace through the existing timetable and scene casti
 This PR starts from the clean `extracurriculars-core` baseline. When combining it with other
 ports, retain all their registry entries and imports. No Story & Social, SQLite, Plot Twist,
 Breakthrough, or custom character package is required.
+
+When integrated with Continuing Semesters, an NPC's existing employer remains readable and
+is retained across semesters. New City Life job assignments still require the jobs switch.
+Scene background choices respect both City Life's switches and the break's off-campus rules.
+The combined job behavior is covered in `test/profilePrompt.test.ts`.
 
 Future SQLite indexing can read the same native scene history, character/job IDs, and location
 IDs that already describe visits. No private database or parallel narrative history ships
