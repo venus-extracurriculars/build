@@ -1,3 +1,4 @@
+import type { ModCarryFields } from './modCarry'
 import type { GameSave } from './types'
 
 /**
@@ -37,7 +38,7 @@ export type TermCarry = Pick<
   | 'bunnybotTwoTimingTipSent'
   | 'bunnybotDeferred'
 > &
-  Pick<Partial<GameSave>, 'tallies' | 'npcFriendships' | 'bunnybotSeenTipSent'>
+  Pick<Partial<GameSave>, 'tallies' | 'npcFriendships' | 'bunnybotSeenTipSent'> & Partial<ModCarryFields>
 
 declare module './types' {
   interface PlaythroughRecord {

@@ -1,3 +1,4 @@
+import type { BreakthroughState } from './breakthrough'
 import type { MeanwhileStore } from './meanwhile'
 /** Shared on-disk schema and IPC result types. */
 
@@ -1228,6 +1229,8 @@ export type BunnybotHandover = 'contact' | 'haunt'
 
 /** On-disk save file — `/data/saves/{playthroughId}/{saveId}.json`. */
 export interface GameSave {
+  /** Optional, character-specific spirit and committed outcomes. */
+  exBreakthrough?: BreakthroughState
   /** Optional, noncanonical spectator conversations. */
   exNpcWatch?: MeanwhileStore
   schemaVersion: 12

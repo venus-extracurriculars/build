@@ -52,6 +52,7 @@ const SAVE_REQUIRED: Record<
     | 'tallies'
     | 'thumbnail'
     | 'replays'
+    | 'exBreakthrough'
   >,
   true
 > = {
