@@ -1,4 +1,3 @@
-import { CONTINUING_SEMESTERS, CONTINUING_SEMESTERS_MOD } from './continuingSemestersMod'
 import type { PlaythroughRecord } from './types'
 
 /**
@@ -64,12 +63,20 @@ export interface ModDef {
   optionGroups?: readonly ModOptionGroup[]
 }
 
-export { CONTINUING_SEMESTERS }
+/**
+ * Each mod's entry, found rather than listed: every file in `src/shared/modEntries/`, named for
+ * the mod's id, whose default export is its {@link ModDef}. Nothing here names a mod, so two
+ * mods added side by side never touch the same line (see MODDING.md).
+ */
+const ENTRIES = import.meta.glob<ModDef>('./modEntries/*.ts', { eager: true, import: 'default' })
 
-/** Every mod in this build, in the order the Mods screen lists them. */
-export const MODS: readonly ModDef[] = [
-  CONTINUING_SEMESTERS_MOD
-]
+/**
+ * Every mod in this build, in the order the Mods screen lists them and the hooks are asked: by
+ * id. None yet in `core`: this is the frame alone.
+ */
+export const MODS: readonly ModDef[] = Object.keys(ENTRIES)
+  .sort()
+  .map((file) => ENTRIES[file])
 
 /**
  * What the player has set, as `data/mods.json` holds it. A mod or an option that is not in

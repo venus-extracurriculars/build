@@ -31,8 +31,9 @@ semester or a break already started keeps working. Three options: skip the break
 
 ## How it uses the mod system
 
-- Its entry in `MODS` is `CONTINUING_SEMESTERS_MOD` in `src/shared/continuingSemestersMod.ts`.
-- The two offers are hooks, registered in `src/renderer/mods/continuingSemesters.ts`:
+- Its entry is `src/shared/modEntries/continuing-semesters.ts`, which hands on
+  `CONTINUING_SEMESTERS_MOD` from `src/shared/continuingSemestersMod.ts`.
+- The two offers are hooks, registered in `src/renderer/modEntries/continuing-semesters.ts`:
   `endingChoice` beside the ending's "Return to the main menu", and `saveChoice` for a finished
   save picked in Load Game. Both prepare the finished semester first and open the break.
 - The seniors option is a rule in shared code reading a switch without holding one: the rule
