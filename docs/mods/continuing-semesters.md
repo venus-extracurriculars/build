@@ -42,7 +42,11 @@ semester or a break already started keeps working. Three options: skip the break
 - The rest (the break screen, the fall calendar, the carry-over into the next semester, its
   prompts and saves) is still integrated directly; it moves onto hooks as they are added.
 - `shared/modCarry.ts` lets other mods carry their own saved state across; Continuing Semesters
-  is the semester extension that calls it.
+  is the semester extension that calls it. `carryTerm` collects every registered field adapter
+  and `carriedOpening` puts the result into the new opening save; `NewGameView.tsx` awaits the
+  file adapters after the profile picture is copied. Both run whether or not the mod that
+  registered them is switched on, so turning a mod off for a semester loses nothing. (Field
+  carry folded in from Maestro's Semester Carryover.)
 
 ## Design notes
 
