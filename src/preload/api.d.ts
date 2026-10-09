@@ -1,4 +1,5 @@
 import type { StoryRecallRequest, StoryRecall } from '@shared/storyMemory'
+import type { WhisperDraft, WhisperReply } from '../shared/venusWhisper'
 import type { MeanwhileResponse } from '../shared/meanwhile'
 import type { ClassifierPromptRequest, ClassifierVerdict } from '@shared/classifier'
 import type {
@@ -8,6 +9,7 @@ import type {
 } from '@shared/customBackgrounds'
 import type { PromptEdit } from '@shared/imagePrompt'
 import type { ModSwitches } from '@shared/mods'
+import type { SoundtracksApi } from '@shared/soundtracks'
 import type {
   PhotoEntry,
   PhotoMeta,
@@ -76,6 +78,7 @@ export interface VenusUniversityApi {
   /** Which build the renderer is running in; the one thing on here that is not a call. */
   platform: 'desktop' | 'web'
   storyMemory: { inspect: (payload: StoryRecallRequest) => Promise<Result<StoryRecall>> }
+  soundtracks: SoundtracksApi
   assets: {
     /** Poses that have both a manifest entry and a skeleton PNG. */
     getPoseManifest: () => Promise<Result<PoseManifest>>
@@ -176,6 +179,7 @@ export interface VenusUniversityApi {
     /** Writes a bounded, noncanonical spectator conversation; never streams. */
     completeMeanwhile: (request: StructuredRequest, group: string) => Promise<Result<MeanwhileResponse>>
     /** Sends a Bunnyboard texting turn; `group` enables cancellation. */
+    completeWhisper: (request: StructuredRequest, group: string) => Promise<Result<WhisperDraft | WhisperReply>>
     completeTexting: (
       request: StructuredRequest,
       group: string

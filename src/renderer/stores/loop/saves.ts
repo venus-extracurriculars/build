@@ -1,7 +1,8 @@
+import { normalizeStoryMemory, type StoryMemory } from '@shared/storyMemory'
 import { appError, toAppError } from '@shared/errors'
 import { PLOT_TWIST_MOD, validatePlotTwist } from '@shared/plotTwists'
-import { normalizeStoryMemory, type StoryMemory } from '@shared/storyMemory'
 import { modIsOn } from '../modsStore'
+import { normalizeWhisper, VENUS_WHISPER_MOD, type VenusWhisper } from '@shared/venusWhisper'
 import { reconcileBreakthrough } from '@shared/breakthrough'
 import { withMeanwhile, type MeanwhileScene } from '@shared/meanwhile'
 import type { Conversation } from '@shared/types'
@@ -492,6 +493,35 @@ export async function writePlotTwist(value: string): Promise<Result<null>> {
     manualWriting = false
   }
   return outcome
+}
+
+/** Newsletter edits join the native save lane, preserving the current scene checkpoint. */
+export async function writeWhisper(next: VenusWhisper, previous: VenusWhisper, active: () => boolean): Promise<void> {
+  const start = useGameStore.getState()
+  const current = (): boolean => {
+    const now = useGameStore.getState()
+    return active() && modIsOn(VENUS_WHISPER_MOD) && now.playthroughId === start.playthroughId && now.loads === start.loads &&
+      now.exVenusWhisper === previous && now.date === start.date && now.time === start.time && !now.sceneEnding
+  }
+  if (!current() || manualSaveOffer() !== 'open') throw Error('Wait for a safe save point.')
+  let written = false
+  manualWriting = true
+  try {
+    await queueWrite(async () => {
+      if (!current() || saveOffer(false) !== 'open') return
+      const now = useGameStore.getState()
+      const draft = manualSaveDraft() ?? (!sceneActiveOf(now) ? { ...now.toGameSave(), scene: null } : null)
+      if (!draft || !now.playthroughId) throw Error('No safe save point is available.')
+      const saved = normalizeWhisper(next)
+      const result = await window.api.saves.autosave(now.playthroughId, { ...draft, exVenusWhisper: saved })
+      if (!result.ok) throw Error(result.error.message)
+      if (!current()) return
+      if (loopState.statusBase) loopState.statusBase = { ...loopState.statusBase, exVenusWhisper: saved }
+      useGameStore.setState({ exVenusWhisper: saved })
+      written = true
+    })
+    if (!written) throw Error('The game changed. Reopen the newsletter.')
+  } finally { manualWriting = false }
 }
 
 /** The edit joins the game's write lane; disk succeeds before visible state is changed. */

@@ -9,6 +9,15 @@ import { photoApi } from './photoApi'
 const api: VenusUniversityApi = {
   platform: 'desktop',
   storyMemory: { inspect: (payload) => ipcRenderer.invoke('storyMemory:inspect', payload) },
+  soundtracks: {
+    list: () => ipcRenderer.invoke('soundtracks:list'),
+    pick: () => ipcRenderer.invoke('soundtracks:pick'),
+    commit: (key, token, duration) => ipcRenderer.invoke('soundtracks:commit', key, token, duration),
+    remove: key => ipcRenderer.invoke('soundtracks:remove', key),
+    loop: (key, value) => ipcRenderer.invoke('soundtracks:loop', key, value),
+    read: key => ipcRenderer.invoke('soundtracks:read', key),
+    cleanup: () => ipcRenderer.invoke('soundtracks:cleanup')
+  },
   ...photoApi,
   assets: {
     getPoseManifest: () => ipcRenderer.invoke('assets:getPoseManifest'),
@@ -57,6 +66,7 @@ const api: VenusUniversityApi = {
     completeIntro: (request, group) => ipcRenderer.invoke('llm:completeIntro', request, group),
     completeEndingPosts: (request, group) =>
       ipcRenderer.invoke('llm:completeEndingPosts', request, group),
+    completeWhisper: (request, group) => ipcRenderer.invoke('llm:completeWhisper', request, group),
     completeMeanwhile: (request, group) => ipcRenderer.invoke('llm:completeMeanwhile', request, group),
     completeTexting: (request, group) =>
       ipcRenderer.invoke('llm:completeTexting', request, group),

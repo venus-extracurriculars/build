@@ -1,5 +1,6 @@
 import { prepareStoryRequest, inspectStoryMemory } from './services/storyMemoryService'
 import type { StoryRecallRequest } from '@shared/storyMemory'
+import type { WhisperDraft, WhisperReply } from '@shared/venusWhisper'
 import type { MeanwhileResponse } from '@shared/meanwhile'
 import {
   app,
@@ -112,6 +113,7 @@ import {
   saveExportFile
 } from './services/characterTransferService'
 import { exportBackup, importBackup } from './services/backupService'
+import { soundtrackLibrary, pickSoundtrack } from './services/soundtrackService'
 import { exportLocalPhotos, importLocalPhotos } from './localPhotoBackup'
 import {
   addCustomBackground,
@@ -250,6 +252,10 @@ async function enqueueComfyJob<T>(
 
 /** Registers every IPC channel; keep this, preload and the d.ts in sync. */
 export function registerIpcHandlers(): void {
+  handle('llm:completeWhisper', (_event, request: StructuredRequest, group: string) =>
+    runAbortable(group, signal => completeStructured<WhisperDraft | WhisperReply>(request, signal))
+  )
+
   // The photo feature's three channels, which keep their own module and their own queue.
   registerPhotoIpc(handle)
   // The key the cloud calls need never leaves main; the transport reads it through this port.
@@ -337,6 +343,21 @@ export function registerIpcHandlers(): void {
 
   // The mix names a file; the renderer cannot read /assets, so the bytes come over the bridge.
   handle('assets:readAudio', (_event, file: string) => readAudio(file))
+  handle('soundtracks:list', () => soundtrackLibrary.list())
+  handle('soundtracks:read', (_event, key: string) => soundtrackLibrary.read(key))
+  handle('soundtracks:remove', (_event, key: string) => soundtrackLibrary.remove(key))
+  handle('soundtracks:loop', (_event, key: string, value: boolean) => soundtrackLibrary.loop(key, value))
+  handle('soundtracks:cleanup', () => soundtrackLibrary.cleanup())
+  handle('soundtracks:commit', (event, key: string, token: string, duration: number) =>
+    soundtrackLibrary.commit(key, token, duration, event.sender.id))
+  handle('soundtracks:pick', async event => {
+    soundtrackLibrary.cancelPick()
+    const picked = await showOpenDialogFor(event, {
+      title: 'Choose a replacement music track', properties: ['openFile'],
+      filters: [{ name: 'Music', extensions: ['mp3', 'ogg', 'wav'] }]
+    })
+    return picked.canceled || !picked.filePaths[0] ? null : pickSoundtrack(picked.filePaths[0], event.sender.id)
+  })
 
   // Unqueued; the streamed deltas are preview-only and the invoke result is the
   // authoritative one. `group` is the loop's own.

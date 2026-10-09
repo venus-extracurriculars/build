@@ -1,4 +1,5 @@
 import { prepareStoryRequest, inspectStoryMemory } from './storyMemory'
+import type { WhisperDraft, WhisperReply } from '@shared/venusWhisper'
 import type { MeanwhileResponse } from '@shared/meanwhile'
 import type { ClassifierPromptRequest, ClassifierVerdict } from '@shared/classifier'
 import { base64ToBytes } from '@shared/base64'
@@ -71,6 +72,7 @@ import * as saves from './db/saves'
 import * as scenes from './db/scenes'
 import { readGrabBags, writeGrabBags } from './db/grabbags'
 import { readModSwitches, writeModSwitches } from './mods'
+import { soundtrackLibrary, pickSoundtrack } from './soundtracks'
 import { getPoseManifest, getQuickstart, readAudio } from './assets'
 import { offerDownload } from './download'
 import { emitter } from './emitter'
@@ -138,6 +140,15 @@ export function buildApi(): VenusUniversityApi {
   return {
     platform: 'web',
     storyMemory: { inspect: (payload) => result('inspect story recall', () => inspectStoryMemory(payload)) },
+    soundtracks: {
+      list: () => result('list custom soundtracks', () => soundtrackLibrary.list()),
+      pick: () => result('choose an audio file', pickSoundtrack),
+      commit: (key, token, duration) => result('save a custom soundtrack', () => soundtrackLibrary.commit(key, token, duration, 0)),
+      remove: key => result('restore the original soundtrack', () => soundtrackLibrary.remove(key)),
+      loop: (key, value) => result('set soundtrack looping', () => soundtrackLibrary.loop(key, value)),
+      read: key => result('read a custom soundtrack', () => soundtrackLibrary.read(key)),
+      cleanup: () => result('clean up imported music', () => soundtrackLibrary.cleanup())
+    },
     ...photoBridge,
     assets: {
       getPoseManifest: () => result('read the poses', getPoseManifest),
@@ -252,6 +263,8 @@ export function buildApi(): VenusUniversityApi {
           runAbortable(group, signal => completeStructured<MeanwhileResponse>(request, signal))
         ),
       // Several texting calls can stream at once, so every delta carries its `group`.
+      completeWhisper: (request, group) => result('write the newsletter', () =>
+        runAbortable(group, signal => completeStructured<WhisperDraft | WhisperReply>(request, signal))),
       completeTexting: (request, group) =>
         result('write the text', () =>
           runAbortable(group, (signal) =>
