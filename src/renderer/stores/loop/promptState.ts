@@ -1,4 +1,5 @@
 import { currentStorySnapshot } from '../storyMemory'
+import { BREAKTHROUGH_MOD } from '@shared/breakthrough'
 import { cityLifeBackgrounds } from '@shared/cityLife'
 import { slotFullLabel } from '@shared/classes'
 import { activePlotTwist, PLOT_TWIST_MOD } from '@shared/plotTwists'
@@ -352,6 +353,7 @@ export function promptState(): PromptState {
     storyMemory: currentStorySnapshot(),
     playthroughId: game.playthroughId ?? 'unsaved',
     exPlotTwist: activePlotTwist(game.exPlotTwist, modIsOn(PLOT_TWIST_MOD)),
+    breakthrough: modIsOn(BREAKTHROUGH_MOD) ? game.exBreakthrough : undefined,
     date: game.date,
     time: game.time,
     backgrounds: cityLifeBackgrounds(

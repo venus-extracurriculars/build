@@ -1,4 +1,5 @@
 import { currentStorySnapshot } from './storyMemory'
+import { BREAKTHROUGH_MOD } from '@shared/breakthrough'
 /**
  * The Bunnyboard texting loop (the game loop's little sibling): sends the player's texts, streams
  * the character's replies into the conversation, evaluates friend requests at slot boundaries, and
@@ -471,6 +472,7 @@ export async function sendMessage(charId: string, text: string): Promise<void> {
         time: game.time,
         storyMemory: currentStorySnapshot(),
         stats: game.stats,
+        breakthrough: modIsOn(BREAKTHROUGH_MOD) ? game.exBreakthrough : undefined,
         roster: others,
         charInfo: game.charInfo,
         npcRelationships: game.npcRelationships,

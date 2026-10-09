@@ -1,4 +1,5 @@
 import type { StoryMemory, StoryRecallRequest } from './storyMemory'
+import type { BreakthroughState } from './breakthrough'
 import type { MeanwhileStore } from './meanwhile'
 /** Shared on-disk schema and IPC result types. */
 
@@ -1233,6 +1234,8 @@ export type BunnybotHandover = 'contact' | 'haunt'
 export interface GameSave {
   /** Optional Story Memory facts and corrections, carried with this save. */
   exStoryMemory?: StoryMemory
+  /** Optional, character-specific spirit and committed outcomes. */
+  exBreakthrough?: BreakthroughState
   /** Optional, noncanonical spectator conversations. */
   exNpcWatch?: MeanwhileStore
   schemaVersion: 12

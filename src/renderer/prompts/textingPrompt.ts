@@ -1,4 +1,5 @@
 import { type StorySnapshot } from '@shared/storyMemory'
+import type { BreakthroughState } from '@shared/breakthrough'
 import { affectionFor, dedupedMemoriesFor, emptyFlags } from '@shared/relationship'
 import { ROOM_LOCATION } from '@shared/locations'
 import type { NpcRelationshipMap } from '@shared/npcRelationships'
@@ -67,6 +68,8 @@ export const TEXTING_PERSONA = [
 /** The prompt-facing slice of state a texting turn needs. */
 export interface TextingPromptState {
   storyMemory?: StorySnapshot
+  /** Supplied only while the standalone Breakthrough mod is enabled. */
+  breakthrough?: BreakthroughState
   /** A bounded longer window for rebuilding a legacy reply without a pre-reply summary. */
   historyLimit?: number
   date: number
