@@ -44,7 +44,7 @@ No saved playthrough is rewritten and no AI prompt or token budget is involved.
 | --- | --- |
 | `src/shared/soundtracks.ts` | Mod definition, ten slots, bridge types, limits, legacy map parsing, backup integrity |
 | `src/shared/soundtrackLibrary.ts` | Serialized mutations, temporary selection tokens, shared native/web rules |
-| `src/shared/mods.ts` | Registers the independent switch, without `requires` |
+| `src/shared/modEntries/custom-soundtracks.ts` | Registers the independent switch, without `requires` |
 | `src/main/services/soundtrackService.ts` | Native file storage, bounded reads, SHA-256 and atomic writes |
 | `src/main/ipc.ts` | Native file dialog and seven typed soundtrack handlers |
 | `src/preload/api.d.ts`, `src/preload/index.ts` | Typed renderer bridge |
