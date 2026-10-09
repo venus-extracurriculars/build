@@ -45,3 +45,10 @@ metadata; existing messages and checkpoints remain in saves.
 This source port is independent of Plot Twist, Breakthrough, City Life, and Story & Social.
 It adds only its own entry to `MODS`. When combining source PRs, retain each registry entry
 and each feature's imports at shared integration points.
+
+## Registration on core 0.3.1
+
+- `src/shared/modEntries/text-regeneration.ts` supplies its existing mod definition.
+- This mod has no renderer hook registration; its existing switch-gated integration stays in place.
+
+The stable IDs, defaults, dependencies, save fields and gameplay behavior are unchanged. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior. Merge framework updates from `core` into this mod branch; resolve conflicts with `main` on a separate `integrate/text-regeneration` branch.
