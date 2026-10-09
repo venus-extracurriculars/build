@@ -1,8 +1,4 @@
-import './plotTwistCarry'
-import { PHOTO_LOADERS, photoLoaderOf } from './photoLoader'
-import { loaderOptionId, PHOTO_FEATURE_MOD, type PhotoSwitches } from './photoSwitches'
 import type { PlaythroughRecord } from './types'
-import { PLOT_TWIST_DEF } from './plotTwists'
 
 /**
  * The community mods built into this copy of the game, and the switches a player turns them on
@@ -67,19 +63,20 @@ export interface ModDef {
   optionGroups?: readonly ModOptionGroup[]
 }
 
-export const PHOTO_FEATURE = 'photo-feature'
+/**
+ * Each mod's entry, found rather than listed: every file in `src/shared/modEntries/`, named for
+ * the mod's id, whose default export is its {@link ModDef}. Nothing here names a mod, so two
+ * mods added side by side never touch the same line (see MODDING.md).
+ */
+const ENTRIES = import.meta.glob<ModDef>('./modEntries/*.ts', { eager: true, import: 'default' })
 
 /**
- * Every mod in this build, in the order the Mods screen lists them (see MODDING.md).
+ * Every mod in this build, in the order the Mods screen lists them and the hooks are asked: by
+ * id. None yet in `core`: this is the frame alone.
  */
-export const MODS: readonly ModDef[] = [
-  PLOT_TWIST_DEF,
-  {
-    ...PHOTO_FEATURE_MOD,
-    id: PHOTO_FEATURE,
-    version: '1.2.0'
-  }
-]
+export const MODS: readonly ModDef[] = Object.keys(ENTRIES)
+  .sort()
+  .map((file) => ENTRIES[file])
 
 /**
  * What the player has set, as `data/mods.json` holds it. A mod or an option that is not in
@@ -264,55 +261,4 @@ declare module './types' {
      */
     mods?: string[]
   }
-}
-
-/**
- * Photo Feature's switches as this build's Mods screen has them: the mod's own module reads
- * these wherever it acts, so the build only has to hand them over (`setPhotoSwitches`), in main
- * when the switches are read or written and in the renderer whenever one moves.
- */
-export function photoSwitchesOf(switches: ModSwitches): PhotoSwitches {
-  const loader =
-    PHOTO_LOADERS.find((l) => optionOn(switches, PHOTO_FEATURE, loaderOptionId(l.value)))?.value ??
-    'bunny'
-  return {
-    on: modOn(switches, PHOTO_FEATURE),
-    photos: optionOn(switches, PHOTO_FEATURE, 'photos'),
-    explicit: optionOn(switches, PHOTO_FEATURE, 'explicit'),
-    webp: optionOn(switches, PHOTO_FEATURE, 'webp'),
-    body: optionOn(switches, PHOTO_FEATURE, 'body'),
-    loader
-  }
-}
-
-/**
- * Photo Feature's options for a player who set them in the game's settings, where 1.1.3 kept
- * them: "No DM and feed photos", "Loading animation" and the body switch. Read only where the
- * Mods screen has never stored them, so what he picked there carries over once; the mods
- * service then writes them to `mods.json`, and the game's settings are never read for them again.
- */
-export function withPhotoSettingsCarried(
-  switches: ModSwitches,
-  settings: { photos?: unknown; photoLoader?: unknown; bodyDetails?: unknown }
-): ModSwitches {
-  let carried = switches
-  if (settings.photos === false && !(optionKey(PHOTO_FEATURE, 'photos') in switches.options)) {
-    carried = withOption(carried, PHOTO_FEATURE, 'photos', false)
-  }
-  const loaderKeys = PHOTO_LOADERS.map((l) => optionKey(PHOTO_FEATURE, loaderOptionId(l.value)))
-  if (
-    typeof settings.photoLoader === 'string' &&
-    !loaderKeys.some((key) => key in switches.options)
-  ) {
-    carried = withOption(
-      carried,
-      PHOTO_FEATURE,
-      loaderOptionId(photoLoaderOf(settings.photoLoader)),
-      true
-    )
-  }
-  if (settings.bodyDetails === true && !(optionKey(PHOTO_FEATURE, 'body') in switches.options)) {
-    carried = withOption(carried, PHOTO_FEATURE, 'body', true)
-  }
-  return carried
 }
