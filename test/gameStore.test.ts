@@ -1527,6 +1527,7 @@ describe('toGameSave', () => {
       'endingArtWanted',
       'events',
       'exPlotTwist',
+      'exVenusWhisper',
       'expelled',
       'farewellsDone',
       'feedExtras',
