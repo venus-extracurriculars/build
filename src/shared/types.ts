@@ -1,3 +1,4 @@
+import type { StoryMemory, StoryRecallRequest } from './storyMemory'
 import type { BreakthroughState } from './breakthrough'
 import type { MeanwhileStore } from './meanwhile'
 /** Shared on-disk schema and IPC result types. */
@@ -49,6 +50,8 @@ export const MAX_LOG_RECORD_CHARS = 32 * 1024
  * structured cloud call carries from the renderer's prompt builders to the adapters.
  */
 export interface StructuredRequest {
+  /** Local-only recall snapshot; stripped before the provider request. */
+  storyMemory?: StoryRecallRequest
   system: string
   user: string
   /** JSON Schema the reply is constrained to. */
@@ -1229,6 +1232,8 @@ export type BunnybotHandover = 'contact' | 'haunt'
 
 /** On-disk save file — `/data/saves/{playthroughId}/{saveId}.json`. */
 export interface GameSave {
+  /** Optional Story Memory facts and corrections, carried with this save. */
+  exStoryMemory?: StoryMemory
   /** Optional, character-specific spirit and committed outcomes. */
   exBreakthrough?: BreakthroughState
   /** Optional, noncanonical spectator conversations. */
@@ -2017,6 +2022,8 @@ export interface SceneResponse {
  * which milestones were passed, what the hour did for the reader, and what he agreed to later.
  */
 export interface LedgerResponse {
+  /** Untrusted optional extraction, validated against scene evidence at the boundary. */
+  exStoryFacts?: unknown
   /** Both cast-scoped arrays are absent for a solo scene, whose schema omits them. */
   memories?: Array<{ charKey: string; type: MemoryType; desc: string }>
   events?: Array<{ charKey: string; event: RelationshipEvent }>

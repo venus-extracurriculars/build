@@ -1,4 +1,5 @@
 import { slotSettled } from '../mods/hooks'
+import { currentStorySnapshot } from './storyMemory'
 import { finishBreakthrough, rearmBreakthrough, withBreakthrough } from './breakthrough'
 import { GAME_OVER_SCENES, gameOverReasonOf, gameOverSceneOf } from '@shared/gameOver'
 import { affectionFor } from '@shared/relationship'
@@ -942,6 +943,7 @@ async function fetchSlotIntro(
   // Built once and re-sent verbatim on retry; only a hand edit replaces it.
   let request = buildSlotIntroPrompt(
     {
+      storyMemory: currentStorySnapshot(),
       playthroughId: game.playthroughId ?? 'unsaved',
       date,
       time,

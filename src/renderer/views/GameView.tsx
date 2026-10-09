@@ -1,3 +1,5 @@
+import { StoryMemoryModal } from './StoryMemoryModal'
+import { modIsOn } from '../stores/modsStore'
 import {
   useEffect,
   useLayoutEffect,
@@ -263,6 +265,7 @@ type OpenPanel =
   | { kind: 'controls' }
   | { kind: 'mods' }
   | { kind: 'plotTwist' }
+  | { kind: 'storyMemory' }
   | { kind: 'feedback' }
   | { kind: 'leaving' }
   | { kind: 'quitting' }
@@ -2629,6 +2632,7 @@ export function GameView(): JSX.Element {
               : { onLoadGame: () => setPanel({ kind: 'loadGame' }) })}
             onFeedback={() => setPanel({ kind: 'feedback' })}
             onSettings={() => setPanel({ kind: 'appSettings' })}
+            onStoryMemory={modIsOn('story-memory') ? () => setPanel({ kind: 'storyMemory' }) : undefined}
             onMods={() => setPanel({ kind: 'mods' })}
             onPlotTwist={plotTwistOn ? () => setPanel({ kind: 'plotTwist' }) : undefined}
             modsWaiting={busy}
@@ -2691,6 +2695,9 @@ export function GameView(): JSX.Element {
 
         {/* The community mods' switches, the same modal the Main Menu opens, as an arm of
             `OpenPanel` for the reason Settings is. */}
+        {panel?.kind === 'storyMemory' && (
+          <StoryMemoryModal key="storyMemory" theme={half} onClose={() => setPanel({ kind: 'settings' })} />
+        )}
         {panel?.kind === 'mods' && (
           <ModsModal key="mods" theme={half} onClose={closePanel} inGame />
         )}

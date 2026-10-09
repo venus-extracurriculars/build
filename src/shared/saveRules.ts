@@ -53,6 +53,7 @@ const SAVE_REQUIRED: Record<
     | 'tallies'
     | 'thumbnail'
     | 'replays'
+    | 'exStoryMemory'
     | 'exBreakthrough'
   >,
   true

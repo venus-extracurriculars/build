@@ -1,3 +1,4 @@
+import { prepareStoryRequest, inspectStoryMemory } from './storyMemory'
 import type { WhisperDraft, WhisperReply } from '@shared/venusWhisper'
 import type { MeanwhileResponse } from '@shared/meanwhile'
 import type { ClassifierPromptRequest, ClassifierVerdict } from '@shared/classifier'
@@ -14,7 +15,7 @@ import { cancelGroup, cancelKeys, runAbortable } from '@shared/jobQueue'
 import { LINEUP_MIME_TYPE } from '@shared/lineup'
 import { classifyCloud } from '@shared/llm/cloudClassifier'
 import { generateImage, generatePhoto } from '@shared/llm/cloudImage'
-import { completeStructured, type StructuredRequest } from '@shared/llm/cloudLlm'
+import { completeStructured as completeCloudStructured, type StructuredRequest } from '@shared/llm/cloudLlm'
 import {
   listImageModels,
   listModels,
@@ -138,6 +139,7 @@ async function generateEndingArt(
 export function buildApi(): VenusUniversityApi {
   return {
     platform: 'web',
+    storyMemory: { inspect: (payload) => result('inspect story recall', () => inspectStoryMemory(payload)) },
     soundtracks: {
       list: () => result('list custom soundtracks', () => soundtrackLibrary.list()),
       pick: () => result('choose an audio file', pickSoundtrack),
@@ -532,4 +534,8 @@ export function buildApi(): VenusUniversityApi {
         result('delete the replay', () => replays.deleteReplay(playthroughId, replayId))
     }
   }
+}
+
+async function completeStructured<T>(request: StructuredRequest, ...args: Parameters<typeof completeCloudStructured<T>> extends [unknown, ...infer R] ? R : never): Promise<T> {
+  return completeCloudStructured<T>(await prepareStoryRequest(request), ...args)
 }

@@ -1,3 +1,4 @@
+import { normalizeStoryMemory, type StoryMemory } from '@shared/storyMemory'
 import { normalizeWhisper, type VenusWhisper } from '@shared/venusWhisper'
 import { normalizeBreakthrough, reconcileBreakthrough, type BreakthroughState } from '@shared/breakthrough'
 import { normalizeMeanwhile, type MeanwhileStore } from '@shared/meanwhile'
@@ -286,6 +287,7 @@ interface GameStoreState {
    */
   playerSchedule: Record<number, string>
   /** The playthrough log — every finished scene's summary, by day and slot. Persisted. */
+  exStoryMemory: StoryMemory
   history: GameHistory
   /** The replay of each finished scene this save can play, by day and slot. Persisted. */
   replays: GameReplays
@@ -1369,6 +1371,7 @@ const initialState = {
   charInfo: {} as Record<string, CharInfo>,
   classes: {} as Record<string, ClassEntry>,
   playerSchedule: {} as Record<number, string>,
+  exStoryMemory: normalizeStoryMemory(undefined),
   history: {} as GameHistory,
   replays: {} as GameReplays,
   bunnyboard: emptyBunnyboard(),
@@ -1501,6 +1504,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       ),
       classes: record.classes,
       playerSchedule: save.playerSchedule,
+      exStoryMemory: normalizeStoryMemory(save.exStoryMemory),
       exBreakthrough: normalizeBreakthrough(save.exBreakthrough, true),
       history: save.history,
       // Younger than the save format: a save from before it keeps none.
@@ -2835,6 +2839,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         Object.entries(state.charInfo).map(([charId, info]) => [charId, charStateOf(info)])
       ),
       playerSchedule: state.playerSchedule,
+      exStoryMemory: normalizeStoryMemory(state.exStoryMemory),
       exBreakthrough: normalizeBreakthrough(state.exBreakthrough),
       history: state.history,
       // Omitted while it names none, as an absent optional is.

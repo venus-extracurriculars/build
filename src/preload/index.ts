@@ -8,6 +8,7 @@ import { photoApi } from './photoApi'
  */
 const api: VenusUniversityApi = {
   platform: 'desktop',
+  storyMemory: { inspect: (payload) => ipcRenderer.invoke('storyMemory:inspect', payload) },
   soundtracks: {
     list: () => ipcRenderer.invoke('soundtracks:list'),
     pick: () => ipcRenderer.invoke('soundtracks:pick'),
