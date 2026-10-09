@@ -244,6 +244,8 @@ interface GameStoreState {
    * opened from is held in memory; `over` once its last line has turned. Null in a game.
    */
   replaying: { over?: true } | null
+  /** Immutable mod choices read from the playthrough record, never duplicated into slot saves. */
+  playthroughMods: readonly string[]
   date: number
   time: TimeSlot
   /** charIds loaded into the current save. */
@@ -1346,6 +1348,7 @@ const initialState = {
   playthroughId: null,
   createdScene: null as CreatedScene | null,
   replaying: null as { over?: true } | null,
+  playthroughMods: [] as readonly string[],
   date: 0,
   time: 0 as TimeSlot,
   chars: [] as string[],
@@ -1467,6 +1470,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       loads: get().loads + 1,
       termIndex: termIndexOf(record),
       playthroughId: save.playthroughId,
+      playthroughMods: record.mods ?? [],
       date: save.date,
       time: save.time,
       chars: record.chars,
