@@ -3,6 +3,12 @@
 Plot Twist is an independent, default-on `anytime` mod (`plot-twist`). Its only dependency is
 the shared mod framework. It does not need Story Memory, SQLite, or another community feature.
 
+## 0.3.1 branch integration
+
+This branch ports Plot Twist onto the shared 0.3.1 core. Other feature mods are optional.
+Shared hooks replace duplicated integration where available. Native character notes,
+scene-creator saves and calendar replays retain their 0.3.1 behavior.
+
 ## Player behavior
 
 Turn it on in **Mods**, then open **Game menu → Plot Twist** during a playthrough. Write one
