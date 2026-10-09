@@ -1,4 +1,4 @@
-import '../src/renderer/mods/plotTwist'
+import '../src/renderer/modEntries/plot-twist'
 import { afterEach, beforeEach, expect, it } from 'vitest'
 import { PLOT_TWIST_MOD } from '@shared/plotTwists'
 import { useGameStore } from '../src/renderer/stores/gameStore'
