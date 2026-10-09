@@ -1,3 +1,4 @@
+import { TextRegenerate } from '../components/TextRegenerate'
 import { bunnyboardPages } from '../mods/hooks'
 import { useModsStore } from '../stores/modsStore'
 import {
@@ -1039,6 +1040,7 @@ function ConversationView({
         )}
       </div>
 
+      {!bot && <TextRegenerate charId={charId} />}
       <div className="vu-bb-foot">
         {boss ? (
           <BossActions
