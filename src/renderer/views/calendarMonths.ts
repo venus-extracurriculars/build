@@ -1,5 +1,6 @@
 import { FINAL_DATE } from '@shared/classes'
 import { WEEK_DAY_HEADERS } from '@shared/jobs'
+import { activeSeason, type Season } from '@shared/term'
 import { formatGameDate, weekdayOf } from '../prompts/gameDate'
 
 /** The day-of-month for a date index, read off the shared formatter. */
@@ -18,12 +19,18 @@ export interface Month {
   last: number
 }
 
+/** Each season's months, worked out the first time a semester of that season opens a calendar. */
+const MONTHS_BY_SEASON = new Map<Season, readonly Month[]>()
+
 /**
- * The months the semester touches, each drawn whole: the first one's days before
- * the 19th and the last one's after graduation are on the grid, dimmed, so a month is always
- * a month and the arrows never change the shape of what they page.
+ * The months the semester being played touches, each drawn whole: the first one's days before
+ * day 0 and the last one's after the semester's end are on the grid, dimmed, so a month is
+ * always a month and the arrows never change the shape of what they page.
  */
-export const MONTHS: readonly Month[] = ((): Month[] => {
+export function monthsOf(): readonly Month[] {
+  const season = activeSeason()
+  const known = MONTHS_BY_SEASON.get(season)
+  if (known) return known
   const months: Month[] = []
   let first = 1 - dayOfMonth(0)
   while (first <= FINAL_DATE) {
@@ -32,14 +39,15 @@ export const MONTHS: readonly Month[] = ((): Month[] => {
     months.push({ first, last: next - 1 })
     first = next
   }
+  MONTHS_BY_SEASON.set(season, months)
   return months
-})()
+}
 
-/** Which of {@link MONTHS} a date falls in. */
+/** Which of {@link monthsOf} a date falls in. */
 export function monthIndexOf(date: number): number {
   return Math.max(
     0,
-    MONTHS.findIndex((month) => date >= month.first && date <= month.last)
+    monthsOf().findIndex((month) => date >= month.first && date <= month.last)
   )
 }
 
