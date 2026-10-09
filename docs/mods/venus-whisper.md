@@ -156,7 +156,7 @@ to what the reader subsequently does in a scene.
 | `src/shared/venusWhisper.ts` | Types, optional save augmentation, normalizer, identity selection, public sources, commenter selection, validation, carryover and bounded recall. Pure functions take randomness as an argument. |
 | `src/renderer/prompts/venusWhisperPrompt.ts` | Separate editorial and unprivileged public-comment requests; bounded JSON schemas. |
 | `src/renderer/stores/venusWhisper.ts` | Publication/comment actions, cancellation and stale-game checks. No component calls the writer directly. |
-| `src/renderer/stores/whisperDelivery.ts`, `src/renderer/mods/venusWhisper.tsx` | Game-lifetime Wednesday delivery and hook registration; cancellation, retry backoff and checkpoint waiting, independent of Bunnyboard. |
+| `src/renderer/stores/whisperDelivery.ts`, `src/renderer/modEntries/venus-whisper.tsx` | Game-lifetime Wednesday delivery and hook registration; cancellation, retry backoff and checkpoint waiting, independent of Bunnyboard. |
 | `src/shared/whisperIdentity.ts`, `src/renderer/stores/whisperIdentity.ts` | Native trust/scene gates, private prompt continuity, structured ledger evidence, transcript validation and boundary persistence. |
 | `src/renderer/stores/whisperObservations.ts` | Settled-slot collector using native timetable lookups; no encounter rerolls, additional writer calls or private-scene access. |
 | `src/renderer/stores/loop/saves.ts` | `writeWhisper` uses the existing serialized autosave lane and current scene checkpoint. Visible state changes only after a successful write. |
@@ -166,7 +166,7 @@ to what the reader subsequently does in a scene.
 | `src/shared/whisperCarry.ts` | Registers optional semester retention; no Continuing Semesters import is required. |
 | `src/renderer/stores/gameStore.ts`, `src/shared/saveRules.ts` | Default, load, reset, optional-field acceptance and save projection. |
 | `src/main/ipc.ts`, `src/preload/api.d.ts`, `src/preload/index.ts`, `src/web/bridge.ts` | Cancellable `llm:completeWhisper` structured requests on desktop and browser. |
-| `src/renderer/mods/venusWhisper.tsx` | Public scene/DM excerpts, private scene-only identity continuity, and ledger/settled-slot registration. Regenerated texts share the ordinary public DM hook. |
+| `src/renderer/modEntries/venus-whisper.tsx` | Public scene/DM excerpts, private scene-only identity continuity, and ledger/settled-slot registration. Regenerated texts share the ordinary public DM hook. |
 | `src/renderer/views/BunnyboardModal.tsx`, `VenusWhisperModal.tsx` | Optional rail tab and embedded newsletter page, independent of character profiles and Updates. |
 | `test/venusWhisper.test.ts` | Identity persistence, repeated term rollover, bounded imports, privacy boundaries, duplicate prevention, failed writes and stale requests. |
 | `test/whisperDelivery.test.ts` | Wednesday scheduling with the phone closed, catch-up, upgrades, read status, save failure, cancellation and safe delayed delivery. |
@@ -249,3 +249,10 @@ UI checks use synthetic saves and a stubbed writer, avoiding API charges or real
 Exercise day and night at 1920×1080, 2560×1440, 1280×720 and 1440×1080, including all seven Bunnyboard rail tiles and each mod enabled alone. Check publication, article scrolling, tags, direct replies, pauses, the older-term
 archive, and failure retry. Before release, playtest real-model editorial quality and subtlety
 over several days; schema validation cannot certify believable prose or perfect discretion.
+
+## Registration on core 0.3.1
+
+- `src/shared/modEntries/venus-whisper.ts` supplies its existing mod definition and carry registration.
+- `src/renderer/modEntries/venus-whisper.ts` loads the hooks automatically at boot. The JSX marker and registration remain in `src/renderer/mods/venusWhisper.tsx`.
+
+The stable IDs, defaults, dependencies, save fields and gameplay behavior are unchanged. Native character notes, scene-creator saves and calendar replays retain their 0.3.1 behavior. Merge framework updates from `core` into this mod branch; resolve conflicts with `main` on a separate `integrate/venus-whisper` branch.

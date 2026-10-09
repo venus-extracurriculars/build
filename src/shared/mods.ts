@@ -1,6 +1,4 @@
-import './whisperCarry'
 import type { PlaythroughRecord } from './types'
-import { VENUS_WHISPER_MOD, WHISPER_TITLE } from './venusWhisper'
 
 /**
  * The community mods built into this copy of the game, and the switches a player turns them on
@@ -66,17 +64,19 @@ export interface ModDef {
 }
 
 /**
- * Every mod in this build, in the order the Mods screen lists them. None yet: this is the
- * frame alone, on the game as Venus Dev released it. A mod adds itself here (see MODDING.md).
+ * Each mod's entry, found rather than listed: every file in `src/shared/modEntries/`, named for
+ * the mod's id, whose default export is its {@link ModDef}. Nothing here names a mod, so two
+ * mods added side by side never touch the same line (see MODDING.md).
  */
-export const MODS: readonly ModDef[] = [
-  {
-    id: VENUS_WHISPER_MOD, name: WHISPER_TITLE, author: 'Maestro Leeds', version: '1.0.0',
-    scope: 'anytime', defaultOn: true,
-    blurb: 'An anonymous Wednesday gossip column, delivered weekly with unread alerts, public comments, replies and mentions.',
-    offNote: 'Keeps the secret columnist and archive, including across continued semesters. Stops new issues, comments and gossip context.'
-  }
-]
+const ENTRIES = import.meta.glob<ModDef>('./modEntries/*.ts', { eager: true, import: 'default' })
+
+/**
+ * Every mod in this build, in the order the Mods screen lists them and the hooks are asked: by
+ * id. None yet in `core`: this is the frame alone.
+ */
+export const MODS: readonly ModDef[] = Object.keys(ENTRIES)
+  .sort()
+  .map((file) => ENTRIES[file])
 
 /**
  * What the player has set, as `data/mods.json` holds it. A mod or an option that is not in
