@@ -1,3 +1,4 @@
+import type { CharacterDynamics } from '@shared/characterDynamics'
 import { modRequest, promptLines } from '../mods/hooks'
 import { SUBJECT_TAGS } from '@shared/characterRules'
 import { slotFullLabel, yearLabel } from '@shared/classes'
@@ -160,6 +161,7 @@ export interface PromptState {
   exPlotTwist?: string
   storyMemory?: import('@shared/storyMemory').StorySnapshot
   breakthrough?: import('@shared/breakthrough').BreakthroughState
+  characterDynamics?: CharacterDynamics
   /** The cloud-LLM cache key: the playthrough id, never the save's. */
   playthroughId: string
   date: number

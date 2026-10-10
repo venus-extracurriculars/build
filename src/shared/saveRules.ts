@@ -50,6 +50,7 @@ const SAVE_REQUIRED: Record<
     | 'occasionsDeclined'
     | 'bio'
     | 'exPlotTwist'
+    | 'characterDynamics'
     | 'tallies'
     | 'thumbnail'
     | 'replays'
@@ -122,7 +123,7 @@ const RECORD_REQUIRED: Record<keyof Omit<PlaythroughRecord, 'name' | 'term' | 'm
  * the fields an enrollment written before them lacks are optional on the type and omitted here.
  */
 const ENROLLMENT_REQUIRED: Record<
-  keyof Omit<Enrollment, 'bio' | 'tokensGenerated' | 'term' | 'carry'>,
+  keyof Omit<Enrollment, 'bio' | 'tokensGenerated' | 'term' | 'carry' | 'characterDynamics' | 'characterDynamicsEnabled'>,
   true
 > = {
   schemaVersion: true,

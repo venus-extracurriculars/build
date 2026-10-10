@@ -475,6 +475,7 @@ export async function sendMessage(charId: string, text: string): Promise<void> {
         breakthrough: modIsOn(BREAKTHROUGH_MOD) ? game.exBreakthrough : undefined,
         roster: others,
         charInfo: game.charInfo,
+        characterDynamics: game.characterDynamics,
         npcRelationships: game.npcRelationships,
         classes: game.classes,
         playerSchedule: game.playerSchedule,
