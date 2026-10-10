@@ -13,15 +13,18 @@ import {
 } from 'motion/react'
 import { CROSS_CHASE, CROSS_SECONDS } from '../stores/crossingStore'
 
-/** A paid Breakthrough gets one paper-card flourish; reduced motion holds the card still. */
+/** A paid Breakthrough gets a gold-lit announcement; reduced motion holds the card still. */
 export const BREAKTHROUGH_SECONDS = 2.6
 export const breakthroughBannerMotion: TargetAndTransition = {
-  opacity: [0, 1, 1, 0], y: [25, 0, 0, -15], scale: [.9, 1, 1, 1], rotate: [-3, 0, 0, 0],
-  transition: { duration: BREAKTHROUGH_SECONDS, times: [0, .18, .75, 1] }
+  opacity: [0, 1, 1, 0], y: [18, 0, 0, -8], scale: [.96, 1, 1, 1.01],
+  transition: {
+    duration: BREAKTHROUGH_SECONDS, times: [0, .2, .76, 1], ease: [.2, .7, .2, 1],
+    opacity: { duration: BREAKTHROUGH_SECONDS, times: [0, .14, .76, 1], ease: 'easeInOut' }
+  }
 }
 export const breakthroughHaloMotion: TargetAndTransition = {
-  opacity: [0, .5, 0], scale: [.65, 1, 1.3],
-  transition: { duration: BREAKTHROUGH_SECONDS, times: [0, .2, 1], ease: 'easeOut' }
+  opacity: [0, 1, 0], scale: [.65, 1, 1.2],
+  transition: { duration: BREAKTHROUGH_SECONDS, times: [0, .35, 1], ease: 'easeOut' }
 }
 
 /**
