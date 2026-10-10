@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs'
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import asar from '@electron/asar'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -66,7 +66,8 @@ async function fixture() {
 }
 
 function run(patch, command, game, fail) {
-  const args = [...(fail ? ['--import', join(HERE, 'fail-marker.mjs')] : []), patch, command, game]
+  // A URL, not a path: on Windows Node reads `C:\...` given to --import as a URL with a `c:` scheme.
+  const args = [...(fail ? ['--import', pathToFileURL(join(HERE, 'fail-marker.mjs')).href] : []), patch, command, game]
   const result = spawnSync(process.execPath, args, { env: { ...process.env, FAIL: fail ?? '' }, encoding: 'utf8' })
   return { ...result, text: result.stdout + result.stderr }
 }
