@@ -161,7 +161,7 @@ export interface PromptState {
   exPlotTwist?: string
   storyMemory?: import('@shared/storyMemory').StorySnapshot
   breakthrough?: import('@shared/breakthrough').BreakthroughState
-  characterDynamics?: CharacterDynamics
+  exCharacterDynamics?: CharacterDynamics
   /** The cloud-LLM cache key: the playthrough id, never the save's. */
   playthroughId: string
   date: number

@@ -76,7 +76,7 @@ import { slotStampOf } from '../stores/slotCrossing'
 import { lockedIdsOf, spriteUrl, useCharacterStore, visibleOrderOf } from '../stores/characterStore'
 import { playthroughMods } from '@shared/mods'
 import { modIsOn, useModsStore } from '../stores/modsStore'
-import { CHARACTER_DYNAMICS_MOD, dynamicsKnowsReader, type CharacterDynamics } from '@shared/characterDynamics'
+import { CHARACTER_DYNAMICS_MOD, dynamicsKnowsReader, readCharacterDynamics, readCharacterDynamicsEnabled, type CharacterDynamics } from '@shared/characterDynamics'
 import { CharacterDynamicsModal } from './CharacterDynamicsModal'
 import { useSaveStore } from '../stores/saveStore'
 import { useUiStore } from '../stores/uiStore'
@@ -253,13 +253,14 @@ export function NewGameView(): JSX.Element {
   const [playthroughId, setPlaythroughId] = useState<string | null>(
     () => resumed?.playthroughId ?? null
   )
-  const [characterDynamics, setCharacterDynamics] = useState<CharacterDynamics | undefined>(resumed?.enrollment.characterDynamics ?? continued?.save.characterDynamics)
+  const [exCharacterDynamics, setCharacterDynamics] = useState<CharacterDynamics | undefined>(() =>
+    readCharacterDynamics(resumed?.enrollment) ?? readCharacterDynamics(resumed?.enrollment.carry) ?? readCharacterDynamics(continued?.save))
   const [dynamicsEnabled] = useState(() => resumed
-    ? resumed.enrollment.characterDynamicsEnabled === true
+    ? readCharacterDynamicsEnabled(resumed.enrollment)
     : modIsOn(CHARACTER_DYNAMICS_MOD))
   // Previous classmates cannot be given a new past, even when no tags were assigned to them.
   const returningDynamicsIds = continued
-    ? [...new Set([...continued.record.chars, ...Object.keys(continued.save.characterDynamics?.characters ?? {})])]
+    ? [...new Set([...continued.record.chars, ...Object.keys(readCharacterDynamics(continued.save)?.characters ?? {})])]
     : Object.keys(resumed?.enrollment.carry?.charInfo ?? {})
   const [choosingDynamics, setChoosingDynamics] = useState(false)
   const [picking, setPicking] = useState(false)
@@ -535,7 +536,7 @@ export function NewGameView(): JSX.Element {
     last: string,
     stats: PlayerStats,
     bio: string,
-    dynamics = characterDynamics
+    dynamics = exCharacterDynamics
   ): Promise<void> {
     const tokensGenerated = useGameStore.getState().tallies.tokensGenerated
     setEnrolledTokens(tokensGenerated)
@@ -554,8 +555,8 @@ export function NewGameView(): JSX.Element {
       playerLastName: last,
       stats,
       ...(bio ? { bio } : {}),
-      ...(dynamics ? { characterDynamics: dynamics } : {}),
-      characterDynamicsEnabled: dynamicsEnabled,
+      ...(dynamics ? { exCharacterDynamics: dynamics } : {}),
+      exCharacterDynamicsEnabled: dynamicsEnabled,
       ...(tokensGenerated > 0 ? { tokensGenerated } : {})
     })
     if (!written.ok) {
@@ -649,7 +650,7 @@ export function NewGameView(): JSX.Element {
       setChoosingDynamics(true)
       return
     }
-    finishNaming(first, last, stats, bio, characterDynamics)
+    finishNaming(first, last, stats, bio, exCharacterDynamics)
   }
 
   function finishNaming(first: string, last: string, stats: PlayerStats, bio: string, dynamics?: CharacterDynamics): void {
@@ -817,7 +818,7 @@ export function NewGameView(): JSX.Element {
           ...carry,
           // Setup keeps returnees intact and adds newcomers. Do not overwrite those additions
           // with the older modCarry snapshot when the first save is assembled.
-          ...(characterDynamics ? { characterDynamics } : {})
+          ...(exCharacterDynamics ? { exCharacterDynamics } : {})
         })
       : save
     const startingMods = playthroughMods(useModsStore.getState().switches).filter(id => id !== CHARACTER_DYNAMICS_MOD)
@@ -842,7 +843,7 @@ export function NewGameView(): JSX.Element {
         stats: playerStats,
         money: STARTING_MONEY,
         ...(playerBio ? { bio: playerBio } : {}),
-        ...(characterDynamics ? { characterDynamics } : {}),
+        ...(exCharacterDynamics ? { exCharacterDynamics } : {}),
         tallies: { ...emptyTallies(), tokensGenerated: enrolledTokens },
         date: FIRST_SLOT.date,
         time: FIRST_SLOT.time,
@@ -854,8 +855,8 @@ export function NewGameView(): JSX.Element {
               // Every name starts hidden, and the flags are seeded off her traits.
               {
                 memories: [],
-                flags: { ...initialFlags(c), hasMet: dynamicsKnowsReader(characterDynamics, c.charId) },
-                nameKnown: dynamicsKnowsReader(characterDynamics, c.charId),
+                flags: { ...initialFlags(c), hasMet: dynamicsKnowsReader(exCharacterDynamics, c.charId) },
+                nameKnown: dynamicsKnowsReader(exCharacterDynamics, c.charId),
                 ...(job ? { job } : {}),
                 // Omitted for a freshman, whose break was somewhere else.
                 ...(winterFeeds[c.charId]?.length > 0 ? { feed: winterFeeds[c.charId] } : {})
@@ -954,7 +955,7 @@ export function NewGameView(): JSX.Element {
   // The registrar, written once and returned from two branches — the canned start's, where the
   // name modal's exit has to outlive the swap to it, and the generated flow's.
   const dynamicsModal = choosingDynamics ? (
-    <CharacterDynamicsModal key="dynamics" theme={theme} roster={roster} initial={characterDynamics} returning={returningDynamicsIds}
+    <CharacterDynamicsModal key="dynamics" theme={theme} roster={roster} initial={exCharacterDynamics} returning={returningDynamicsIds}
       onContinue={choices => {
         setCharacterDynamics(choices)
         setChoosingDynamics(false)

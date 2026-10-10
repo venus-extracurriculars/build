@@ -73,7 +73,7 @@ export interface TextingPromptState {
   breakthrough?: BreakthroughState
   /** A bounded longer window for rebuilding a legacy reply without a pre-reply summary. */
   historyLimit?: number
-  characterDynamics?: CharacterDynamics
+  exCharacterDynamics?: CharacterDynamics
   date: number
   time: TimeSlot
   /** The reader's accumulated stats, used for relationship requirement guidance. */
