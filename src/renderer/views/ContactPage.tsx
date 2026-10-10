@@ -1,4 +1,6 @@
 import { Fragment, useState, type JSX, type ReactNode } from 'react'
+import { dynamicFor } from '@shared/characterDynamics'
+import { CharacterDynamicsBackstory } from './CharacterDynamicsBackstory'
 import { AnimatePresence, motion } from 'motion/react'
 import { slotPartsOf, yearLabel } from '@shared/classes'
 import { dormLabel } from '@shared/dorms'
@@ -63,6 +65,7 @@ export function ContactPage({
   charId: string
   theme: ScreenTheme
 }): JSX.Element {
+  const dynamics = useGameStore((s) => s.exCharacterDynamics)
   const character = useGameStore((s) => s.characters[charId])
   const info = useGameStore((s) => s.charInfo[charId])
   const classes = useGameStore((s) => s.classes)
@@ -86,6 +89,10 @@ export function ContactPage({
   const [notesOpen, setNotesOpen] = useState(false)
 
   if (!character) return <p className="vu-contact-gone">This account no longer exists.</p>
+
+  const dynamic = dynamicFor(dynamics, charId)
+  const hasDynamics = Boolean(dynamic.relationship || dynamic.traits.length)
+  const dynamicsLink = <CharacterDynamicsBackstory key={charId} entry={dynamic} character={character} theme={theme} />
 
   // The list the tag is computed from, texting memory and all; the history reads it folded.
   const memories = memoriesFor(info)
@@ -226,13 +233,14 @@ export function ContactPage({
                   )}
                 </Field>
 
-                {character.backstory && (
+                {(character.backstory || hasDynamics) && (
                   <Field label="Backstory">
-                    {showBackstory ? (
+                    {character.backstory && (showBackstory ? (
                       <p className="vu-contact-text">{character.backstory}</p>
                     ) : (
                       <Locked>??? — Unlocked at Best Friends</Locked>
-                    )}
+                    ))}
+                    {dynamicsLink}
                   </Field>
                 )}
 
@@ -298,7 +306,7 @@ export function ContactPage({
                 </Field>
               </>
             ) : (
-              <StrangerProfile />
+              <StrangerProfile dynamicsLink={dynamicsLink} />
             )}
           </Card>
 
@@ -528,7 +536,7 @@ function Card({
  * with what unlocks it named, never omitted — an absence here would tell the reader something
  * he has no way of knowing.
  */
-function StrangerProfile(): JSX.Element {
+function StrangerProfile({ dynamicsLink }: { dynamicsLink: ReactNode }): JSX.Element {
   return (
     <>
       <Field label="Likes">
@@ -545,6 +553,7 @@ function StrangerProfile(): JSX.Element {
       </Field>
       <Field label="Backstory">
         <Locked>??? — Unlocked at Best Friends</Locked>
+        {dynamicsLink}
       </Field>
       <Field label="Love life">
         <Locked>??? — Unlocked at Lovers</Locked>

@@ -3,7 +3,7 @@
 One optional Venus Extracurriculars mod, with one setup screen for two independent choices:
 
 - **Starting relationship:** Ex-girlfriend, Resentful, Rival, or Antagonist. Each girl assigned a relationship requires her own explanation, up to 1,200 characters. This establishes background, not a permanent mood or a reward in stats.
-- **Personality nudges:** Headstrong, Guarded, Mischievous, Tenderhearted, Competitive, Impulsive, Self-assured, Reserved, Idealistic, and Prickly. Several can be applied to the same girl. They supplement her existing personality and voice.
+- **Personality nudges:** 34 optional traits. Several can be applied to the same girl, gently supplementing her existing personality and voice. Search the palette by name or description, then drag a trait or use the click-to-place alternative.
 
 ## Playing
 
@@ -12,6 +12,25 @@ Enable **Character Dynamics** in the main menu's **Mods** screen before starting
 Continue is available when every chosen relationship has a nonblank explanation. Selecting no choices is valid. The setup establishes that girls with written shared history already know the reader; it does not grant affection, contact details, intimacy, trust reveals, or native relationship milestones. A prior relationship is history before this playthrough, not a new breakup or kiss for the ledger to award.
 
 The choices are specific to this playthrough and do not rewrite reusable character files, native traits, or character notes. Changing the Mods switch affects future playthroughs, as with other playthrough-scoped mods. Existing playthroughs without this mod remain unchanged.
+
+## Viewing choices during play
+
+Open a girl's Bunnyboard profile and find **Backstory → Character Dynamics**. A small button and summary open a separate, read-only panel with her assigned traits, their meanings, her starting relationship, and the explanation entered during setup. Choices are shown from the currently loaded save. Girls with no assigned choices have no extra button.
+
+The player-authored choices can be read before the native backstory is unlocked; the girl's own undiscovered backstory remains locked. **Starting background** records the setup rather than claiming she still feels the same way. Reading the panel does not edit her character file, notes, memories, or saved choices. Carried choices remain readable when the mod's effects are inactive.
+
+## Trait catalog
+
+The original ten choices remain: Headstrong, Guarded, Mischievous, Tenderhearted, Competitive, Impulsive, Self-assured, Reserved, Idealistic, and Prickly.
+
+Additional choices:
+
+- **Humor and expression:** Witty, Dramatic, Pun-loving, Deadpan, Goofy, Easily flustered.
+- **Warmth and connection:** Flirtatious, Romantic, Affectionate, Protective, Sentimental, Empathetic.
+- **Curiosity and spontaneity:** Adventurous, Curious, Rebellious, Dreamy, Superstitious, Social butterfly.
+- **Outlook:** Observant, Meticulous, Skeptical, Ambitious, Easygoing, Philosophical.
+
+All choices use the same catalog for setup, saved-choice display, and prompt guidance. Adding these options does not assign any new traits to existing saves. Tags do not change stats, schedules, consent, or native game trait switches.
 
 ## AI behavior
 
@@ -35,7 +54,9 @@ The shared entry imports a `modCarry` adapter. It copies choices independently o
 | `src/shared/characterDynamics.ts` | Saved shape, catalog, required reasons, and settling new choices without changing returning girls. |
 | `src/shared/characterDynamicsCarry.ts` | Pure semester retention adapter. |
 | `src/renderer/views/CharacterDynamicsModal.tsx` | One setup screen, drag/drop, click alternative, validation, read-only returnees. |
-| `src/renderer/vu_styles/CharacterDynamics.css` | Native theme roles, scroll areas, character cards. |
+| `src/renderer/vu_styles/CharacterDynamics.css` | Native theme roles, scroll areas, character cards, searchable trait palette. |
+| `src/renderer/views/CharacterDynamicsBackstory.tsx`, `src/renderer/vu_styles/CharacterDynamicsBackstory.css` | Compact Backstory link and separate read-only trait/background panel. |
+| `src/renderer/views/ContactPage.tsx` | Displays the link from the current save while preserving native discovery gates. |
 | `src/renderer/views/NewGameView.tsx` | Setup sequence, enrollment, first-save data, and initial acquaintance. |
 | `src/shared/types.ts`, `src/shared/saveRules.ts` | Optional enrollment/save field without changing schema versions. |
 | `src/renderer/stores/gameStore.ts` | Save round-trip and clearing data between runs. |
