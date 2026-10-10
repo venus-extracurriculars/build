@@ -64,4 +64,7 @@ The wizard is compiled on Windows with the C# compiler that comes with Windows. 
 else, `dist/` gets `build-setup.cmd`: copy `dist/` to a Windows PC and double-click it. The exe
 is not signed, so SmartScreen warns about an unknown publisher the first time.
 
+`npm test` runs the patch against a small stand-in for the game, with no game needed: install and
+uninstall round trip, and an install whose marker cannot be written or renamed is rolled back.
+
 Then install, play and uninstall on a clean copy of the official game before publishing.

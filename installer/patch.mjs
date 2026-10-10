@@ -160,6 +160,24 @@ async function install(game, force) {
       await cp(join(PAYLOAD, 'files', rel), join(work, rel))
     }
     await asar.createPackageWithOptions(work, p.asar, { unpack: UNPACK })
+    // Inside the try: an install whose marker cannot be written is undone like any other failure,
+    // or the game would run the build while Uninstall said it was not there.
+    // Written beside the marker and renamed onto it, so a marker is whole or not there at all.
+    await writeFile(
+      `${p.marker}.tmp`,
+      JSON.stringify(
+        {
+          build: expected.build,
+          buildVersion: expected.buildVersion,
+          gameVersion: expected.gameVersion,
+          // The archive as this install left it: uninstall restores the backup only over this.
+          asar: await hashFile(p.asar)
+        },
+        null,
+        2
+      )
+    )
+    await rename(`${p.marker}.tmp`, p.marker)
   } catch (error) {
     // Anything half-written goes back to the original before the error is reported.
     await cp(p.backup, p.asar)
@@ -167,6 +185,8 @@ async function install(game, force) {
       await rm(p.unpacked, { recursive: true, force: true })
       await cp(p.backupUnpacked, p.unpacked, { recursive: true })
     }
+    await rm(`${p.marker}.tmp`, { force: true }).catch(() => {})
+    await rm(p.marker, { force: true }).catch(() => {})
     await rm(p.backup, { force: true })
     await rm(p.backupUnpacked, { recursive: true, force: true })
     fail(`Install failed and the game was put back as it was: ${error.message}`)
@@ -174,20 +194,6 @@ async function install(game, force) {
     await rm(work, { recursive: true, force: true })
   }
 
-  await writeFile(
-    p.marker,
-    JSON.stringify(
-      {
-        build: expected.build,
-        buildVersion: expected.buildVersion,
-        gameVersion: expected.gameVersion,
-        // The archive as this install left it: uninstall restores the backup only over this.
-        asar: await hashFile(p.asar)
-      },
-      null,
-      2
-    )
-  )
   console.log(`\n  Done. ${NAME} is installed in:\n  ${game}\n`)
   console.log('  Every mod can be turned on or off from Mods on the main menu.\n')
 }

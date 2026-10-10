@@ -226,7 +226,7 @@ class SetupForm : Form
 
         Label about = new Label();
         about.Text =
-            "Lets a finished semester continue into the next one: a Fall after Spring, then Spring again.\r\n\r\n" +
+            "Several fan-made mods in one install, each switched on or off from Mods on the main menu.\r\n\r\n" +
             "Close the game before installing or uninstalling. Your saves are not touched.\r\n" +
             "Not compatible with other mods that change the game's code.";
         about.SetBounds(24, 82, 552, 76);

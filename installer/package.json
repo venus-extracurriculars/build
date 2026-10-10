@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Builds the Venus Extracurriculars installer, which puts this build on top of the official Venus University game.",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "test": "node --test test/install.test.mjs"
   },
   "devDependencies": {
     "@electron/asar": "3.4.1",

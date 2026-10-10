@@ -17,7 +17,7 @@ import { zipSync } from 'fflate'
  * so none of his art, music or characters can end up in the download.
  *
  *   node build.mjs --base <official out> --build <this build's out> --game-version 0.4.0
- *                  [--build-version 0.1.0]
+ *                  [--build-version 0.1.0] [--out <folder>]
  *
  * `--build-version` defaults to `BUILD.version` in `src/shared/mods.ts`.
  */
@@ -49,7 +49,8 @@ const GAME_VERSION = arg('game-version')
 const VERSION = raw('build-version') ?? info.version
 const NAME = info.name
 const SLUG = NAME.replace(/\s+/g, '-')
-const OUT = join(HERE, 'dist')
+// Where everything is written; a test passes its own folder.
+const OUT = raw('out') ?? join(HERE, 'dist')
 const DIST = join(OUT, `${SLUG.toLowerCase()}-${VERSION}`)
 const SETUP = join(OUT, `${SLUG}-Setup-${VERSION}.exe`)
 const FIXED_DATE = new Date('2026-01-01T00:00:00Z')
