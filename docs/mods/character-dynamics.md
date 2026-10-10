@@ -55,10 +55,11 @@ Validate typechecks and the test suite, then exercise New Game and Quickstart, r
 Validated on the integrated 0.3.1 build:
 
 - All three typechecks and the desktop build pass.
-- Full suite: 163 test files, 2,099 passed and one skipped. An initial concurrent build/test run hit a timeout in Photo Feature's tests; those passed in isolation and the complete suite passed with two workers.
+- Full suite after the field rename: 163 test files, 2,101 passed and one skipped (two workers).
 - Isolated Electron checks exercised drag/drop, multiple tags, duplicate drops, removal, click-to-place, required reasons, both themes, and several window sizes.
 - New Game and Quickstart wrote the choices into their first saves. Disabled Quickstart skipped the screen and did not inherit another run's choices.
 - Continuing Semesters preserved returning girls' choices, memories, and relationship flags, plus a newcomer's new relationship and tags, through enrollment, leaving/resuming the registrar, and the first save.
 - A disabled continuation retained stored choices without opening setup or enabling its effects.
+- Compatibility checks loaded unprefixed prerelease data, continued its semester, resumed an unprefixed enrollment, and verified that the next save writes only `exCharacterDynamics`. Prefixed values take precedence; a frozen `false` enrollment choice is preserved.
 
 UI tests used canned generation results and synthetic saves; live model behavior still needs playtesting.
