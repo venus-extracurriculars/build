@@ -55,9 +55,18 @@ consume a newer activation. A pending activation found on load is refunded and c
 The native silent content-block retry keeps its existing paid token. An explicit retry
 after a failure re-spends the returned bar; it cannot repeat the advantage for free.
 
-The flair is one paper card and expanding ring in the native day/night palette. Its timing
-is defined in `views/motion.ts`; reduced motion holds a still card briefly. It does not
-block clicks. Scrolling or typing inside the spirit card does not advance the scene.
+At 100 spirit the selected character's bar turns gold and the card gains a gold outline
+and glow. Selecting a character below 100, or spending the meter, returns the normal
+accent bar. READY also identifies the full state in text.
+
+Activation restores the original rectangular announcement: gold double rules and star
+ornaments, the character's uppercase name, the large Breakthrough title, and “Make this
+moment matter.” A soft gold halo accompanies its gentle rise and fade over 2.6 seconds.
+The surface and text follow the native day/night palette; the gold state colours and
+soft glow are deliberate presentation choices specific to this mod. Timing lives in
+`views/motion.ts`; reduced motion holds the card still for the same duration without the
+halo. It does not block clicks. Scrolling or typing inside the spirit card does not
+advance the scene. This presentation does not change scoring, activation, or save data.
 
 ## What it remembers
 
