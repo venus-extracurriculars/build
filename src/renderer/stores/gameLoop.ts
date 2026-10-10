@@ -876,6 +876,7 @@ async function fetchSlotIntro(
       time,
       stats: game.stats,
       opening,
+      characterDynamics: game.characterDynamics,
       lessNsfwText: lessNsfwTextNow(),
       recent: recentSummaries(date, time, pendingSummary),
       askers,

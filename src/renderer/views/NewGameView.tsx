@@ -62,7 +62,9 @@ import {
 import { slotStampOf } from '../stores/slotCrossing'
 import { lockedIdsOf, spriteUrl, useCharacterStore, visibleOrderOf } from '../stores/characterStore'
 import { playthroughMods } from '@shared/mods'
-import { useModsStore } from '../stores/modsStore'
+import { modIsOn, useModsStore } from '../stores/modsStore'
+import { CHARACTER_DYNAMICS_MOD, dynamicsKnowsReader, type CharacterDynamics } from '@shared/characterDynamics'
+import { CharacterDynamicsModal } from './CharacterDynamicsModal'
 import { useSaveStore } from '../stores/saveStore'
 import { useUiStore } from '../stores/uiStore'
 import { CharacterHeightModal } from './CharacterHeightModal'
@@ -204,6 +206,11 @@ export function NewGameView(): JSX.Element {
   const [playthroughId, setPlaythroughId] = useState<string | null>(
     () => resumed?.playthroughId ?? null
   )
+  const [characterDynamics, setCharacterDynamics] = useState<CharacterDynamics | undefined>(resumed?.enrollment.characterDynamics)
+  const [dynamicsEnabled] = useState(() => resumed
+    ? resumed.enrollment.characterDynamicsEnabled === true
+    : modIsOn(CHARACTER_DYNAMICS_MOD))
+  const [choosingDynamics, setChoosingDynamics] = useState(false)
   const [picking, setPicking] = useState(false)
   const [inspecting, setInspecting] = useState<string | null>(null)
   const [warnings, setWarnings] = useState<string[] | null>(null)
@@ -468,7 +475,8 @@ export function NewGameView(): JSX.Element {
     first: string,
     last: string,
     stats: PlayerStats,
-    bio: string
+    bio: string,
+    dynamics = characterDynamics
   ): Promise<void> {
     const tokensGenerated = useGameStore.getState().tallies.tokensGenerated
     setEnrolledTokens(tokensGenerated)
@@ -485,6 +493,8 @@ export function NewGameView(): JSX.Element {
       playerLastName: last,
       stats,
       ...(bio ? { bio } : {}),
+      ...(dynamics ? { characterDynamics: dynamics } : {}),
+      characterDynamicsEnabled: dynamicsEnabled,
       ...(tokensGenerated > 0 ? { tokensGenerated } : {})
     })
     if (!written.ok) {
@@ -565,6 +575,14 @@ export function NewGameView(): JSX.Element {
     setPlayerStats(stats)
     setPlayerBio(bio)
     setNaming(false)
+    if (dynamicsEnabled) {
+      setChoosingDynamics(true)
+      return
+    }
+    finishNaming(first, last, stats, bio, characterDynamics)
+  }
+
+  function finishNaming(first: string, last: string, stats: PlayerStats, bio: string, dynamics?: CharacterDynamics): void {
     if (quick) {
       // The canned timetable was written at mount, so the menu's crossing has only the
       // enrollment left to wait on: the registrar is swapped in under the same cover the
@@ -577,7 +595,7 @@ export function NewGameView(): JSX.Element {
       }
       void (async () => {
         const semester = { schedules, jobs, haunts, feeds, springBreakPlans, occasions }
-        await enroll(semester, first, last, stats, bio)
+        await enroll(semester, first, last, stats, bio, dynamics)
         endCrossing(() => setView('classSelect'))
       })()
       return
@@ -699,7 +717,8 @@ export function NewGameView(): JSX.Element {
       })
     )
 
-    const startingMods = playthroughMods(useModsStore.getState().switches)
+    const startingMods = playthroughMods(useModsStore.getState().switches).filter(id => id !== CHARACTER_DYNAMICS_MOD)
+    if (dynamicsEnabled) startingMods.push(CHARACTER_DYNAMICS_MOD)
     const written = await useSaveStore.getState().createPlaythrough(
       {
         // The per-playthrough mods this one starts with; none in a build that has none.
@@ -719,6 +738,7 @@ export function NewGameView(): JSX.Element {
         stats: playerStats,
         money: STARTING_MONEY,
         ...(playerBio ? { bio: playerBio } : {}),
+        ...(characterDynamics ? { characterDynamics } : {}),
         tallies: { ...emptyTallies(), tokensGenerated: enrolledTokens },
         date: FIRST_SLOT.date,
         time: FIRST_SLOT.time,
@@ -730,8 +750,8 @@ export function NewGameView(): JSX.Element {
               // Every name starts hidden, and the flags are seeded off her traits.
               {
                 memories: [],
-                flags: initialFlags(c),
-                nameKnown: false,
+                flags: { ...initialFlags(c), hasMet: dynamicsKnowsReader(characterDynamics, c.charId) },
+                nameKnown: dynamicsKnowsReader(characterDynamics, c.charId),
                 ...(job ? { job } : {}),
                 // Omitted for a freshman, whose break was somewhere else.
                 ...(winterFeeds[c.charId]?.length > 0 ? { feed: winterFeeds[c.charId] } : {})
@@ -816,6 +836,15 @@ export function NewGameView(): JSX.Element {
 
   // The registrar, written once and returned from two branches — the canned start's, where the
   // name modal's exit has to outlive the swap to it, and the generated flow's.
+  const dynamicsModal = choosingDynamics ? (
+    <CharacterDynamicsModal key="dynamics" theme={theme} roster={roster} initial={characterDynamics}
+      onContinue={choices => {
+        setCharacterDynamics(choices)
+        setChoosingDynamics(false)
+        finishNaming(playerName.first, playerName.last, playerStats, playerBio, choices)
+      }} />
+  ) : null
+
   const classSelect =
     view === 'classSelect' && schedules ? (
       <ClassSelectView
@@ -833,6 +862,7 @@ export function NewGameView(): JSX.Element {
     return (
       <>
         {classSelect}
+        <AnimatePresence>{dynamicsModal}</AnimatePresence>
         {/* Its answer ends the crossing rather than changing the view outright, so unlike the
             roster's modals this one does leave on its own — over the first frames of the wipe,
             the veil being above the crossing layer. The registrar is rendered from this same
@@ -1039,6 +1069,7 @@ export function NewGameView(): JSX.Element {
 
       {/* One presence for both questions the start asks: the lineup's answer starts a crossing,
           and the name panel is raised under its cover well after the lineup's own exit finishes. */}
+      <AnimatePresence>{dynamicsModal}</AnimatePresence>
       <AnimatePresence>
         {naming && <PlayerNameModal key="naming" theme={theme} onSubmit={onNamed} />}
 

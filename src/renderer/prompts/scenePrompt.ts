@@ -1,3 +1,4 @@
+import type { CharacterDynamics } from '@shared/characterDynamics'
 import { modRequest, promptLines } from '../mods/hooks'
 import { SUBJECT_TAGS } from '@shared/characterRules'
 import { slotFullLabel, yearLabel } from '@shared/classes'
@@ -157,6 +158,7 @@ export interface ProjectSceneContext {
 
 /** Everything the builders read out of `gameStore`. */
 export interface PromptState {
+  characterDynamics?: CharacterDynamics
   /** The cloud-LLM cache key: the playthrough id, never the save's. */
   playthroughId: string
   date: number

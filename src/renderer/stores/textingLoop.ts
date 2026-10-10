@@ -467,6 +467,7 @@ export async function sendMessage(charId: string, text: string): Promise<void> {
         stats: game.stats,
         roster: others,
         charInfo: game.charInfo,
+        characterDynamics: game.characterDynamics,
         npcRelationships: game.npcRelationships,
         classes: game.classes,
         playerSchedule: game.playerSchedule,

@@ -1222,6 +1222,8 @@ export type BunnybotHandover = 'contact' | 'haunt'
 
 /** On-disk save file â€” `/data/saves/{playthroughId}/{saveId}.json`. */
 export interface GameSave {
+  /** Character Dynamics: fixed setup choices retained by every save. */
+  characterDynamics?: import('./characterDynamics').CharacterDynamics
   schemaVersion: 12
   /**
    * The playthrough this save belongs to. Derived from the containing folder
@@ -1579,7 +1581,7 @@ export interface PlaythroughRecord {
   /** The settled half of every character's entry, keyed by charId. */
   profiles: Record<string, CharProfile>
   /**
-   * The player's own name for the playthrough, given from Load Game — the one field written
+   * The player's own name for the playthrough, given from Load Game ï¿½ the one field written
    * after New Game. Absent, the playthrough goes by its place in creation order.
    */
   name?: string
@@ -1662,6 +1664,10 @@ export interface QuickstartBundle {
 
 /** A whole semester with the reader beside it, as the screen that generated it hands it over. */
 export type EnrollmentDraft = QuickstartBundle & {
+  /** The same setup survives leaving the registrar before Finalize. */
+  characterDynamics?: import('./characterDynamics').CharacterDynamics
+  /** The setup switch is fixed once this enrollment starts, even when choices are empty. */
+  characterDynamicsEnabled?: boolean
   playerFirstName: string
   playerLastName: string
   stats: PlayerStats

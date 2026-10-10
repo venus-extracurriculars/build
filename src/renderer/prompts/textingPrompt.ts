@@ -1,3 +1,4 @@
+import type { CharacterDynamics } from '@shared/characterDynamics'
 import { affectionFor, dedupedMemoriesFor, emptyFlags } from '@shared/relationship'
 import { ROOM_LOCATION } from '@shared/locations'
 import type { NpcRelationshipMap } from '@shared/npcRelationships'
@@ -65,6 +66,7 @@ const TEXTING_PERSONA = [
 
 /** The prompt-facing slice of state a texting turn needs. */
 export interface TextingPromptState {
+  characterDynamics?: CharacterDynamics
   date: number
   time: TimeSlot
   /** The reader's accumulated stats, used for relationship requirement guidance. */

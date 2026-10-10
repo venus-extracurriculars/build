@@ -1,3 +1,4 @@
+import type { CharacterDynamics } from '@shared/characterDynamics'
 import { modRequest, promptFields, promptLines, promptRequired } from '../mods/hooks'
 import { affectionFor, dedupedMemoriesFor, emptyFlags } from '@shared/relationship'
 import { DEFAULT_PLAYER_STATS, type PlayerStats } from '@shared/playerStats'
@@ -85,6 +86,7 @@ export interface IntroPoster {
 
 /** Everything the builder reads; assembled by the loop, which owns the store. */
 export interface SlotIntroInput {
+  characterDynamics?: CharacterDynamics
   /** The cloud-LLM cache key — the playthrough, exactly as the scene calls use it. */
   playthroughId: string
   /** Today, for weighting the askers' memories. */
