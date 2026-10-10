@@ -35,6 +35,7 @@ interface Props {
 export function CharacterDynamicsModal({ theme, roster, initial, returning = [], onContinue }: Props): JSX.Element | null {
   const [draft, setDraft] = useState(() => structuredClone(initial ?? emptyCharacterDynamics()))
   const [picked, setPicked] = useState<PersonalityNudge | null>(null)
+  const [search, setSearch] = useState('')
   const [over, setOver] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -42,6 +43,8 @@ export function CharacterDynamicsModal({ theme, roster, initial, returning = [],
   const editable = roster.filter(girl => !returning.includes(girl.charId)).map(girl => girl.charId)
   const missing = invalidDynamicsReasons(draft, editable)
   const pickedTag = PERSONALITY_NUDGES.find(tag => tag.id === picked)
+  const matchingTags = PERSONALITY_NUDGES.filter(tag =>
+    `${tag.name} ${tag.hint}`.toLowerCase().includes(search.trim().toLowerCase()))
 
   function update(id: string, change: (entry: CharacterDynamic) => CharacterDynamic): void {
     if (!editable.includes(id)) return
@@ -82,8 +85,11 @@ export function CharacterDynamicsModal({ theme, roster, initial, returning = [],
           <aside className="vu-dynamics-palette" aria-label="Personality tags">
             <h3>Personality tags</h3>
             <p>Drag tags onto a girl. Or select a tag, then use her “Add” button. You can use several.</p>
+            <TextField id="dynamics-tag-search" label="Find a trait" value={search} onChange={setSearch} />
+            <span className="vu-dynamics-tag-count" role="status">{matchingTags.length} of {PERSONALITY_NUDGES.length} traits</span>
             <div className="vu-dynamics-tags">
-              {PERSONALITY_NUDGES.map(tag => (
+              {matchingTags.length === 0 && <p className="vu-empty">No matching traits. Try another word.</p>}
+              {matchingTags.map(tag => (
                 <motion.button key={tag.id} type="button" className="vu-dynamics-tag"
                   draggable={!submitted} aria-pressed={picked === tag.id} aria-describedby={`nudge-${tag.id}`}
                   {...gestures(submitted, quietLift, quietPress)} disabled={submitted}

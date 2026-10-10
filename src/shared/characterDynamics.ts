@@ -19,7 +19,31 @@ export const PERSONALITY_NUDGES = [
   { id: 'self-assured', name: 'Self-assured', hint: 'A little more direct and willing to initiate.' },
   { id: 'reserved', name: 'Reserved', hint: 'A little more expressive through small gestures.' },
   { id: 'idealistic', name: 'Idealistic', hint: 'A little more guided by hopes and principles.' },
-  { id: 'prickly', name: 'Prickly', hint: 'A little quicker to bristle, with room to soften.' }
+  { id: 'prickly', name: 'Prickly', hint: 'A little quicker to bristle, with room to soften.' },
+  { id: 'witty', name: 'Witty', hint: 'A little quicker with clever comebacks and wordplay.' },
+  { id: 'dramatic', name: 'Dramatic', hint: 'A little more theatrical about everyday victories and setbacks.' },
+  { id: 'pun-loving', name: 'Pun-loving', hint: 'A little more tempted by a wonderfully terrible pun.' },
+  { id: 'deadpan', name: 'Deadpan', hint: 'A little more likely to deliver a joke with a straight face.' },
+  { id: 'goofy', name: 'Goofy', hint: 'A little more comfortable being silly and laughing at herself.' },
+  { id: 'easily-flustered', name: 'Easily flustered', hint: 'A little more bashful when attention catches her off guard.' },
+  { id: 'flirtatious', name: 'Flirtatious', hint: 'A little more playful with romantic interest when it is welcome.' },
+  { id: 'romantic', name: 'Romantic', hint: 'A little more moved by thoughtful gestures and meaningful moments.' },
+  { id: 'affectionate', name: 'Affectionate', hint: 'A little warmer with people she trusts, respecting their boundaries.' },
+  { id: 'protective', name: 'Protective', hint: 'A little quicker to look out for someone without deciding for them.' },
+  { id: 'sentimental', name: 'Sentimental', hint: 'A little more attached to keepsakes and shared memories.' },
+  { id: 'empathetic', name: 'Empathetic', hint: 'A little more inclined to consider another person\'s perspective.' },
+  { id: 'adventurous', name: 'Adventurous', hint: 'A little more willing to try an unfamiliar experience.' },
+  { id: 'curious', name: 'Curious', hint: 'A little more eager to ask questions and explore an interesting idea.' },
+  { id: 'rebellious', name: 'Rebellious', hint: 'A little more inclined to question expectations and find her own way.' },
+  { id: 'dreamy', name: 'Dreamy', hint: 'A little more prone to imaginative what-ifs and pleasant daydreams.' },
+  { id: 'superstitious', name: 'Superstitious', hint: 'A little more fond of lucky rituals and reading coincidences as signs.' },
+  { id: 'social-butterfly', name: 'Social butterfly', hint: 'A little more eager to start conversations and include people.' },
+  { id: 'observant', name: 'Observant', hint: 'A little more attentive to details she can actually notice.' },
+  { id: 'meticulous', name: 'Meticulous', hint: 'A little more particular about preparation and small details.' },
+  { id: 'skeptical', name: 'Skeptical', hint: 'A little more likely to ask for reasons before accepting a claim.' },
+  { id: 'ambitious', name: 'Ambitious', hint: 'A little more motivated to pursue the goals she already cares about.' },
+  { id: 'easygoing', name: 'Easygoing', hint: 'A little more willing to shrug off minor inconveniences.' },
+  { id: 'philosophical', name: 'Philosophical', hint: 'A little more drawn to thoughtful questions about everyday life.' }
 ] as const
 
 export type StartingRelationship = typeof STARTING_RELATIONSHIPS[number]['id']

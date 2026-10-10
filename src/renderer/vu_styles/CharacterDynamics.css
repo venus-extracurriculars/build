@@ -13,10 +13,13 @@
 .vu-dynamics-intro h2 { margin: 0 0 8px; color: var(--vu-accent); font: 400 28px var(--font-display); }
 .vu-dynamics-intro p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--vu-text-body); }
 .vu-dynamics-body { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; flex: 1; min-height: 0; }
-.vu-dynamics-palette { overflow: hidden auto; padding: 6px 12px 8px 8px; }
+.vu-dynamics-palette { display: flex; flex-direction: column; min-height: 0; padding: 6px 0 0; }
 .vu-dynamics-palette h3 { margin: 0; font: 400 19px var(--font-display); }
 .vu-dynamics-palette p { margin: 8px 0 16px; color: var(--vu-text-muted); font-size: 13px; line-height: 1.5; }
-.vu-dynamics-tags { display: flex; flex-direction: column; gap: 9px; }
+.vu-dynamics-palette > h3, .vu-dynamics-palette > p, .vu-dynamics-palette > .vu-field { margin-left: 8px; margin-right: 12px; }
+.vu-dynamics-palette .vu-input { min-width: 0; padding: 10px 14px; font-size: 14px; }
+.vu-dynamics-tag-count { margin: 10px 12px 8px 8px; color: var(--vu-text-muted); font: 400 11px var(--font-mono); }
+.vu-dynamics-tags { display: flex; flex-direction: column; gap: 9px; min-height: 0; overflow: hidden auto; padding: 6px 12px 8px 8px; }
 .vu-dynamics-tag { display: flex; flex-direction: column; gap: 5px; width: 100%; padding: 11px 14px; border: 2px solid var(--vu-border); border-radius: 15px; background: var(--vu-recessed); color: var(--vu-text); text-align: left; }
 .vu-dynamics-tag strong { font-size: 14px; }
 .vu-dynamics-tag span { color: var(--vu-text-muted); font: 400 12.5px/1.4 var(--font-body); }
