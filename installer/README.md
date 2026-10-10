@@ -54,8 +54,13 @@ Only for a game version Venus Dev has released himself, on itch.io.
 
    ```
    npm install
-   node build.mjs --base <official out> --build <build out> --game-version 0.4.0
+   node build.mjs --base <official out> --build <build out> --game-version 0.4.0 \
+     --manifest "<game>/resources/build-manifest.json"
    ```
+
+   The manifest lists every file of the release with its hash. Files a mod keeps beside the code,
+   in `resources/assets` (Photo Feature's photo workflow), are found against it and installed and
+   removed with the build; one of the game's own that differs stops the build.
 
    The build's name and version come from `BUILD` in `src/shared/mods.ts`
    (`--build-version` overrides the version).
@@ -65,6 +70,8 @@ else, `dist/` gets `build-setup.cmd`: copy `dist/` to a Windows PC and double-cl
 is not signed, so SmartScreen warns about an unknown publisher the first time.
 
 `npm test` runs the patch against a small stand-in for the game, with no game needed: install and
-uninstall round trip, and an install whose marker cannot be written or renamed is rolled back.
+uninstall round trip, an install whose marker cannot be written or renamed rolled back, a file
+already where an added one goes set aside and put back, and code changed by something else since
+the install left alone, backup and all.
 
 Then install, play and uninstall on a clean copy of the official game before publishing.

@@ -74,7 +74,7 @@ static class Program
         string file = Path.Combine(Path.GetTempPath(), "venus-extracurriculars-setup-error.txt");
         try { File.WriteAllText(file, DateTime.Now + "\r\n" + text); } catch { }
         MessageBox.Show("The setup ran into an error. Please send this, or the file " + file + ":\r\n\r\n" + text,
-            BuildName + " Setup", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Program.BuildName + " Setup", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
     public class Result
@@ -310,12 +310,12 @@ class SetupForm : Form
         else if (installed == Program.BuildVersion)
         {
             status.ForeColor = Color.SeaGreen;
-            status.Text = BuildName + " " + installed + " is installed.";
+            status.Text = Program.BuildName + " " + installed + " is installed.";
         }
         else
         {
             status.ForeColor = Color.DarkOrange;
-            status.Text = BuildName + " " + installed + " is installed. Uninstall it first, then install " + Program.BuildVersion + ".";
+            status.Text = Program.BuildName + " " + installed + " is installed. Uninstall it first, then install " + Program.BuildVersion + ".";
         }
 
         browse.Enabled = !busy;
@@ -347,8 +347,8 @@ class SetupForm : Form
         {
             MessageBox.Show(this,
                 action == "install"
-                    ? BuildName + " is installed. Start the game as usual; every mod can be turned on or off from Mods."
-                    : BuildName + " is removed. The game is back to the official version.",
+                    ? Program.BuildName + " is installed. Start the game as usual; every mod can be turned on or off from Mods."
+                    : Program.BuildName + " is removed. The game is back to the official version.",
                 Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         else

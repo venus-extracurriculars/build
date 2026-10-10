@@ -17,7 +17,13 @@ import { zipSync } from 'fflate'
  * so none of his art, music or characters can end up in the download.
  *
  *   node build.mjs --base <official out> --build <this build's out> --game-version 0.4.0
- *                  [--build-version 0.1.0] [--out <folder>]
+ *                  --manifest <official resources/build-manifest.json>
+ *                  [--build-version 0.1.0] [--out <folder>] [--assets <folder>]
+ *
+ * The game also keeps files outside its code, in `resources/assets`: the cast, the music, the
+ * image workflows. The release's `build-manifest.json` lists every one with its hash, so the files
+ * a mod adds there (Photo Feature's photo workflow, say) are found the same way, and one of Venus
+ * Dev's own that differs stops the build.
  *
  * `--build-version` defaults to `BUILD.version` in `src/shared/mods.ts`.
  */
@@ -46,6 +52,9 @@ const info = await buildInfo()
 const BASE = arg('base')
 const BUILD_OUT = arg('build')
 const GAME_VERSION = arg('game-version')
+const MANIFEST = arg('manifest')
+/** The repository's assets folder; a test passes a small one of its own. */
+const ASSETS = raw('assets') ?? join(ROOT, 'assets')
 const VERSION = raw('build-version') ?? info.version
 const NAME = info.name
 const SLUG = NAME.replace(/\s+/g, '-')
@@ -103,11 +112,52 @@ async function compare(baseDir, buildDir) {
 }
 
 const { put, added, remove, base } = await compare(BASE, BUILD_OUT)
+
+/** Text the release was built from on Windows: its line endings are the only difference allowed. */
+function sameText(ours, theirs) {
+  const crlf = Buffer.from(ours.toString('latin1').replace(/\r?\n/g, '\r\n'), 'latin1')
+  return sha256(ours) === theirs || sha256(crlf) === theirs
+}
+
+/**
+ * The files this build adds beside the game's code, in `resources/assets`. Only folders the
+ * release itself ships from the repository are looked at; the cast and the music come from
+ * elsewhere. One of the release's own files that differs here stops the build.
+ */
+async function externals() {
+  const manifest = JSON.parse(await readFile(MANIFEST, 'utf8'))
+  if (manifest.version !== GAME_VERSION) {
+    throw new Error(`${MANIFEST} is ${manifest.version}, not ${GAME_VERSION}.`)
+  }
+  const PREFIX = 'resources/assets/'
+  const official = new Map(manifest.files.filter((f) => f.rel.startsWith(PREFIX)).map((f) => [f.rel, f.sha256]))
+  const shipped = new Set([...official.keys()].map((rel) => rel.slice(PREFIX.length).split('/')[0]))
+  shipped.delete('characters')
+  shipped.delete('sound')
+  const assets = ASSETS
+  const found = []
+  for (const rel of await files(assets)) {
+    if (!shipped.has(rel.split('/')[0]) || /(^|\/)(\.gitkeep|README\.md)$/.test(rel)) continue
+    const theirs = official.get(PREFIX + rel)
+    const ours = await readFile(join(assets, rel))
+    if (theirs === undefined) found.push({ rel: PREFIX + rel, sha256: sha256(ours) })
+    else if (!sameText(ours, theirs)) throw new Error(`${PREFIX + rel} is one of the game's own files and differs.`)
+  }
+  return found
+}
+
+const external = await externals()
 console.log(`  ${put.length} files to put in (${added.length} of them added assets), ${remove.length} to take out.`)
+console.log(`  ${external.length} added beside the code.`)
+for (const { rel } of external) console.log(`    beside: ${rel}`)
 for (const rel of added) console.log(`    added: ${rel}`)
 
 await rm(DIST, { recursive: true, force: true })
 await mkdir(join(DIST, 'payload', 'files'), { recursive: true })
+for (const { rel } of external) {
+  await mkdir(dirname(join(DIST, 'payload', 'external', rel)), { recursive: true })
+  await cp(join(ASSETS, rel.slice('resources/assets/'.length)), join(DIST, 'payload', 'external', rel))
+}
 for (const rel of put) {
   await mkdir(dirname(join(DIST, 'payload', 'files', 'out', rel)), { recursive: true })
   await cp(join(BUILD_OUT, rel), join(DIST, 'payload', 'files', 'out', rel))
@@ -121,7 +171,9 @@ await writeFile(
       gameVersion: GAME_VERSION,
       base,
       put: put.map((rel) => `out/${rel}`),
-      remove: remove.map((rel) => `out/${rel}`)
+      remove: remove.map((rel) => `out/${rel}`),
+      // Beside the code, relative to the game folder.
+      external
     },
     null,
     2

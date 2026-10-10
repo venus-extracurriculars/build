@@ -15,10 +15,12 @@ import { fileURLToPath } from 'node:url'
  * it out again.
  *
  * The game's code lives in `resources/app.asar`. Installing swaps the code files the build
- * changes for its own and adds the files its mods bring (City Life's backgrounds, say). Nothing
- * of the game's own is touched beyond its code: the art, fonts, music, characters and the
- * player's `data` folder stay exactly as they are, and none of them are in this download.
- * Uninstalling puts the original `app.asar` back from the copy made at install time.
+ * changes for its own and adds the files its mods bring (City Life's backgrounds, say), and puts
+ * the few files a mod keeps beside the code (Photo Feature's photo workflow) in
+ * `resources/assets`. Nothing of the game's own is touched beyond its code: the art, fonts,
+ * music, characters and the player's `data` folder stay exactly as they are, and none of them are
+ * in this download. Uninstalling puts the original `app.asar` back from the copy made at install
+ * time and takes the added files out again.
  */
 
 // Run by the game's own exe (ELECTRON_RUN_AS_NODE), Electron's `fs` would read `app.asar` as a
@@ -33,6 +35,9 @@ const UNPACK = '**/node_modules/7zip-bin/**'
 
 const expected = JSON.parse(await readFile(join(PAYLOAD, 'expected.json'), 'utf8'))
 const NAME = expected.build
+/** Files beside the code, `{ rel, sha256 }` with `rel` from the game folder; none in older payloads. */
+const EXTERNAL = expected.external ?? []
+const ASIDE = '.extracurriculars-backup'
 
 /**
  * Mods that used to be installed on their own, by their own setup. Their code is in this build
@@ -118,20 +123,50 @@ async function checkBase(p, force) {
 }
 
 /**
- * The marker of an install that something has since undone, or null. A game update replaces
- * `app.asar` but leaves this build's marker and backup behind. That backup is then code the game
- * has moved on from, and restoring it would put it back over whatever is there now.
+ * What became of an earlier install, judged from the code archive as it is now:
+ * - 'installed': it is the archive the install left.
+ * - 'replaced': it is the official one the game's own manifest names, so a game update (or a
+ *   reinstall) replaced the build; the backup is of code the game has moved on from.
+ * - 'unknown': neither. Something else changed it, and nothing is deleted or restored on a guess.
  */
-async function undone(p) {
+async function installState(p) {
   const marker = JSON.parse(await readFile(p.marker, 'utf8').catch(() => 'null'))
-  if (!marker?.asar || !existsSync(p.asar)) return null
-  return (await hashFile(p.asar)) !== marker.asar ? marker : null
+  if (!marker?.asar || !existsSync(p.asar)) return { state: 'unknown', marker }
+  const now = await hashFile(p.asar)
+  if (now === marker.asar) return { state: 'installed', marker }
+  const manifest = JSON.parse(await readFile(p.manifest, 'utf8').catch(() => 'null'))
+  const official = manifest?.files?.find((f) => f.rel === 'resources/app.asar')?.sha256
+  return { state: official && now === official ? 'replaced' : 'unknown', marker }
 }
 
-/** Deletes what an undone install left behind: its backups and its marker. */
-async function clearLeftovers(p) {
+/** Refuses to touch a game whose code is neither this build nor the official release. */
+function refuseUnknown(p) {
+  fail(
+    `The game's code was changed after ${NAME} was installed, and it is not the official version\n` +
+      `  either, so it is not safe to restore or delete anything. Nothing was changed: the backup is\n` +
+      `  still at ${p.backup}\n` +
+      `  Reinstalling the official game from itch puts it right; run this again afterwards.`
+  )
+}
+
+/**
+ * Takes out the files beside the code that an install added, putting back any it set aside. A file
+ * changed since is left where it is, and so is what was set aside under it. `always` takes ours out
+ * whatever it holds now: a rollback, where a copy may have stopped halfway.
+ */
+async function removeExternal(game, entries, always = false) {
+  for (const { rel, sha256: ours, aside } of entries) {
+    const target = join(game, rel)
+    if (existsSync(target) && (always || (await hashFile(target)) === ours)) await rm(target, { force: true })
+    if (aside && existsSync(target + ASIDE) && !existsSync(target)) await rename(target + ASIDE, target)
+  }
+}
+
+/** Deletes what a replaced install left behind: its backups, its added files and its marker. */
+async function clearLeftovers(game, p, marker) {
   await rm(p.backup, { force: true })
   await rm(p.backupUnpacked, { recursive: true, force: true })
+  await removeExternal(game, marker?.external ?? [])
   await rm(p.marker, { force: true })
 }
 
@@ -139,9 +174,11 @@ async function install(game, force) {
   const p = paths(game)
   if (!existsSync(p.asar)) fail('resources/app.asar is missing; this does not look like the game.')
   if (existsSync(p.marker)) {
-    if (!(await undone(p))) fail(`${NAME} is already installed. Uninstall it first.`)
+    const { state, marker } = await installState(p)
+    if (state === 'installed') fail(`${NAME} is already installed. Uninstall it first.`)
+    if (state === 'unknown') refuseUnknown(p)
     console.log("  The game's code was replaced after an earlier install; clearing what that left behind...")
-    await clearLeftovers(p)
+    await clearLeftovers(game, p, marker)
   }
   await checkBase(p, force)
 
@@ -151,6 +188,8 @@ async function install(game, force) {
   if (existsSync(p.unpacked)) await cp(p.unpacked, p.backupUnpacked, { recursive: true })
 
   const work = await mkdtemp(join(tmpdir(), 'venus-extracurriculars-'))
+  /** The files beside the code put in so far, so a failure takes exactly those back out. */
+  const placed = []
   try {
     console.log(`  Adding ${NAME}...`)
     asar.extractAll(p.asar, work)
@@ -160,6 +199,15 @@ async function install(game, force) {
       await cp(join(PAYLOAD, 'files', rel), join(work, rel))
     }
     await asar.createPackageWithOptions(work, p.asar, { unpack: UNPACK })
+    for (const { rel, sha256: hash } of EXTERNAL) {
+      const target = join(game, rel)
+      // A file already there (left by a mod installed on its own, say) is set aside and put back.
+      const aside = existsSync(target)
+      if (aside) await rename(target, target + ASIDE)
+      placed.push({ rel, sha256: hash, aside })
+      await mkdir(dirname(target), { recursive: true })
+      await cp(join(PAYLOAD, 'external', rel), target)
+    }
     // Inside the try: an install whose marker cannot be written is undone like any other failure,
     // or the game would run the build while Uninstall said it was not there.
     // Written beside the marker and renamed onto it, so a marker is whole or not there at all.
@@ -171,7 +219,8 @@ async function install(game, force) {
           buildVersion: expected.buildVersion,
           gameVersion: expected.gameVersion,
           // The archive as this install left it: uninstall restores the backup only over this.
-          asar: await hashFile(p.asar)
+          asar: await hashFile(p.asar),
+          external: placed
         },
         null,
         2
@@ -185,6 +234,7 @@ async function install(game, force) {
       await rm(p.unpacked, { recursive: true, force: true })
       await cp(p.backupUnpacked, p.unpacked, { recursive: true })
     }
+    await removeExternal(game, placed, true).catch(() => {})
     await rm(`${p.marker}.tmp`, { force: true }).catch(() => {})
     await rm(p.marker, { force: true }).catch(() => {})
     await rm(p.backup, { force: true })
@@ -201,12 +251,14 @@ async function install(game, force) {
 async function uninstall(game) {
   const p = paths(game)
   if (!existsSync(p.marker)) fail(`${NAME} is not installed in this folder.`)
-  if (await undone(p)) {
-    await clearLeftovers(p)
+  const { state, marker } = await installState(p)
+  if (state === 'unknown') refuseUnknown(p)
+  if (state === 'replaced') {
+    await clearLeftovers(game, p, marker)
     console.log(
-      `  The game's code was replaced after ${NAME} was installed (a game update, most likely),\n` +
-        '  so it is no longer in the game. Its backup is from before that change and was deleted\n' +
-        '  rather than restored.\n' +
+      `  The game's code was replaced by the official version after ${NAME} was installed (a game\n` +
+        '  update, most likely), so it is no longer in the game. Its backup was from before that and\n' +
+        '  was deleted rather than restored.\n' +
         `\n  Done. Nothing else was changed in:\n  ${game}\n`
     )
     return
@@ -220,6 +272,7 @@ async function uninstall(game) {
     await rm(p.unpacked, { recursive: true, force: true })
     await rename(p.backupUnpacked, p.unpacked)
   }
+  await removeExternal(game, marker.external ?? [])
   await rm(p.marker, { force: true })
   console.log(`\n  Done. Venus University is back to the official version in:\n  ${game}\n`)
 }
