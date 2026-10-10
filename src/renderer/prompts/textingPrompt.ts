@@ -66,7 +66,7 @@ const TEXTING_PERSONA = [
 
 /** The prompt-facing slice of state a texting turn needs. */
 export interface TextingPromptState {
-  characterDynamics?: CharacterDynamics
+  exCharacterDynamics?: CharacterDynamics
   date: number
   time: TimeSlot
   /** The reader's accumulated stats, used for relationship requirement guidance. */

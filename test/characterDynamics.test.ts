@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   CHARACTER_DYNAMICS_MOD, dynamicFor, emptyCharacterDynamics, invalidDynamicsReasons,
-  settleCharacterDynamics, type CharacterDynamics
+  readCharacterDynamics, readCharacterDynamicsEnabled, settleCharacterDynamics, type CharacterDynamics
 } from '@shared/characterDynamics'
 import '@shared/characterDynamicsCarry'
 import { carriedModFields, carryModFields } from '@shared/modCarry'
@@ -26,6 +26,42 @@ beforeEach(() => useGameStore.getState().reset())
 afterEach(() => setHookRules({ isOn: () => true, order: () => 0 }))
 
 describe('Character Dynamics setup and retention', () => {
+  it('reads prerelease saves and carries or re-saves only the prefixed field without mutating the original', () => {
+    const dynamics = choices()
+    dynamics.characters.a.traits.push('future-tag')
+    const legacy = { ...stampSave(useGameStore.getState().toGameSave(), '123', '456', 1), characterDynamics: dynamics }
+    const original = structuredClone(legacy)
+    useGameStore.getState().loadSave(legacy, playthroughRecord(), {})
+    const saved = useGameStore.getState().toGameSave()
+    expect(saved.exCharacterDynamics).toEqual(dynamics)
+    expect(saved).not.toHaveProperty('characterDynamics')
+    const carry = carryModFields(legacy, { term: 0, back: 120, characters: {} })
+    expect(carry.exCharacterDynamics).toEqual(dynamics)
+    expect(carry).not.toHaveProperty('characterDynamics')
+    expect(legacy).toEqual(original)
+    const preferred = emptyCharacterDynamics()
+    expect(readCharacterDynamics({ ...legacy, exCharacterDynamics: preferred })).toEqual(preferred)
+    saved.exCharacterDynamics!.characters.a.traits.push('headstrong')
+    expect(legacy).toEqual(original)
+  })
+
+  it('retains prerelease enrollment choices and the frozen switch, preferring explicit prefixed values', () => {
+    const dynamics = choices()
+    const old = { ...stampEnrollment(enrollment(), 1), characterDynamics: dynamics, characterDynamicsEnabled: true }
+    const loaded = validateRecord(JSON.parse(JSON.stringify(old)), 'enrollment.json', ENROLLMENT_READ)
+    expect(readCharacterDynamics(loaded)).toEqual(dynamics)
+    expect(readCharacterDynamicsEnabled(loaded)).toBe(true)
+    expect(readCharacterDynamicsEnabled({ ...old, exCharacterDynamicsEnabled: false })).toBe(false)
+    expect(readCharacterDynamicsEnabled({ characterDynamicsEnabled: false })).toBe(false)
+    const next = stampEnrollment(enrollment({ exCharacterDynamics: readCharacterDynamics(loaded), exCharacterDynamicsEnabled: readCharacterDynamicsEnabled(loaded) }), 2)
+    expect(next.exCharacterDynamics).toEqual(dynamics)
+    expect(next.exCharacterDynamicsEnabled).toBe(true)
+    expect(next).not.toHaveProperty('characterDynamics')
+    expect(next).not.toHaveProperty('characterDynamicsEnabled')
+    expect(readCharacterDynamics({})).toBeUndefined()
+    expect(readCharacterDynamicsEnabled({})).toBe(false)
+  })
+
   it('requires each selected relationship to have a reason, without requiring traits or relationships elsewhere', () => {
     const draft = choices()
     draft.characters.a.relationship!.reason = '  \n '
@@ -43,31 +79,31 @@ describe('Character Dynamics setup and retention', () => {
   it('keeps enrollment choices through JSON validation and a save/load/save cycle, including unknown future tags', () => {
     const dynamics = choices()
     dynamics.characters.a.traits.push('future-tag')
-    const enrolled = stampEnrollment(enrollment({ characterDynamics: dynamics }), 1)
-    expect(validateRecord(JSON.parse(JSON.stringify(enrolled)), 'enrollment.json', ENROLLMENT_READ).characterDynamics).toEqual(dynamics)
-    useGameStore.setState({ characterDynamics: dynamics })
+    const enrolled = stampEnrollment(enrollment({ exCharacterDynamics: dynamics }), 1)
+    expect(validateRecord(JSON.parse(JSON.stringify(enrolled)), 'enrollment.json', ENROLLMENT_READ).exCharacterDynamics).toEqual(dynamics)
+    useGameStore.setState({ exCharacterDynamics: dynamics })
     const save = stampSave(useGameStore.getState().toGameSave(), '123', '456', 1)
-    expect(validateRecord(JSON.parse(JSON.stringify(save)), 'save.json', SAVE_READ).characterDynamics).toEqual(dynamics)
+    expect(validateRecord(JSON.parse(JSON.stringify(save)), 'save.json', SAVE_READ).exCharacterDynamics).toEqual(dynamics)
     useGameStore.getState().loadSave(save, playthroughRecord(), {})
-    expect(useGameStore.getState().toGameSave().characterDynamics).toEqual(dynamics)
+    expect(useGameStore.getState().toGameSave().exCharacterDynamics).toEqual(dynamics)
     expect(dynamicFor(dynamics, 'a').traits).not.toContain('future-tag')
     useGameStore.getState().reset()
-    expect(useGameStore.getState().toGameSave()).not.toHaveProperty('characterDynamics')
-    useGameStore.getState().loadSave({ ...save, characterDynamics: undefined }, playthroughRecord(), {})
-    expect(useGameStore.getState().characterDynamics).toBeUndefined()
+    expect(useGameStore.getState().toGameSave()).not.toHaveProperty('exCharacterDynamics')
+    useGameStore.getState().loadSave({ ...save, exCharacterDynamics: undefined }, playthroughRecord(), {})
+    expect(useGameStore.getState().exCharacterDynamics).toBeUndefined()
   })
 
   it('carries choices without modifying old history, and only lets newly enrolled girls be configured', () => {
     const prior = choices()
     prior.characters.a.traits.push('future-tag')
-    useGameStore.setState({ characterDynamics: prior })
+    useGameStore.setState({ exCharacterDynamics: prior })
     const save = stampSave(useGameStore.getState().toGameSave(), '123', '456', 1)
     const carried = carriedModFields(carryModFields(save, { term: 0, back: 120, characters: charactersById(character({ charId: 'a' })) }))
-    expect(carried.characterDynamics).toEqual(prior)
+    expect(carried.exCharacterDynamics).toEqual(prior)
     const edited = structuredClone(prior)
     edited.characters.a = { traits: ['impulsive'] }
     edited.characters.c = { traits: ['tenderhearted'] }
-    const next = settleCharacterDynamics(edited, ['c'], carried.characterDynamics)
+    const next = settleCharacterDynamics(edited, ['c'], carried.exCharacterDynamics)
     expect(next.characters.a).toEqual(prior.characters.a)
     expect(next.characters.b).toEqual(prior.characters.b)
     expect(next.characters.c).toEqual({ traits: ['tenderhearted'] })
@@ -81,8 +117,8 @@ it('routes only selected characters into active scene, DM, and slot hooks; old r
   const b = character({ charId: 'b', firstName: 'Beatrice' })
   const c = character({ charId: 'c', firstName: 'Clara' })
   const data = choices()
-  const scene = { characterDynamics: data } as PromptState
-  const dm = { characterDynamics: data } as TextingPromptState
+  const scene = { exCharacterDynamics: data } as PromptState
+  const dm = { exCharacterDynamics: data } as TextingPromptState
   const record = playthroughRecord({ mods: [CHARACTER_DYNAMICS_MOD] })
   setHookRules({ isOn: id => modOn(NO_SWITCHES, id, record), order: () => 0 })
   const lines = promptLines('scene', { cast: [a], state: scene, query: '' }).join('\n')
@@ -91,7 +127,7 @@ it('routes only selected characters into active scene, DM, and slot hooks; old r
   expect(promptLines('dm', { character: b, info: undefined, state: dm }).join('\n')).toContain(data.characters.b.relationship!.reason)
   expect(characterDynamicsLines([c], data)).toEqual([])
   const request = { system: 'existing system', user: 'existing mod context', schema: { name: 'test', schema: { type: 'object' } }, cacheKey: 'existing' }
-  const input = { characterDynamics: data, askers: [{ character: a }], breakups: [], posters: [{ character: a }, { character: c }] } as unknown as SlotIntroInput
+  const input = { exCharacterDynamics: data, askers: [{ character: a }], breakups: [], posters: [{ character: a }, { character: c }] } as unknown as SlotIntroInput
   const extended = modRequest('slot-intro', { input }, request)
   expect(extended.user).toContain(request.user)
   expect(extended.schema).toBe(request.schema)

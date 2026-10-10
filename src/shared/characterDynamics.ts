@@ -37,6 +37,27 @@ export interface CharacterDynamics {
 
 export const emptyCharacterDynamics = (): CharacterDynamics => ({ version: 1, characters: {} })
 
+/** Read-only aliases for saves and enrollments produced by the prerelease build. */
+interface StoredDynamicsFields {
+  exCharacterDynamics?: CharacterDynamics
+  exCharacterDynamicsEnabled?: boolean
+  characterDynamics?: CharacterDynamics
+  characterDynamicsEnabled?: boolean
+}
+
+/** New writes use only exCharacterDynamics; loading never rewrites the source file. */
+export function readCharacterDynamics(owner?: object): CharacterDynamics | undefined {
+  const fields = owner as StoredDynamicsFields | undefined
+  const value = fields?.exCharacterDynamics ?? fields?.characterDynamics
+  return value ? structuredClone(value) : undefined
+}
+
+/** Explicit false must win over an older true value when an enrollment is resumed. */
+export function readCharacterDynamicsEnabled(owner?: object): boolean {
+  const fields = owner as StoredDynamicsFields | undefined
+  return (fields?.exCharacterDynamicsEnabled ?? fields?.characterDynamicsEnabled) === true
+}
+
 /** Read known fields defensively; the original save object is retained separately, unchanged. */
 export function dynamicFor(data: CharacterDynamics | undefined, charId: string): CharacterDynamic {
   const entry = data?.version === 1 ? data.characters?.[charId] : undefined

@@ -47,7 +47,7 @@ const SAVE_REQUIRED: Record<
     | 'bunnybotSeenTipSent'
     | 'occasionsDeclined'
     | 'bio'
-    | 'characterDynamics'
+    | 'exCharacterDynamics'
     | 'tallies'
     | 'thumbnail'
     | 'replays'
@@ -117,7 +117,7 @@ const RECORD_REQUIRED: Record<keyof Omit<PlaythroughRecord, 'name' | 'mods'>, tr
  * What an enrollment must carry; where it is kept names the playthrough it will become, and
  * the fields an enrollment written before them lacks are optional on the type and omitted here.
  */
-const ENROLLMENT_REQUIRED: Record<keyof Omit<Enrollment, 'bio' | 'tokensGenerated' | 'characterDynamics' | 'characterDynamicsEnabled'>, true> = {
+const ENROLLMENT_REQUIRED: Record<keyof Omit<Enrollment, 'bio' | 'tokensGenerated' | 'exCharacterDynamics' | 'exCharacterDynamicsEnabled'>, true> = {
   schemaVersion: true,
   savedAt: true,
   chars: true,
