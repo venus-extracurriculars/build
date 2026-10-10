@@ -3,7 +3,7 @@
 One optional Venus Extracurriculars mod, with one setup screen for two independent choices:
 
 - **Starting relationship:** Ex-girlfriend, Resentful, Rival, or Antagonist. Each girl assigned a relationship requires her own explanation, up to 1,200 characters. This establishes background, not a permanent mood or a reward in stats.
-- **Personality nudges:** 34 optional traits. Several can be applied to the same girl, gently supplementing her existing personality and voice. Search the palette by name or description, then drag a trait or use the click-to-place alternative.
+- **Personality nudges:** 50 optional traits, listed alphabetically. Several can be applied to the same girl, gently supplementing her existing personality and voice. Search the palette by name or description, then drag a trait or use the click-to-place alternative.
 
 ## Playing
 
@@ -21,14 +21,60 @@ The player-authored choices can be read before the native backstory is unlocked;
 
 ## Trait catalog
 
-The original ten choices remain: Headstrong, Guarded, Mischievous, Tenderhearted, Competitive, Impulsive, Self-assured, Reserved, Idealistic, and Prickly.
+The palette contains 50 traits in alphabetical order. Search filters this same ordered list.
 
-Additional choices:
-
-- **Humor and expression:** Witty, Dramatic, Pun-loving, Deadpan, Goofy, Easily flustered.
-- **Warmth and connection:** Flirtatious, Romantic, Affectionate, Protective, Sentimental, Empathetic.
-- **Curiosity and spontaneity:** Adventurous, Curious, Rebellious, Dreamy, Superstitious, Social butterfly.
-- **Outlook:** Observant, Meticulous, Skeptical, Ambitious, Easygoing, Philosophical.
+| Trait | Gentle tendency |
+| --- | --- |
+| Adventurous | A little more willing to try an unfamiliar experience. |
+| Affectionate | A little warmer with people she trusts, respecting their boundaries. |
+| Ambitious | A little more motivated to pursue the goals she already cares about. |
+| Analytical | A little more inclined to break a problem into understandable pieces. |
+| Blunt | A little more plainspoken, while still capable of tact and kindness. |
+| Cautious | A little more likely to weigh a risk before taking the next step. |
+| Cheerful | A little more inclined to find everyday reasons to smile. |
+| Competitive | A little more drawn to friendly challenges. |
+| Curious | A little more eager to ask questions and explore an interesting idea. |
+| Deadpan | A little more likely to deliver a joke with a straight face. |
+| Dependable | A little more attentive to following through on her commitments. |
+| Dramatic | A little more theatrical about everyday victories and setbacks. |
+| Dreamy | A little more prone to imaginative what-ifs and pleasant daydreams. |
+| Easily flustered | A little more bashful when attention catches her off guard. |
+| Easygoing | A little more willing to shrug off minor inconveniences. |
+| Empathetic | A little more inclined to consider another person's perspective. |
+| Flirtatious | A little more playful with romantic interest when it is welcome. |
+| Generous | A little more willing to share her time or resources when she can. |
+| Goofy | A little more comfortable being silly and laughing at herself. |
+| Guarded | A little slower to share personal feelings. |
+| Headstrong | A little firmer in her convictions. |
+| Humble | A little more comfortable acknowledging her limits and giving others credit. |
+| Idealistic | A little more guided by hopes and principles. |
+| Impulsive | A little more likely to act on a feeling. |
+| Meticulous | A little more particular about preparation and small details. |
+| Mischievous | A little more inclined toward playful teasing. |
+| Observant | A little more attentive to details she can actually notice. |
+| Patient | A little more willing to give people and problems time. |
+| Philosophical | A little more drawn to thoughtful questions about everyday life. |
+| Practical | A little more drawn to workable solutions and useful next steps. |
+| Prickly | A little quicker to bristle, with room to soften. |
+| Protective | A little quicker to look out for someone without deciding for them. |
+| Proud | A little more protective of her dignity and pleased by earned achievements. |
+| Pun-loving | A little more tempted by a wonderfully terrible pun. |
+| Rebellious | A little more inclined to question expectations and find her own way. |
+| Reserved | A little more expressive through small gestures. |
+| Resourceful | A little more inclined to improvise a solution with what is available. |
+| Romantic | A little more moved by thoughtful gestures and meaningful moments. |
+| Self-assured | A little more direct and willing to initiate. |
+| Sentimental | A little more attached to keepsakes and shared memories. |
+| Skeptical | A little more likely to ask for reasons before accepting a claim. |
+| Sleepy | A little more fond of slow mornings, cozy rests and drowsy humor, while staying engaged when it matters. |
+| Social butterfly | A little more eager to start conversations and include people. |
+| Spontaneous | A little more inclined to suggest an unplanned treat or change of plans. |
+| Stoic | A little more composed under pressure, without lacking feelings. |
+| Superstitious | A little more fond of lucky rituals and reading coincidences as signs. |
+| Tenacious | A little more persistent through setbacks, while respecting other people's boundaries. |
+| Tenderhearted | A little more attentive to hurt feelings. |
+| Whimsical | A little more drawn to fanciful ideas and small, unexpected delights. |
+| Witty | A little quicker with clever comebacks and wordplay. |
 
 All choices use the same catalog for setup, saved-choice display, and prompt guidance. Adding these options does not assign any new traits to existing saves. Tags do not change stats, schedules, consent, or native game trait switches.
 
