@@ -1,5 +1,6 @@
 import { type StorySnapshot } from '@shared/storyMemory'
 import type { BreakthroughState } from '@shared/breakthrough'
+import type { CharacterDynamics } from '@shared/characterDynamics'
 import { affectionFor, dedupedMemoriesFor, emptyFlags } from '@shared/relationship'
 import { ROOM_LOCATION } from '@shared/locations'
 import type { NpcRelationshipMap } from '@shared/npcRelationships'
@@ -72,6 +73,7 @@ export interface TextingPromptState {
   breakthrough?: BreakthroughState
   /** A bounded longer window for rebuilding a legacy reply without a pre-reply summary. */
   historyLimit?: number
+  exCharacterDynamics?: CharacterDynamics
   date: number
   time: TimeSlot
   /** The reader's accumulated stats, used for relationship requirement guidance. */

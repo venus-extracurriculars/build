@@ -362,6 +362,7 @@ export function promptState(): PromptState {
         : useAssetStore.getState().backgrounds
     ),
     charInfo: game.charInfo,
+    exCharacterDynamics: game.exCharacterDynamics,
     npcRelationships: game.npcRelationships,
     // Everyone the scene is not carrying — `game.cast`, not the departed-filtered list, or a
     // character who walked out comes back as a lorebook paragraph.

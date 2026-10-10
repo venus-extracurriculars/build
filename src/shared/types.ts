@@ -1238,6 +1238,8 @@ export interface GameSave {
   exBreakthrough?: BreakthroughState
   /** Optional, noncanonical spectator conversations. */
   exNpcWatch?: MeanwhileStore
+  /** Character Dynamics: fixed setup choices retained by every save. */
+  exCharacterDynamics?: import('./characterDynamics').CharacterDynamics
   schemaVersion: 12
   /**
    * The playthrough this save belongs to. Derived from the containing folder
@@ -1678,6 +1680,10 @@ export interface QuickstartBundle {
 
 /** A whole semester with the reader beside it, as the screen that generated it hands it over. */
 export type EnrollmentDraft = QuickstartBundle & {
+  /** The same setup survives leaving the registrar before Finalize. */
+  exCharacterDynamics?: import('./characterDynamics').CharacterDynamics
+  /** The setup switch is fixed once this enrollment starts, even when choices are empty. */
+  exCharacterDynamicsEnabled?: boolean
   playerFirstName: string
   playerLastName: string
   stats: PlayerStats

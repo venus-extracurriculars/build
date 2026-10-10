@@ -75,7 +75,9 @@ import {
 import { slotStampOf } from '../stores/slotCrossing'
 import { lockedIdsOf, spriteUrl, useCharacterStore, visibleOrderOf } from '../stores/characterStore'
 import { playthroughMods } from '@shared/mods'
-import { useModsStore } from '../stores/modsStore'
+import { modIsOn, useModsStore } from '../stores/modsStore'
+import { CHARACTER_DYNAMICS_MOD, dynamicsKnowsReader, readCharacterDynamics, readCharacterDynamicsEnabled, type CharacterDynamics } from '@shared/characterDynamics'
+import { CharacterDynamicsModal } from './CharacterDynamicsModal'
 import { useSaveStore } from '../stores/saveStore'
 import { useUiStore } from '../stores/uiStore'
 import { CharacterHeightModal } from './CharacterHeightModal'
@@ -251,6 +253,16 @@ export function NewGameView(): JSX.Element {
   const [playthroughId, setPlaythroughId] = useState<string | null>(
     () => resumed?.playthroughId ?? null
   )
+  const [exCharacterDynamics, setCharacterDynamics] = useState<CharacterDynamics | undefined>(() =>
+    readCharacterDynamics(resumed?.enrollment) ?? readCharacterDynamics(resumed?.enrollment.carry) ?? readCharacterDynamics(continued?.save))
+  const [dynamicsEnabled] = useState(() => resumed
+    ? readCharacterDynamicsEnabled(resumed.enrollment)
+    : modIsOn(CHARACTER_DYNAMICS_MOD))
+  // Previous classmates cannot be given a new past, even when no tags were assigned to them.
+  const returningDynamicsIds = continued
+    ? [...new Set([...continued.record.chars, ...Object.keys(readCharacterDynamics(continued.save)?.characters ?? {})])]
+    : Object.keys(resumed?.enrollment.carry?.charInfo ?? {})
+  const [choosingDynamics, setChoosingDynamics] = useState(false)
   const [picking, setPicking] = useState(false)
   const [inspecting, setInspecting] = useState<string | null>(null)
   const [warnings, setWarnings] = useState<string[] | null>(null)
@@ -523,7 +535,8 @@ export function NewGameView(): JSX.Element {
     first: string,
     last: string,
     stats: PlayerStats,
-    bio: string
+    bio: string,
+    dynamics = exCharacterDynamics
   ): Promise<void> {
     const tokensGenerated = useGameStore.getState().tallies.tokensGenerated
     setEnrolledTokens(tokensGenerated)
@@ -542,6 +555,8 @@ export function NewGameView(): JSX.Element {
       playerLastName: last,
       stats,
       ...(bio ? { bio } : {}),
+      ...(dynamics ? { exCharacterDynamics: dynamics } : {}),
+      exCharacterDynamicsEnabled: dynamicsEnabled,
       ...(tokensGenerated > 0 ? { tokensGenerated } : {})
     })
     if (!written.ok) {
@@ -631,6 +646,14 @@ export function NewGameView(): JSX.Element {
     setPlayerStats(stats)
     setPlayerBio(bio)
     setNaming(false)
+    if (dynamicsEnabled) {
+      setChoosingDynamics(true)
+      return
+    }
+    finishNaming(first, last, stats, bio, exCharacterDynamics)
+  }
+
+  function finishNaming(first: string, last: string, stats: PlayerStats, bio: string, dynamics?: CharacterDynamics): void {
     if (quick) {
       // The canned timetable was written at mount, so the menu's crossing has only the
       // enrollment left to wait on: the registrar is swapped in under the same cover the
@@ -643,7 +666,7 @@ export function NewGameView(): JSX.Element {
       }
       void (async () => {
         const semester = { schedules, jobs, haunts, feeds, springBreakPlans, occasions }
-        await enroll(semester, first, last, stats, bio)
+        await enroll(semester, first, last, stats, bio, dynamics)
         endCrossing(() => setView('classSelect'))
       })()
       return
@@ -660,6 +683,10 @@ export function NewGameView(): JSX.Element {
    * goes straight to the wait it was raised for.
    */
   function onCarried(): void {
+    if (dynamicsEnabled && roster.some(girl => !returningDynamicsIds.includes(girl.charId))) {
+      setChoosingDynamics(true)
+      return
+    }
     nameCrossingWait('Generating class schedule')
     setNamed(true)
   }
@@ -786,8 +813,16 @@ export function NewGameView(): JSX.Element {
 
     // What New Game composes below is a fresh semester's; a continued one lays what it carried
     // over the save, and names its term on the record.
-    const opening = (save: SaveDraft): SaveDraft => (carry ? carriedOpening(save, carry) : save)
-    const startingMods = playthroughMods(useModsStore.getState().switches)
+    const opening = (save: SaveDraft): SaveDraft => carry
+      ? carriedOpening(save, {
+          ...carry,
+          // Setup keeps returnees intact and adds newcomers. Do not overwrite those additions
+          // with the older modCarry snapshot when the first save is assembled.
+          ...(exCharacterDynamics ? { exCharacterDynamics } : {})
+        })
+      : save
+    const startingMods = playthroughMods(useModsStore.getState().switches).filter(id => id !== CHARACTER_DYNAMICS_MOD)
+    if (dynamicsEnabled) startingMods.push(CHARACTER_DYNAMICS_MOD)
     const written = await useSaveStore.getState().createPlaythrough(
       {
         ...(term ? { term } : {}),
@@ -808,6 +843,7 @@ export function NewGameView(): JSX.Element {
         stats: playerStats,
         money: STARTING_MONEY,
         ...(playerBio ? { bio: playerBio } : {}),
+        ...(exCharacterDynamics ? { exCharacterDynamics } : {}),
         tallies: { ...emptyTallies(), tokensGenerated: enrolledTokens },
         date: FIRST_SLOT.date,
         time: FIRST_SLOT.time,
@@ -819,8 +855,8 @@ export function NewGameView(): JSX.Element {
               // Every name starts hidden, and the flags are seeded off her traits.
               {
                 memories: [],
-                flags: initialFlags(c),
-                nameKnown: false,
+                flags: { ...initialFlags(c), hasMet: dynamicsKnowsReader(exCharacterDynamics, c.charId) },
+                nameKnown: dynamicsKnowsReader(exCharacterDynamics, c.charId),
                 ...(job ? { job } : {}),
                 // Omitted for a freshman, whose break was somewhere else.
                 ...(winterFeeds[c.charId]?.length > 0 ? { feed: winterFeeds[c.charId] } : {})
@@ -918,6 +954,15 @@ export function NewGameView(): JSX.Element {
 
   // The registrar, written once and returned from two branches — the canned start's, where the
   // name modal's exit has to outlive the swap to it, and the generated flow's.
+  const dynamicsModal = choosingDynamics ? (
+    <CharacterDynamicsModal key="dynamics" theme={theme} roster={roster} initial={exCharacterDynamics} returning={returningDynamicsIds}
+      onContinue={choices => {
+        setCharacterDynamics(choices)
+        setChoosingDynamics(false)
+        finishNaming(playerName.first, playerName.last, playerStats, playerBio, choices)
+      }} />
+  ) : null
+
   const classSelect =
     view === 'classSelect' && schedules ? (
       <ClassSelectView
@@ -935,6 +980,7 @@ export function NewGameView(): JSX.Element {
     return (
       <>
         {classSelect}
+        <AnimatePresence>{dynamicsModal}</AnimatePresence>
         {/* Its answer ends the crossing rather than changing the view outright, so unlike the
             roster's modals this one does leave on its own — over the first frames of the wipe,
             the veil being above the crossing layer. The registrar is rendered from this same
@@ -1141,6 +1187,7 @@ export function NewGameView(): JSX.Element {
 
       {/* One presence for both questions the start asks: the lineup's answer starts a crossing,
           and the name panel is raised under its cover well after the lineup's own exit finishes. */}
+      <AnimatePresence>{dynamicsModal}</AnimatePresence>
       <AnimatePresence>
         {naming && <PlayerNameModal key="naming" theme={theme} onSubmit={onNamed} />}
 
