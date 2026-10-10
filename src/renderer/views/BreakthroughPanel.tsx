@@ -23,7 +23,7 @@ export function BreakthroughPanel({ hidden, blocked }: { hidden: boolean; blocke
     try { activateBreakthrough(id,draft,interject); setDraft(''); setExpanded(false) }
     catch (e) { setError(e instanceof Error ? e.message : 'Could not activate Breakthrough.') }
   }
-  return <aside className="vu-breakthrough vu-paper" aria-label="Breakthrough spirit"
+  return <aside className="vu-breakthrough vu-paper" data-ready={ready} aria-label="Breakthrough spirit"
     onKeyDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()} onWheel={e => e.stopPropagation()}>
     <motion.button type="button" className="vu-breakthrough-heading" disabled={blocked}
       aria-expanded={expanded} {...gestures(blocked,quietLift,quietPress)} onClick={() => setExpanded(v => !v)}>
@@ -64,9 +64,10 @@ export function BreakthroughFlourish(): JSX.Element | null {
   if (!flash || flash.playthroughId !== playthrough) return null
   return <div key={flash.id} className="vu-breakthrough-flourish" role="status" aria-live="polite" data-reduced={reduced || undefined}>
     {!reduced && <motion.div className="vu-breakthrough-halo" aria-hidden="true" animate={breakthroughHaloMotion}/>}
-    <motion.div className="vu-breakthrough-banner vu-paper" animate={reduced ? undefined : breakthroughBannerMotion}>
-      <span aria-hidden="true">✧ ── ✦ ── ✧</span><small>{flash.name}</small>
-      <strong>Breakthrough</strong><span>Make this moment matter.</span><span aria-hidden="true">✦</span>
+    <motion.div className="vu-breakthrough-banner" animate={reduced ? undefined : breakthroughBannerMotion}>
+      <div className="vu-breakthrough-ornament" aria-hidden="true">✧ ── ✦ ── ✧</div><small>{flash.name}</small>
+      <strong>Breakthrough</strong><span>Make this moment matter.</span>
+      <div className="vu-breakthrough-ornament" aria-hidden="true">✦</div>
     </motion.div>
   </div>
 }
