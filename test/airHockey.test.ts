@@ -538,8 +538,8 @@ describe('air hockey: the pack', () => {
     expect(suggestRate(def!, 'pier_44', false)).toBe('never')
   })
 
-  it('comes as a mod of its own that requires the framework', () => {
+  it('comes as a mod of its own that is part of the framework', () => {
     const mod = MODS.find((entry) => entry.id === def?.modId)
-    expect(mod?.requires).toEqual([MINI_GAMES])
+    expect(mod?.partOf).toBe(MINI_GAMES)
   })
 })

@@ -326,10 +326,10 @@ describe('PARADISO, on offer', () => {
   const on = (): boolean => true
   const paradiso = MINI_GAMES_LIST.find((game) => game.id === 'paradiso')
 
-  it('is one of the games this build carries, a pack that requires the framework', () => {
+  it('is one of the games this build carries, a pack that is part of the framework', () => {
     expect(paradiso).toBeDefined()
     expect(paradiso?.modId).toBe(PARADISO_MOD.id)
-    expect(PARADISO_MOD.requires).toEqual([MINI_GAMES])
+    expect(PARADISO_MOD.partOf).toBe(MINI_GAMES)
     expect(paradiso?.surface).toBe('board')
     expect(paradiso?.players).toEqual({ min: 0, max: 1 })
     expect(paradiso?.options).toEqual([expect.objectContaining({ id: 'difficulty', min: 1, max: 5, default: 2 })])

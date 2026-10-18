@@ -347,7 +347,7 @@ describe('Rink Race on paper', () => {
     expect(gamesOffered({ location: 'roller_rink', girls: 1 }, () => false, [game])).toEqual([])
     expect(game.players).toEqual({ min: 0, max: 3 })
     expect(game.modId).toBe(ROLLER_DERBY_MOD.id)
-    expect(ROLLER_DERBY_MOD.requires).toContain(MINI_GAMES)
+    expect(ROLLER_DERBY_MOD.partOf).toBe(MINI_GAMES)
   })
 
   it('plays every number of laps it offers, and three where nothing was said', () => {

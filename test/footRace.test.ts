@@ -391,10 +391,10 @@ describe('Foot Race at the keyboard', () => {
 describe('Foot Race on paper', () => {
   const game = MINI_GAMES_LIST.find((one) => one.id === 'foot-race')
 
-  it('is listed, in a pack that requires the framework', () => {
+  it('is listed, in a pack that is part of the framework', () => {
     expect(game).toBeDefined()
     expect(game?.modId).toBe(FOOT_RACE_MOD.id)
-    expect(FOOT_RACE_MOD.requires).toEqual([MINI_GAMES])
+    expect(FOOT_RACE_MOD.partOf).toBe(MINI_GAMES)
     expect(game?.players).toEqual({ min: 0, max: 3 })
   })
 

@@ -450,9 +450,9 @@ describe('Swim Race result', () => {
 describe('Swim Race on paper', () => {
   const swim = MINI_GAMES_LIST.find((game) => game.id === 'swim-race')
 
-  it('is one of the games this build carries, a pack that requires the framework', () => {
+  it('is one of the games this build carries, a pack that is part of the framework', () => {
     expect(swim?.modId).toBe(SWIM_MOD.id)
-    expect(SWIM_MOD.requires).toEqual([MINI_GAMES])
+    expect(SWIM_MOD.partOf).toBe(MINI_GAMES)
     expect(swim?.players).toEqual({ min: 0, max: 3 })
     expect(swim?.options?.map((option) => [option.id, option.min, option.max, option.default])).toEqual([
       ['lengths', 1, 3, 1]
