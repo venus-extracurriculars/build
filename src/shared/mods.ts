@@ -52,8 +52,12 @@ export interface ModDef {
   author: string
   version: string
   scope: ModScope
-  /** Whether the mod is on for a player who has never touched its switch. */
-  defaultOn: boolean
+  /**
+   * @deprecated Every mod starts off: a switch the player never set is off. This is read once,
+   * by {@link settleDefaults}, to keep the switch of a player who was already playing when that
+   * rule came in. A mod that shipped with it keeps it until it is removed; a new mod leaves it out.
+   */
+  defaultOn?: boolean
   /** What the mod does, in a sentence or two. */
   blurb: string
   /** What switching it off leaves alone, where a player might fear otherwise. */
@@ -95,6 +99,34 @@ export interface ModSwitches {
 
 export const NO_SWITCHES: ModSwitches = { on: {}, options: {} }
 
+/** The mods that once started on that this player's switches say nothing about yet. */
+function unsettled(switches: ModSwitches, mods: readonly ModDef[]): ModDef[] {
+  return mods.filter((mod) => mod.defaultOn === true && switches.on[mod.id] === undefined)
+}
+
+/** Whether {@link settleDefaults} has anything to write. */
+export function needsSettling(switches: ModSwitches, mods: readonly ModDef[] = MODS): boolean {
+  return unsettled(switches, mods).length > 0
+}
+
+/**
+ * Writes down the switch of every mod that used to start on and that the player never touched,
+ * so the rule that every mod starts off reaches only players who were not playing yet. A player
+ * who has saves keeps such a mod on; one with none has it written off. A switch once written is
+ * the player's own, so this changes nothing a second time, and answers the same object where
+ * there is nothing to write.
+ */
+export function settleDefaults(
+  switches: ModSwitches,
+  played: boolean,
+  mods: readonly ModDef[] = MODS
+): ModSwitches {
+  const due = unsettled(switches, mods)
+  if (due.length === 0) return switches
+  const settled = Object.fromEntries(due.map((mod) => [mod.id, played]))
+  return { ...switches, on: { ...switches.on, ...settled } }
+}
+
 /** The key one mod's option is stored under. */
 export function optionKey(modId: string, optionId: string): string {
   return `${modId}:${optionId}`
@@ -112,7 +144,7 @@ export function switchedOn(
 ): boolean {
   const mod = modById(id, mods)
   if (!mod) return false
-  return switches.on[id] ?? mod.defaultOn
+  return switches.on[id] ?? false
 }
 
 /**

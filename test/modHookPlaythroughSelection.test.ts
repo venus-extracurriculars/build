@@ -12,7 +12,7 @@ it('dispatches a playthrough-scoped hook from the loaded record rather than new-
   const oldSwitches = useModsStore.getState().switches
   const fixture = {
     id: 'saved-feature', name: 'Saved feature', author: 'fixture', version: '1',
-    scope: 'playthrough' as const, defaultOn: true, blurb: ''
+    scope: 'playthrough' as const, blurb: ''
   }
   list.push(fixture)
   resetLoopState()
