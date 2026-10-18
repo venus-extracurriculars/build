@@ -59,7 +59,9 @@ describe('the shipped list', () => {
 
   it('only requires mods it has', () => {
     for (const mod of MODS) {
-      for (const needed of mod.requires ?? []) expect(MODS.some((m) => m.id === needed)).toBe(true)
+      for (const needed of [...(mod.requires ?? []), ...(mod.partOf ? [mod.partOf] : [])]) {
+        expect(MODS.some((m) => m.id === needed)).toBe(true)
+      }
     }
   })
 })
@@ -165,6 +167,26 @@ describe('a group of options', () => {
     expect(optionOn(blue, 'look', 'red', LIST)).toBe(false)
     expect(optionOn(blue, 'look', 'big', LIST)).toBe(false)
     expect(withOption(blue, 'look', 'blue', false, LIST)).toBe(blue)
+  })
+})
+
+describe('a mod that is part of another', () => {
+  const PARTS: readonly ModDef[] = [
+    { ...base, id: 'frame', name: 'Frame', scope: 'anytime' },
+    { ...base, id: 'pack', name: 'Pack', scope: 'anytime', partOf: 'frame' }
+  ]
+
+  it('is off while the mod it is part of is, and comes on with it', () => {
+    expect(modOn(NO_SWITCHES, 'pack', null, PARTS)).toBe(false)
+    const frame = withMod(NO_SWITCHES, 'frame', true)
+    expect(modOn(frame, 'pack', null, PARTS)).toBe(true)
+    expect(missingRequirement(NO_SWITCHES, 'pack', PARTS)?.id).toBe('frame')
+  })
+
+  it('can be turned off on its own', () => {
+    const without = withMod(withMod(NO_SWITCHES, 'frame', true), 'pack', false)
+    expect(modOn(without, 'pack', null, PARTS)).toBe(false)
+    expect(modOn(without, 'frame', null, PARTS)).toBe(true)
   })
 })
 

@@ -62,6 +62,12 @@ export interface ModDef {
   offNote?: string
   /** Mods this one cannot act without, by id. */
   requires?: readonly string[]
+  /**
+   * The mod this one is part of, by id: a game pack is part of the mini-games, say. It needs that
+   * mod as it would one it `requires`, and is on whenever that mod is, until the player turns it
+   * off on its own. Every other mod starts off; one that is part of another comes with it.
+   */
+  partOf?: string
   options?: readonly ModOption[]
   /** The groups its options name, by id. */
   optionGroups?: readonly ModOptionGroup[]
@@ -140,7 +146,7 @@ export function switchedOn(
 ): boolean {
   const mod = modById(id, mods)
   if (!mod) return false
-  return switches.on[id] ?? false
+  return switches.on[id] ?? mod.partOf !== undefined
 }
 
 /**
@@ -154,7 +160,7 @@ export function missingRequirement(
   seen: readonly string[] = []
 ): ModDef | null {
   const mod = modById(id, mods)
-  for (const needed of mod?.requires ?? []) {
+  for (const needed of needsOf(mod)) {
     const required = modById(needed, mods)
     // A requirement this build does not carry is never met, and has no name to show: the mod
     // names itself as the thing that cannot run.
@@ -166,6 +172,11 @@ export function missingRequirement(
     if (further) return further
   }
   return null
+}
+
+/** The mods one cannot act without: those it requires, and the one it is part of. */
+function needsOf(mod: ModDef | undefined): string[] {
+  return [...(mod?.requires ?? []), ...(mod?.partOf ? [mod.partOf] : [])]
 }
 
 /** Whether a mod is on for the game as a whole: its switch, and everything it requires. */
