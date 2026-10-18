@@ -2,8 +2,10 @@ import { create } from 'zustand'
 import {
   modOn,
   MODS,
+  needsSettling,
   NO_SWITCHES,
   optionOn,
+  settleDefaults,
   withMod,
   withOption,
   type ModSwitches
@@ -46,6 +48,21 @@ export const useModsStore = create<ModsStoreState>((set, get) => {
     return write
   }
 
+  /**
+   * Keeps the mods a player already had on when every mod came to start off: see
+   * `settleDefaults`. Whether they were playing is whether they have a playthrough. A list that
+   * cannot be read settles nothing, and the next launch tries again.
+   */
+  async function settle(): Promise<void> {
+    if (!needsSettling(get().switches)) return
+    const listed = await window.api.saves.playthroughs()
+    if (!listed.ok) {
+      console.error('[mods] the playthroughs could not be listed; defaults wait a launch', listed.error)
+      return
+    }
+    await change((switches) => settleDefaults(switches, listed.data.length > 0))
+  }
+
   return {
     switches: NO_SWITCHES,
 
@@ -56,6 +73,7 @@ export const useModsStore = create<ModsStoreState>((set, get) => {
         return
       }
       set({ switches: result.data })
+      await settle()
     },
 
     setMod: (id, on) => change((switches) => withMod(switches, id, on)),

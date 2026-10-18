@@ -22,7 +22,6 @@ const mod: ModDef = {
   author: 'Maestro Leeds',
   version: '1.7.1',
   scope: 'playthrough',             // or 'anytime', see below
-  defaultOn: true,
   blurb: 'Three new places on the map.',
   requires: [],                     // ids of mods this one cannot act without
   options: [{ id: 'some-option', label: '…', hint: '…', default: true }]
@@ -70,9 +69,20 @@ switch is left as the player set it.
 ## Where it is stored
 
 - `data/mods.json`: the player's switches and options, `{ schemaVersion, on, options }`. A mod
-  or option missing from it is at its default, so adding a mod needs no migration. Ids this
-  build does not know are kept.
+  missing from it is off, and an option missing from it is at its default, so adding a mod needs
+  no migration. Ids this build does not know are kept.
 - `playthrough.json`: `mods`, the `playthrough` mods that playthrough started with.
+
+## Every mod starts off
+
+A mod is on only once the player turns it on, so an update never changes someone's game by
+itself. Write your tests the same way: switch your mod on in the test (`withMod(NO_SWITCHES,
+id, true)`, or `useModsStore.setState` with it on) rather than counting on it being on.
+
+`defaultOn` is deprecated. Mods that shipped with `defaultOn: true` before this rule keep it for
+now: at launch the game writes down their switch once for a player who never touched it, on
+where the player already has a playthrough and off where they have none (`settleDefaults` in
+`src/shared/mods.ts`). A new mod leaves `defaultOn` out.
 
 
 ## Options that are one choice

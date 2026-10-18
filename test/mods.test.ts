@@ -10,7 +10,9 @@ import {
   modsOn,
   NO_SWITCHES,
   optionOn,
+  needsSettling,
   playthroughMods,
+  settleDefaults,
   switchedOn,
   withMod,
   withOption,
@@ -21,15 +23,14 @@ const base = { author: 'a', version: '1.0.0', blurb: '' }
 
 /** A small list with each shape a mod can have. */
 const LIST: readonly ModDef[] = [
-  { ...base, id: 'free', name: 'Free', scope: 'anytime', defaultOn: true },
-  { ...base, id: 'quiet', name: 'Quiet', scope: 'anytime', defaultOn: false },
-  { ...base, id: 'places', name: 'Places', scope: 'playthrough', defaultOn: true },
+  { ...base, id: 'free', name: 'Free', scope: 'anytime' },
+  { ...base, id: 'quiet', name: 'Quiet', scope: 'anytime' },
+  { ...base, id: 'places', name: 'Places', scope: 'playthrough' },
   {
     ...base,
     id: 'work',
     name: 'Work',
     scope: 'playthrough',
-    defaultOn: true,
     requires: ['places'],
     options: [{ id: 'raises', label: 'Raises', hint: '', default: true }]
   },
@@ -38,7 +39,6 @@ const LIST: readonly ModDef[] = [
     id: 'look',
     name: 'Look',
     scope: 'anytime',
-    defaultOn: false,
     options: [
       { id: 'red', label: 'Red', hint: '', default: true, group: 'colour' },
       { id: 'blue', label: 'Blue', hint: '', default: false, group: 'colour' },
@@ -46,6 +46,9 @@ const LIST: readonly ModDef[] = [
     ]
   }
 ]
+
+/** Free, Places and Work switched on: the rest of the list stays off, as every mod starts. */
+const THREE_ON = withMod(withMod(withMod(NO_SWITCHES, 'free', true), 'places', true), 'work', true)
 
 describe('the shipped list', () => {
   it('gives every mod an id of its own that can go in a file', () => {
@@ -62,10 +65,15 @@ describe('the shipped list', () => {
 })
 
 describe('modOn', () => {
-  it('answers a default until the switch is touched', () => {
-    expect(modOn(NO_SWITCHES, 'free', null, LIST)).toBe(true)
-    expect(modOn(NO_SWITCHES, 'quiet', null, LIST)).toBe(false)
+  it('is off until the player turns it on', () => {
+    expect(modOn(NO_SWITCHES, 'free', null, LIST)).toBe(false)
     expect(modOn(withMod(NO_SWITCHES, 'quiet', true), 'quiet', null, LIST)).toBe(true)
+    expect(modOn(withMod(NO_SWITCHES, 'quiet', false), 'quiet', null, LIST)).toBe(false)
+  })
+
+  it('starts off even where an old entry still says it starts on', () => {
+    const old: ModDef[] = [{ ...base, id: 'old', name: 'Old', scope: 'anytime', defaultOn: true }]
+    expect(modOn(NO_SWITCHES, 'old', null, old)).toBe(false)
   })
 
   it('is off for a mod the build does not have', () => {
@@ -73,7 +81,7 @@ describe('modOn', () => {
   })
 
   it('is off while something it requires is off, and back when that returns', () => {
-    const without = withMod(NO_SWITCHES, 'places', false)
+    const without = withMod(THREE_ON, 'places', false)
     expect(switchedOn(without, 'work', LIST)).toBe(true)
     expect(modOn(without, 'work', null, LIST)).toBe(false)
     expect(missingRequirement(without, 'work', LIST)?.id).toBe('places')
@@ -88,7 +96,8 @@ describe('modOn', () => {
     expect(modOn(NO_SWITCHES, 'places', { mods: [] }, LIST)).toBe(false)
     expect(modOn(NO_SWITCHES, 'places', {}, LIST)).toBe(false)
     // No playthrough in hand: what a new one would get.
-    expect(modOn(NO_SWITCHES, 'places', null, LIST)).toBe(true)
+    expect(modOn(THREE_ON, 'places', null, LIST)).toBe(true)
+    expect(modOn(NO_SWITCHES, 'places', null, LIST)).toBe(false)
   })
 
   it('reads an anytime mod off its switch, whatever the playthrough names', () => {
@@ -97,10 +106,10 @@ describe('modOn', () => {
 
   it('does not hang on mods that require each other', () => {
     const circle: ModDef[] = [
-      { ...base, id: 'a', name: 'A', scope: 'anytime', defaultOn: true, requires: ['b'] },
-      { ...base, id: 'b', name: 'B', scope: 'anytime', defaultOn: true, requires: ['a'] }
+      { ...base, id: 'a', name: 'A', scope: 'anytime', requires: ['b'] },
+      { ...base, id: 'b', name: 'B', scope: 'anytime', requires: ['a'] }
     ]
-    expect(modOn(NO_SWITCHES, 'a', null, circle)).toBe(true)
+    expect(modOn(withMod(withMod(NO_SWITCHES, 'a', true), 'b', true), 'a', null, circle)).toBe(true)
   })
 })
 
@@ -114,17 +123,17 @@ describe('options', () => {
 
 describe('a new playthrough', () => {
   it('names the playthrough mods that are on, and no others', () => {
-    expect(playthroughMods(NO_SWITCHES, LIST)).toEqual(['places', 'work'])
-    expect(playthroughMods(withMod(NO_SWITCHES, 'places', false), LIST)).toEqual([])
+    expect(playthroughMods(THREE_ON, LIST)).toEqual(['places', 'work'])
+    expect(playthroughMods(withMod(THREE_ON, 'places', false), LIST)).toEqual([])
     expect(playthroughMods(NO_SWITCHES)).toEqual([])
   })
 })
 
 describe('what the build says of itself', () => {
   it('counts the mods that are on', () => {
-    expect(modsOn(NO_SWITCHES, LIST).map((mod) => mod.id)).toEqual(['free', 'places', 'work'])
-    expect(buildLine(NO_SWITCHES, LIST)).toBe(`${BUILD.name} ${BUILD.version} · 3 mods on · unofficial`)
-    expect(buildLine(withMod(withMod(NO_SWITCHES, 'places', false), 'quiet', false), LIST)).toBe(
+    expect(modsOn(THREE_ON, LIST).map((mod) => mod.id)).toEqual(['free', 'places', 'work'])
+    expect(buildLine(THREE_ON, LIST)).toBe(`${BUILD.name} ${BUILD.version} · 3 mods on · unofficial`)
+    expect(buildLine(withMod(THREE_ON, 'places', false), LIST)).toBe(
       `${BUILD.name} ${BUILD.version} · 1 mod on · unofficial`
     )
   })
@@ -156,5 +165,41 @@ describe('a group of options', () => {
     expect(optionOn(blue, 'look', 'red', LIST)).toBe(false)
     expect(optionOn(blue, 'look', 'big', LIST)).toBe(false)
     expect(withOption(blue, 'look', 'blue', false, LIST)).toBe(blue)
+  })
+})
+
+describe('a mod that used to start on', () => {
+  const OLD: readonly ModDef[] = [
+    { ...base, id: 'was-on', name: 'Was on', scope: 'anytime', defaultOn: true },
+    { ...base, id: 'was-off', name: 'Was off', scope: 'anytime', defaultOn: false },
+    { ...base, id: 'new', name: 'New', scope: 'anytime' }
+  ]
+
+  it('stays on for a player who was already playing', () => {
+    const settled = settleDefaults(NO_SWITCHES, true, OLD)
+    expect(settled.on).toEqual({ 'was-on': true })
+    expect(modOn(settled, 'was-on', null, OLD)).toBe(true)
+  })
+
+  it('is written off for a player with no playthrough, so it stays off once they have one', () => {
+    const settled = settleDefaults(NO_SWITCHES, false, OLD)
+    expect(settled.on).toEqual({ 'was-on': false })
+    expect(settleDefaults(settled, true, OLD)).toBe(settled)
+  })
+
+  it('never writes over a switch the player set', () => {
+    const settled = settleDefaults(withMod(NO_SWITCHES, 'was-on', false), true, OLD)
+    expect(settled.on['was-on']).toBe(false)
+  })
+
+  it('writes nothing a second time', () => {
+    const once = settleDefaults(NO_SWITCHES, true, OLD)
+    expect(needsSettling(once, OLD)).toBe(false)
+    expect(settleDefaults(once, false, OLD)).toBe(once)
+  })
+
+  it('has nothing to do in a list where nothing started on', () => {
+    expect(needsSettling(NO_SWITCHES, LIST)).toBe(false)
+    expect(settleDefaults(NO_SWITCHES, true, LIST)).toBe(NO_SWITCHES)
   })
 })
