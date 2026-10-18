@@ -1,7 +1,7 @@
 /**
  * The mini-games this build carries, and where each may be played. A game is something the
  * reader plays inside a scene, alone or with the girls who are there. The framework
- * ({@link MINI_GAMES}) is one mod; each pack of games is a mod of its own that requires it.
+ * ({@link MINI_GAMES}) is one mod; each pack of games is a mod of its own, part of it.
  *
  * What is here is what a game *is* on paper: enough to list it, offer it and describe it to the
  * model. What it looks like and how it plays is the pack's own component, in the renderer.
@@ -178,10 +178,10 @@ export function packMod(pack: {
     author: pack.author,
     version: pack.version,
     scope: 'anytime',
-    defaultOn: true,
     blurb: pack.blurb,
     offNote: 'A game already played stays in the story and in her memories.',
-    requires: [MINI_GAMES],
+    // Comes on with the mini-games, and can still be turned off on its own.
+    partOf: MINI_GAMES,
     options: pack.games.map((game) => ({
       id: game.id,
       label: `${game.icon} ${game.name}`,

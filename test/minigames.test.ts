@@ -53,8 +53,8 @@ describe('gamesOffered', () => {
 
   it('offers nothing from a pack while the framework it requires is off', () => {
     const mods: ModDef[] = [
-      { id: MINI_GAMES, name: '', author: '', version: '', scope: 'anytime', defaultOn: true, blurb: '' },
-      { id: 'pack', name: '', author: '', version: '', scope: 'anytime', defaultOn: true, blurb: '', requires: [MINI_GAMES] }
+      { id: MINI_GAMES, name: '', author: '', version: '', scope: 'anytime', blurb: '' },
+      { id: 'pack', name: '', author: '', version: '', scope: 'anytime', blurb: '', partOf: MINI_GAMES }
     ]
     const spot = { location: 'pub', girls: 1 }
     const off = withMod(NO_SWITCHES, MINI_GAMES, false)

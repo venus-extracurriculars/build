@@ -123,7 +123,7 @@ describe('a pack of games', () => {
     const { packMod, gameSwitchOn, MINI_GAMES } = await import('../src/shared/minigames')
     const cards = game(0, 1)
     const mod = packMod({ id: 'pack', name: 'Pack', author: 'a', version: '1', blurb: 'b', games: [cards] })
-    expect(mod.requires).toEqual([MINI_GAMES])
+    expect(mod.partOf).toBe(MINI_GAMES)
     expect(mod.options?.map((option) => option.id)).toEqual(['cards'])
     expect(gameSwitchOn(cards, mod, () => undefined)).toBe(true)
     expect(gameSwitchOn(cards, mod, () => false)).toBe(false)

@@ -79,6 +79,10 @@ A mod is on only once the player turns it on, so an update never changes someone
 itself. Write your tests the same way: switch your mod on in the test (`withMod(NO_SWITCHES,
 id, true)`, or `useModsStore.setState` with it on) rather than counting on it being on.
 
+A mod that is part of another (a game pack is part of the mini-games) names it in `partOf`
+instead of `requires`: it is off while that mod is, comes on with it, and the player can still
+turn it off on its own.
+
 `defaultOn` is deprecated. Mods that shipped with `defaultOn: true` before this rule keep it for
 now: at launch the game writes down their switch once for a player who never touched it, on
 where the player already has a playthrough and off where they have none (`settleDefaults` in
