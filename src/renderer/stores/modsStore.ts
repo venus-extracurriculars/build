@@ -1,3 +1,5 @@
+import { setTalentRules } from '@shared/campusTalents'
+import { setRomanceRequirementRules } from '@shared/romanceRequirements'
 import { setEchoBonusEnabled } from '@shared/echo'
 import { CITY_LIFE_LOCATIONS_MOD, CITY_LIFE_JOBS_MOD, setCityLifeEnabled } from '@shared/cityLife'
 import { useGameStore } from './gameStore'
@@ -91,6 +93,7 @@ export const useModsStore = create<ModsStoreState>((set, get) => {
  */
 function tellSharedRules(switches: ModSwitches): void {
   setEchoBonusEnabled(modOn(switches, 'echo'))
+  setTalentRules(modOn(switches, 'campus-talents'), MODS.filter(mod=>modOn(switches,mod.id)).map(mod=>mod.id))
   // Photo Feature reads its own switches; this hands them over.
   setPhotoSwitches(photoSwitchesOf(switches))
 }
@@ -104,6 +107,10 @@ setHookRules({
   isOn: (modId) => modOn(useModsStore.getState().switches, modId, enrollmentRecord ?? loopState.record),
   order: (modId) => MODS.findIndex((mod) => mod.id === modId)
 })
+
+setRomanceRequirementRules((modId) =>
+  modOn(useModsStore.getState().switches, modId, enrollmentRecord ?? loopState.record)
+)
 
 /** Whether a mod is on, for code outside a component; see `modOn` for what a record changes. */
 export function modIsOn(id: string, record?: Pick<PlaythroughRecord, 'mods'> | null): boolean {

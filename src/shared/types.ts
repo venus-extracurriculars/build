@@ -1,3 +1,4 @@
+import type { TalentState } from './campusTalents'
 import type { ReckoningState } from './reckoning'
 import type { EchoState } from './echo'
 import type { StoryMemory, StoryRecallRequest } from './storyMemory'
@@ -496,6 +497,12 @@ export interface CharMemory {
   echoBoosted?: boolean
   /** Echo: affinity at the time this positive memory was earned. */
   echoAffinity?: 'matching' | 'competing'
+  /** Campus Talents: the earned multiplier, never recomputed from later skill purchases. */
+  talentEchoMultiplier?: number
+  /** Heart skill bonus fixed when this memory was earned. */
+  talentHeartMultiplier?: number
+  /** A single positive scene memory received the earned Anticipation bonus. */
+  talentAnticipation?: true
   /** Game date (days elapsed) it happened. */
   date: number
   type: MemoryType
@@ -608,6 +615,8 @@ export interface ExamRecord {
 export interface ProjectSession {
   date: number
   time: TimeSlot
+  /** Work credited by Campus Talents; absent on native sessions. */
+  talentWorkUnits?: number
   /** The scene's own summary; absent when the closing call never produced one. */
   summary?: string
 }
@@ -1473,6 +1482,8 @@ export interface GameSave {
   exStoryMemory?: StoryMemory
   /** Optional, character-specific spirit and committed outcomes. */
   exReckoning?: ReckoningState
+  exStartingChallenge?: import('./startingChallenge').StartingChallenge
+  exTalents?: TalentState
   exEcho?: EchoState
   exBreakthrough?: BreakthroughState
   /** Optional, noncanonical spectator conversations. */
@@ -2077,6 +2088,8 @@ export type EnrollmentDraft = QuickstartBundle & {
   /** The setup switch is fixed once this enrollment starts, even when choices are empty. */
   exCharacterDynamicsEnabled?: boolean
   /** Accepted Echo setup, retained if the next semester's opening save needs a retry. */
+  exStartingChallenge?: import('./startingChallenge').StartingChallenge
+  exTalents?: TalentState
   exEcho?: EchoState
   playerFirstName: string
   playerLastName: string
