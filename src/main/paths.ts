@@ -230,6 +230,16 @@ export function getSettingsPath(): string {
   return join(getDataPath(), 'settings.json')
 }
 
+/** `/data/lang/{code}.json` — a translation pack a player or a mod has put there. */
+export function getLangPackPath(code: string): string {
+  return join(getDataPath(), 'lang', `${code}.json`)
+}
+
+/** `/assets/lang/{code}.json` — a translation pack this build ships with. */
+export function getShippedLangPackPath(code: string): string {
+  return join(getAssetsPath(), 'lang', `${code}.json`)
+}
+
 /** `/data/app.log` — every console line of both processes. */
 export function getAppLogPath(): string {
   return join(getDataPath(), 'app.log')

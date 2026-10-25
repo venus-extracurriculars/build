@@ -174,6 +174,7 @@ import {
 import { generateRoomImage, writeRoomUpload } from './services/roomService'
 import { applySettingsPatch, getRendererSettings, getSettings } from './services/settingsService'
 import { getGrabBags, setGrabBags } from './services/grabBagService'
+import { readLangPack } from './services/langService'
 import { getModSwitches, setModSwitches } from './services/modsService'
 import { deleteReplay, listReplayIds, readReplay } from './services/replayService'
 import { deleteScene, listScenes, readScene, writeScene } from './services/sceneService'
@@ -310,6 +311,8 @@ export function registerIpcHandlers(): void {
   // The grab bags' set-aside keys, read once at boot and written behind every draw.
   handle('grabBags:get', () => getGrabBags())
   handle('grabBags:set', (_event, bags: GrabBags) => setGrabBags(bags))
+  // The pack a language reads through, or null where none is installed.
+  handle('lang:read', (_event, code: string) => readLangPack(code))
   handle('mods:get', () => getModSwitches())
   handle('mods:set', (_event, switches: ModSwitches) => setModSwitches(switches))
   // The caller has already saved; main writes nothing on its way out.

@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSX } from 'react'
+import { Fragment, useEffect, useState, type JSX } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { writerReady } from '@shared/settingsRules'
 import './mods'
@@ -29,6 +29,7 @@ import { useCharacterStore } from './stores/characterStore'
 import { cancelCrossing, endCrossing } from './stores/crossingStore'
 import { useGameStore } from './stores/gameStore'
 import { useGrabBagStore } from './stores/grabBagStore'
+import { useLangStore } from './stores/langStore'
 import { convertLegacyImages } from './stores/legacyImageStore'
 import { useSaveStore } from './stores/saveStore'
 import { useModsStore } from './stores/modsStore'
@@ -137,6 +138,9 @@ function App(): JSX.Element {
   // this store's state under the curtain, and its React state — crossfade pairs, `sending`,
   // `uiHidden` — is a fact about the save on screen and must not outlive it.
   const gameLoads = useGameStore((s) => s.loads)
+  // The language's own key the same way: the store's version is what redresses a screen
+  // already standing in the language the pack behind it has changed to.
+  const langVersion = useLangStore((s) => s.version)
 
   useEffect(() => {
     void boot()
@@ -145,7 +149,7 @@ function App(): JSX.Element {
   if (fatalError) return <FatalErrorScreen error={fatalError} />
 
   return (
-    <>
+    <Fragment key={langVersion}>
       {/* `boot` draws nothing: the curtain is the boot screen, and it is up from the first
           frame. One screen, three ways in — the whole first run, the key stage alone, the
           install checklist alone. */}
@@ -179,7 +183,7 @@ function App(): JSX.Element {
           the OS draws the mark. Outside the fatal branch above on purpose: a screen the
           app has fallen over onto hands the system's own cursor back. */}
       <Cursor />
-    </>
+    </Fragment>
   )
 }
 

@@ -2,6 +2,7 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import { i18nTransform } from './scripts/i18nTransform'
 import { webpAssets } from './scripts/webpAssets'
 
 // The version the menu prints. Read rather than imported: package.json is
@@ -21,7 +22,7 @@ export default defineConfig({
       '@shared': resolve('src/shared')
     }
   },
-  plugins: [webpAssets('web'), react()],
+  plugins: [webpAssets('web'), i18nTransform(), react()],
   server: {
     fs: {
       // The renderer, the shared tree and `assets` all sit above the root.

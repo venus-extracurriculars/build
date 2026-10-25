@@ -103,6 +103,10 @@ export interface VenusUniversityApi {
     /** Replaces every grab bag's set-aside keys. */
     set: (bags: GrabBags) => Promise<Result<void>>
   }
+  lang: {
+    /** The translation pack for a language, or null where none is installed. */
+    read: (code: string) => Promise<Result<Record<string, string> | null>>
+  }
   mods: {
     /** Which community mods are switched on, and their options (`shared/mods.ts`). */
     get: () => Promise<Result<ModSwitches>>

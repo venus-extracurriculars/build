@@ -17,6 +17,9 @@ release
 # runtime data (getDataPath()) — see src/main/paths.ts
 /data
 
+# the keys the i18n transform wrapped on the last build, for the translator to fill
+/i18n-extracted.json
+
 # editor/OS cruft
 .DS_Store
 *.log

@@ -2,6 +2,7 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
+import { i18nTransform } from './scripts/i18nTransform'
 import { webpAssets } from './scripts/webpAssets'
 
 // The version the menu prints. Read rather than imported: package.json is
@@ -48,6 +49,6 @@ export default defineConfig({
       }
     },
     // Shipped PNG art is emitted as WebP, which is what keeps the packaged renderer small.
-    plugins: [webpAssets('desktop'), react()]
+    plugins: [webpAssets('desktop'), i18nTransform(), react()]
   }
 })
