@@ -29,6 +29,7 @@ import {
   isSlotSaveId,
   listedSaveIds,
   manualSaveId,
+  maskedField,
   mintId,
   playthroughLabel,
   prunedSlotIds,
@@ -271,6 +272,7 @@ export async function listPlaythroughs(): Promise<PlaythroughSummary[]> {
               ...base,
               enrolling: true,
               chars: enrollment.chars,
+              ...maskedField(enrollment.chars, enrollment.masked),
               date: FIRST_SLOT.date,
               time: FIRST_SLOT.time,
               ...(semesterIndex > 0
@@ -338,6 +340,10 @@ export async function listPlaythroughs(): Promise<PlaythroughSummary[]> {
             ? {
                 ...named,
                 chars: semester?.chars ?? [],
+                // A pick New Game left masked stays masked until she has been met.
+                ...(semester
+                  ? maskedField(semester.chars, semester.masked, newest.save.charInfo)
+                  : {}),
                 date: newest.save.date,
                 time: newest.save.time,
                 ...(semester && semester.index > 0 ? { semesterIndex: semester.index } : {}),

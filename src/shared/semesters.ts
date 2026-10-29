@@ -101,6 +101,8 @@ export interface SemesterView {
   classes: Record<string, ClassEntry>
   occasions: Occasion[]
   fixedEdits: FixedOccasionEdits
+  /** The random picks its New Game left masked. */
+  masked: string[]
   jobClosures: Record<string, ShiftSlot[]>
   weather: Weather[]
   profiles: Record<string, CharProfile>
@@ -133,6 +135,7 @@ export function semesterOf(record: PlaythroughRecord, id?: string): SemesterView
       classes: record.classes,
       occasions: record.occasions,
       fixedEdits: record.fixedEdits ?? {},
+      masked: record.masked ?? [],
       jobClosures: record.jobClosures,
       weather: record.weather,
       profiles: record.profiles,
@@ -151,6 +154,7 @@ export function semesterOf(record: PlaythroughRecord, id?: string): SemesterView
     classes: semester.classes,
     occasions: semester.occasions,
     fixedEdits: semester.fixedEdits ?? {},
+    masked: semester.masked ?? [],
     jobClosures: semester.jobClosures,
     weather: semester.weather,
     profiles: semester.profiles,

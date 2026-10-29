@@ -27,7 +27,7 @@ export const SWIM_CLASS = {
   code: 'SWIM 102',
   name: 'Fitness Swimming',
   description:
-    'Stroke technique, endurance and water safety in the university pool, from freestyle fundamentals to open turns.'
+    'A lap swimming course building freestyle stroke mechanics, aquatic endurance, and water safety skills in the university pool.'
 } as const
 
 /** The three pools a filler class may come from, in no particular order. */

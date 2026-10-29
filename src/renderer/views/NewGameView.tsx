@@ -142,6 +142,8 @@ export function NewGameView(): JSX.Element {
   // written onto the first save at Enroll.
   const [starts, setStarts] = useState<Record<string, CharStart>>(resumed?.enrollment.starts ?? {})
   const [pairs, setPairs] = useState<Record<string, SceneRelation>>(resumed?.enrollment.pairs ?? {})
+  // The random picks New Game left masked; written onto the record at Enroll.
+  const [masked, setMasked] = useState<string[]>(resumed?.enrollment.masked ?? [])
   // The folder the semester above was written into, which Enroll writes the record and the
   // opening save into; null until the enrollment lands.
   const [playthroughId, setPlaythroughId] = useState<string | null>(
@@ -269,6 +271,7 @@ export function NewGameView(): JSX.Element {
   async function enroll(
     semester: StartResult,
     chars: string[],
+    masked: string[],
     reader: Reader,
     tokensGenerated: number,
     into?: string
@@ -277,6 +280,7 @@ export function NewGameView(): JSX.Element {
     const written = await useSaveStore.getState().enroll(
       {
         chars,
+        ...(masked.length > 0 ? { masked } : {}),
         classes: semester.schedules.classes,
         perChar: semester.schedules.perChar,
         jobs: semester.jobs,
@@ -306,17 +310,18 @@ export function NewGameView(): JSX.Element {
 
   /**
    * The flow's semester has passed Finalize: the application is sealed and replaced by the
-   * enrollment under the curtain Finalize's Next lowered, and the registrar is put up under the
+   * enrollment under the curtain Finalize's Start game lowered, and the registrar is put up under the
    * same cover and revealed with it. A later semester's is registered beside its record.
    */
   function onComposed(
     semester: StartResult,
     named: ApplicationReader,
     composed: Character[],
-    continued?: ApplicationContinuation
+    continued: ApplicationContinuation | undefined,
+    unrevealed: string[]
   ): void {
     if (continued) {
-      void enrollNext(semester, named, composed, continued)
+      void enrollNext(semester, named, composed, continued, unrevealed)
       return
     }
     void (async () => {
@@ -331,6 +336,7 @@ export function NewGameView(): JSX.Element {
       const enrolled = await enroll(
         semester,
         composed.map((c) => c.charId),
+        unrevealed,
         reader,
         tokens,
         folder ?? undefined
@@ -354,6 +360,7 @@ export function NewGameView(): JSX.Element {
         setSecrets(semester.secrets)
         setStarts(semester.starts)
         setPairs(semester.pairs)
+        setMasked(unrevealed)
         setOccasions(semester.occasions)
         setFixedEdits(semester.fixedEdits)
         setView('classSelect')
@@ -365,18 +372,20 @@ export function NewGameView(): JSX.Element {
    * A later semester's flow has passed Finalize: its application is sealed and replaced by the
    * registration written beside its playthrough's record, so the registrar it is about to open
    * can be left and come back to, and held here for Enroll whether or not it landed. The
-   * registrar is put up under the curtain Finalize's Next lowered.
+   * registrar is put up under the curtain Finalize's Start game lowered.
    */
   async function enrollNext(
     semester: StartResult,
     named: ApplicationReader,
     composed: Character[],
-    continued: ApplicationContinuation
+    continued: ApplicationContinuation,
+    unrevealed: string[]
   ): Promise<void> {
     const tokensGenerated = tokensNow()
     const folder = await sealApplication()
     const draft: EnrollmentDraft = {
       chars: composed.map((c) => c.charId),
+      ...(unrevealed.length > 0 ? { masked: unrevealed } : {}),
       classes: semester.schedules.classes,
       perChar: semester.schedules.perChar,
       jobs: semester.jobs,
@@ -463,6 +472,7 @@ export function NewGameView(): JSX.Element {
       await enroll(
         semester,
         roster.map((c) => c.charId),
+        [],
         { first, last, stats, bio },
         useGameStore.getState().tallies.tokensGenerated
       )
@@ -640,6 +650,7 @@ export function NewGameView(): JSX.Element {
         classes,
         occasions,
         ...(Object.keys(fixedEdits).length > 0 ? { fixedEdits } : {}),
+        ...(masked.length > 0 ? { masked } : {}),
         // Each all-hours employer's two closed slots, rolled above off the fixed timetable.
         jobClosures,
         weather,

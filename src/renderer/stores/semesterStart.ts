@@ -292,6 +292,7 @@ export function continuedStartOf(
     classes: enrollment.classes,
     occasions: enrollment.occasions,
     ...(Object.keys(fixedEdits).length > 0 ? { fixedEdits } : {}),
+    ...(enrollment.masked?.length ? { masked: enrollment.masked } : {}),
     jobClosures,
     weather,
     profiles,

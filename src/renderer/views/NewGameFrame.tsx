@@ -24,10 +24,11 @@ const BACKDROP_IN = fadeIn(0, 0.5)
 const HEADER_IN = fadeIn(0.1)
 const FOOT_IN = fadeIn(0.5)
 
-/** The screen's Next: whether it is live, and what it does. */
+/** The screen's Next: whether it is live, what it does, and what it reads where not Next. */
 export interface FrameNext {
   dead: boolean
   onPress: () => void
+  label?: string
 }
 
 export interface NewGameFrameProps {
@@ -234,7 +235,7 @@ export function NewGameFrame({
               onHoverEnd={() => setHovering(false)}
               onClick={next.onPress}
             >
-              Next
+              {next.label ?? 'Next'}
               {/* The mark says where the button goes, which is as true of one that cannot go
                   there yet — so it stays whether or not the button is live. */}
               <ChevronIcon />

@@ -14,6 +14,7 @@ import {
   MANUAL_SAVE_SLOTS,
   MAX_SLOT_SAVES,
   READER_SPEAKER,
+  type CharState,
   type Enrollment,
   type EnrollmentDraft,
   type GameSave,
@@ -133,7 +134,7 @@ const SAVE_REQUIRED: Record<
  * the player gives it is optional on the type and omitted here.
  */
 const RECORD_REQUIRED: Record<
-  keyof Omit<PlaythroughRecord, 'name' | 'semesters' | 'fixedEdits'>,
+  keyof Omit<PlaythroughRecord, 'name' | 'semesters' | 'fixedEdits' | 'masked'>,
   true
 > = {
   schemaVersion: true,
@@ -154,7 +155,14 @@ const RECORD_REQUIRED: Record<
 const ENROLLMENT_REQUIRED: Record<
   keyof Omit<
     Enrollment,
-    'bio' | 'tokensGenerated' | 'continued' | 'secrets' | 'starts' | 'pairs' | 'fixedEdits'
+    | 'bio'
+    | 'tokensGenerated'
+    | 'continued'
+    | 'secrets'
+    | 'starts'
+    | 'pairs'
+    | 'fixedEdits'
+    | 'masked'
   >,
   true
 > = {
@@ -192,7 +200,7 @@ export const SAVE_NOT_FOUND = { code: 'SAVE_NOT_FOUND', message: 'That save no l
 
 /** What every semester past the first must carry: the record's own fields for it and its log. */
 const SEMESTER_REQUIRED: Record<
-  keyof Omit<SemesterRecord, 'parent' | 'fallGraduate' | 'breakDecay' | 'fixedEdits'>,
+  keyof Omit<SemesterRecord, 'parent' | 'fallGraduate' | 'breakDecay' | 'fixedEdits' | 'masked'>,
   true
 > = {
   index: true,
@@ -659,6 +667,23 @@ export function summaryOf(save: GameSave): SaveSummary {
 }
 
 /**
+ * The masks a listing row wears: the random picks New Game left masked who are on `chars`, less
+ * any `charInfo` says the reader has met; absent where none is left.
+ */
+export function maskedField(
+  chars: readonly string[],
+  masked: unknown,
+  charInfo?: Record<string, CharState>
+): Pick<PlaythroughSummary, 'masked'> {
+  if (!isStringList(masked)) return {}
+  const roster = new Set(chars)
+  const left = masked.filter(
+    (charId) => roster.has(charId) && charInfo?.[charId]?.flags?.hasMet !== true
+  )
+  return left.length > 0 ? { masked: left } : {}
+}
+
+/**
  * A playthrough's summary with the registration waiting beside its saves: always noted, and
  * standing for the playthrough unless a save was written after it — a registration is only ever
  * written after the saves it continues from, so a tie is its.
@@ -671,10 +696,12 @@ export function withRegistration(
   const semesterIndex = registration.continued?.index ?? 0
   const noted = { ...summary, registration: { savedAt: registration.savedAt, semesterIndex } }
   if (registration.savedAt < summary.savedAt) return noted
+  const { masked: _masked, ...rest } = noted
   return {
-    ...noted,
+    ...rest,
     enrolling: true,
     chars: registration.chars,
+    ...maskedField(registration.chars, registration.masked),
     date: FIRST_SLOT.date,
     time: FIRST_SLOT.time,
     ...(semesterIndex > 0 ? { semesterIndex } : {}),
@@ -725,7 +752,7 @@ export function withApplication(
   const semesterIndex = continued.index
   const noted = { ...summary, application: { savedAt: application.savedAt, semesterIndex } }
   if (application.savedAt < summary.savedAt) return noted
-  const { enrolling: _enrolling, ...rest } = noted
+  const { enrolling: _enrolling, masked: _masked, ...rest } = noted
   const masked = [...maskedOf(application)]
   return {
     ...rest,

@@ -1814,8 +1814,8 @@ export interface PlaythroughSummary {
    */
   applying?: true
   /**
-   * An application's random picks the player has not revealed, which its row masks; absent
-   * where there are none.
+   * The random picks New Game left unrevealed that the row masks: every one on an application or
+   * a registration, and on a save each the reader has not yet met; absent where there are none.
    */
   masked?: string[]
   /**
@@ -1892,6 +1892,8 @@ export interface PlaythroughRecord {
   occasions: Occasion[]
   /** The first semester's changes to its fixed occasions; absent where it made none. */
   fixedEdits?: FixedOccasionEdits
+  /** The random picks the first semester's New Game left masked, by charId; absent where none. */
+  masked?: string[]
   /**
    * The shift slots each all-hours employer is not offering this playthrough, keyed by job id
    * — two apiece, rolled at New Game.
@@ -1930,6 +1932,8 @@ export interface SemesterRecord {
   occasions: Occasion[]
   /** Its changes to its fixed occasions; absent where it made none. */
   fixedEdits?: FixedOccasionEdits
+  /** The random picks its New Game+ left masked, by charId; absent where none. */
+  masked?: string[]
   jobClosures: Record<string, ShiftSlot[]>
   weather: Weather[]
   /** The roster's and the graduates' settled halves, keyed by charId. */
@@ -2098,6 +2102,8 @@ export type EnrollmentDraft = QuickstartBundle & {
   pairs?: Record<string, SceneRelation>
   /** The semester's changes to its fixed occasions, as the Occasions screen kept them; absent where none. */
   fixedEdits?: FixedOccasionEdits
+  /** The random picks New Game left masked, by charId; absent where none. */
+  masked?: string[]
   /** The semester Continue is starting, where this is not the playthrough's first. */
   continued?: ContinuedSemester
 }

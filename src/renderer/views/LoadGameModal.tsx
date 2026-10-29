@@ -855,7 +855,7 @@ function PlaythroughRow({
   // Reframing a portrait re-cuts the file behind its URL, so the strip reads the version.
   const versions = useCharacterStore((state) => state.spriteVersion)
   const dead = Boolean(reopensScreen(playthrough) && unloadable)
-  // A New Game in progress keeps the girls it drew at random behind its mask.
+  // The girls New Game drew at random and never revealed stay behind its mask until met.
   const masked = new Set(playthrough.masked ?? [])
   // The scene autosave counts among the autosaves where there is one.
   const autosaves = playthrough.saveCount + (playthrough.hasAutosave ? 1 : 0)

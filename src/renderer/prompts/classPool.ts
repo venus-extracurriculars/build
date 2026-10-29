@@ -17,124 +17,220 @@ export function classBagOf(pool: ClassPoolId): string {
 /** Physical education: sports, fitness and movement classes, every one on dry land. */
 const PE_CLASSES: readonly CatalogEntry[] = [
   {
-    code: 'PHED 104',
-    title: 'Beginning Tennis',
+    code: 'PE 104',
+    title: 'Tennis Fundamentals and Match Play',
     description:
-      'Grips, groundstrokes, the serve and the rules of scoring, played out in singles and doubles on the outdoor courts.'
+      'Covers continental grips, topspin groundstrokes, and the flat serve through singles and doubles play on the outdoor courts.'
   },
   {
-    code: 'PHED 108',
-    title: 'Volleyball',
+    code: 'PE 106',
+    title: 'Boxing Fundamentals and Conditioning',
     description:
-      'Passing, setting, hitting and serve receive, built up through drills into six-a-side matches with full rotations.'
+      'Teaches stance, footwork, and jab-cross combinations through heavy bag rounds, mitt work, and circuit conditioning.'
   },
   {
-    code: 'PHED 110',
-    title: 'Hatha Yoga',
+    code: 'PE 108',
+    title: 'Indoor Volleyball and Team Rotations',
     description:
-      'Standing postures, balances, breathwork and a long final rest, held at a pace that rewards patience over flexibility.'
+      'A team sport course building forearm passing, overhead setting, and serve receive into full six-a-side rotational matches.'
   },
   {
-    code: 'PHED 112',
-    title: 'Weight Training',
+    code: 'PE 114',
+    title: 'Ballroom and Latin Dance',
     description:
-      'Safe form on the squat, bench press and deadlift, with a progressive program each student records in a training log.'
+      'A partner dance course covering the waltz, foxtrot, cha-cha, and rumba, from frame and posture to social floor etiquette.'
   },
   {
-    code: 'PHED 115',
-    title: 'Rock Climbing',
+    code: 'PE 110',
+    title: 'Hatha Yoga and Breath Control',
     description:
-      'Knots, belaying and movement on the indoor wall, from a first top-rope route to reading a problem before stepping onto it.'
+      'Focuses on standing postures, balance sequences, and pranayama breathwork, closing each session with a guided final relaxation.'
   },
   {
-    code: 'PHED 117',
-    title: 'Fencing',
+    code: 'PE 118',
+    title: 'Brazilian Jiu-Jitsu Fundamentals',
     description:
-      'Foil footwork, parries and ripostes, practiced in mask and jacket and finished with a round-robin tournament.'
+      'Introduces guard retention, positional escapes, and submission defense through technical drilling and controlled rolling on the mats.'
   },
   {
-    code: 'PHED 120',
-    title: 'Badminton',
+    code: 'PE 112',
+    title: 'Foundations of Weight Training',
     description:
-      'Clears, drops and smashes, the high serve and the low, and the court sense that wins a doubles rally.'
+      'An introductory strength course teaching squat, bench press, and deadlift mechanics within a logged progressive overload program.'
   },
   {
-    code: 'PHED 122',
-    title: 'Mat Pilates',
+    code: 'PE 124',
+    title: 'Barre Fitness',
     description:
-      'Core control, alignment and breathing through the classical mat sequence, slow enough that every repetition counts.'
+      'A ballet-inspired conditioning class building muscular endurance, posture, and balance through small isometric movements at the barre.'
   },
   {
-    code: 'PHED 125',
-    title: 'Distance Running',
+    code: 'PE 115',
+    title: 'Indoor Climbing and Belay Technique',
     description:
-      'Base mileage, interval days and pacing, building every runner toward a timed five-kilometer race at the end of term.'
+      'An introductory climbing course teaching figure-eight tie-ins, top-rope belay commands, and efficient footwork on the indoor walls.'
   },
   {
-    code: 'PHED 127',
-    title: 'Basketball',
+    code: 'PE 117',
+    title: 'Foundations of Foil Fencing',
     description:
-      'Ball handling, shooting form and team defense, with half-court drills giving way to full-court games.'
+      'Teaches foil footwork, parry-riposte sequences, and right-of-way rules, culminating in a masked round-robin tournament.'
   },
   {
-    code: 'PHED 130',
-    title: 'Self-Defense',
+    code: 'PE 128',
+    title: 'Track and Field: Sprints and Jumps',
     description:
-      'Awareness, boundary-setting and practical escapes from grabs and holds, rehearsed until they come without thinking.'
+      'Develops block starts, sprint mechanics, and the long jump approach on the outdoor track, with timed trials throughout the term.'
   },
   {
-    code: 'PHED 132',
-    title: 'Archery',
+    code: 'PE 120',
+    title: 'Badminton Strategy and Court Movement',
     description:
-      'Stance, anchor and release with the recurve bow, shot on the outdoor range at targets from ten meters out to thirty.'
+      'A racquet sport class covering overhead clears, drop shots, and jump smashes alongside doubles rotation and court coverage.'
   },
   {
-    code: 'PHED 135',
-    title: 'Golf',
+    code: 'PE 134',
+    title: 'Flag Football and Offensive Schemes',
     description:
-      'Grip, stance and the full swing on the driving range, then chipping, putting and the etiquette of a round.'
+      'A field sport class teaching route running, quarterback reads, and flag-pulling defense in seven-on-seven league games.'
   },
   {
-    code: 'PHED 137',
-    title: 'Soccer',
+    code: 'PE 122',
+    title: 'Classical Mat Pilates',
     description:
-      'First touch, passing and positional play, worked through small-sided games before the full eleven take the field.'
+      'Builds core control, spinal articulation, and postural alignment through the classical Pilates mat sequence at a deliberate pace.'
   },
   {
-    code: 'PHED 140',
-    title: 'Taekwondo',
+    code: 'PE 138',
+    title: 'Kettlebell and Functional Strength',
     description:
-      'Stances, blocks and kicks drilled through the traditional forms, with controlled sparring and a belt test at the close of term.'
+      'Builds hip hinge power, grip strength, and core stability through kettlebell swings, loaded carries, and Turkish get-ups.'
   },
   {
-    code: 'PHED 142',
-    title: 'Indoor Cycling',
+    code: 'PE 125',
+    title: 'Distance Running and Race Pacing',
     description:
-      'Interval and endurance rides on stationary bikes, paced by cadence and heart rate and set to music.'
+      'A conditioning course developing aerobic base mileage, interval pacing, and running economy toward a timed five-kilometer race.'
   },
   {
-    code: 'PHED 145',
-    title: 'Ultimate Disc',
+    code: 'PE 144',
+    title: 'Lacrosse Skills and Field Play',
     description:
-      'Backhand and forehand throws, cutting and the stack offense, played in self-officiated games that run on good sportsmanship.'
+      'An introductory field sport course covering cradling, passing, and ground ball scoops before advancing to full-field scrimmages.'
   },
   {
-    code: 'PHED 147',
-    title: 'Table Tennis',
+    code: 'PE 127',
+    title: 'Basketball Fundamentals and Team Defense',
     description:
-      'Topspin, backspin and the short serve, with footwork drills and a challenge ladder that reshuffles every week.'
+      'Develops ball handling, jump shot mechanics, and man-to-man defense through half-court drills and full-court scrimmages.'
   },
   {
-    code: 'PHED 150',
-    title: 'Tai Chi',
+    code: 'PE 130',
+    title: 'Practical Self-Defense',
     description:
-      'The slow, continuous movements of the short Yang-style form, practiced for balance, breath and a quieter mind.'
+      'An applied self-defense course drilling situational awareness, verbal de-escalation, and escapes from grabs, chokes, and ground holds.'
   },
   {
-    code: 'PHED 155',
-    title: 'Hiking and Trail Fitness',
+    code: 'PE 148',
+    title: 'Racquetball and Squash',
     description:
-      'Conditioning walks that build into weekend trail outings, with pacing, footwear, map reading and leave-no-trace practice along the way.'
+      'Teaches wall angles, kill shots, and court positioning across fast-paced singles matches in the enclosed glass-backed courts.'
+  },
+  {
+    code: 'PE 132',
+    title: 'Recurve Archery and Range Safety',
+    description:
+      'Covers stance, anchor point consistency, and clean release with the recurve bow on targets from ten to thirty meters.'
+  },
+  {
+    code: 'PE 152',
+    title: 'Aerial Silks and Flexibility',
+    description:
+      'An aerial fitness course teaching climbs, wraps, and inverted holds on suspended silks alongside a progressive flexibility program.'
+  },
+  {
+    code: 'PE 135',
+    title: 'Golf Swing Mechanics and Course Etiquette',
+    description:
+      'An introductory golf course covering grip, full-swing mechanics on the driving range, short-game chipping, and putting fundamentals.'
+  },
+  {
+    code: 'PE 157',
+    title: 'Fastpitch Softball',
+    description:
+      'Covers windmill pitching, fielding fundamentals, and situational base running through intrasquad games on the diamond.'
+  },
+  {
+    code: 'PE 137',
+    title: 'Soccer Tactics and Ball Control',
+    description:
+      'Teaches first touch, passing combinations, and positional play through small-sided games that build toward full eleven-a-side matches.'
+  },
+  {
+    code: 'PE 160',
+    title: 'Parkour and Movement Training',
+    description:
+      'A movement course teaching precision jumps, vaults, and safe landings across modular obstacles to build spatial awareness and explosive power.'
+  },
+  {
+    code: 'PE 140',
+    title: 'Taekwondo Forms and Sparring',
+    description:
+      'A martial arts course drilling stances, blocks, and roundhouse kicks through traditional forms, controlled sparring, and an end-of-term belt test.'
+  },
+  {
+    code: 'PE 142',
+    title: 'Indoor Cycling and Interval Conditioning',
+    description:
+      'Builds cardiovascular endurance, cadence control, and heart rate awareness through music-driven interval rides on stationary bikes.'
+  },
+  {
+    code: 'PE 162',
+    title: 'Inline Skating and Agility',
+    description:
+      'Covers stride technique, controlled stops, and crossover turns on inline skates along campus paths and a weaving cone course.'
+  },
+  {
+    code: 'PE 145',
+    title: 'Ultimate Disc and Field Strategy',
+    description:
+      'A field sport class covering backhand and forehand throws, cutting patterns, and stack offenses in self-officiated scrimmages.'
+  },
+  {
+    code: 'PE 165',
+    title: 'Cheer and Stunt Fundamentals',
+    description:
+      'A spirit squad course developing partner stunts, tumbling progressions, and synchronized motions toward a choreographed routine performed for the class.'
+  },
+  {
+    code: 'PE 147',
+    title: 'Competitive Table Tennis',
+    description:
+      'Focuses on topspin loops, backspin pushes, and short serves, with footwork drills and a weekly challenge ladder.'
+  },
+  {
+    code: 'PE 168',
+    title: 'Pickleball and Paddle Sports',
+    description:
+      'Teaches dinks, third-shot drops, and kitchen-line strategy through doubles round-robin play on the outdoor courts.'
+  },
+  {
+    code: 'PE 150',
+    title: 'Tai Chi and Moving Meditation',
+    description:
+      'A low-impact movement course teaching the short Yang-style form for balance, breath regulation, and mental focus.'
+  },
+  {
+    code: 'PE 170',
+    title: 'Hip-Hop Dance Fitness',
+    description:
+      'A dance fitness class building cardiovascular stamina and rhythm through high-energy hip-hop choreography and weekly freestyle challenges.'
+  },
+  {
+    code: 'PE 155',
+    title: 'Trail Fitness and Backcountry Hiking',
+    description:
+      'Covers trail conditioning, map and compass navigation, and leave-no-trace ethics through progressively longer weekend hikes.'
   }
 ]
 
@@ -144,145 +240,285 @@ const HUMANITIES_CLASSES: readonly CatalogEntry[] = [
     code: 'HIST 110',
     title: 'The Ancient Mediterranean World',
     description:
-      'Greece, Rome and their neighbors from the Bronze Age collapse to the fall of the Western Empire, read through the sources they left behind.',
+      'Traces Greek city-states, Roman expansion, and Near Eastern empires from the Bronze Age collapse to the fall of the Western Empire.',
+    kind: 'lecture'
+  },
+  {
+    code: 'HIST 120',
+    title: 'The Age of Revolutions',
+    description:
+      'Traces the American, French, and Haitian revolutions through pamphlets, declarations, and the wars that remade the Atlantic world.',
     kind: 'lecture'
   },
   {
     code: 'PHIL 101',
     title: 'Introduction to Philosophy',
     description:
-      'Knowledge, mind, free will and the good life, argued through short readings from Plato to the present.',
+      'A survey lecture examining epistemology, philosophy of mind, and free will through primary texts from Plato to contemporary thinkers.',
+    kind: 'lecture'
+  },
+  {
+    code: 'PHIL 210',
+    title: 'Ethics and Moral Reasoning',
+    description:
+      'A case-driven seminar examining utilitarianism, Kantian duty, and virtue ethics through contemporary dilemmas in medicine, technology, and business.',
     kind: 'lecture'
   },
   {
     code: 'ENGL 220',
     title: 'The Nineteenth-Century Novel',
     description:
-      'Long books for long evenings: Austen, the Brontës, Dickens, Eliot and Tolstoy on marriage, money and ambition.',
+      'Examines marriage, money, and social ambition in the long novels of Austen, the Brontës, Dickens, Eliot, and Tolstoy.',
+    kind: 'lecture'
+  },
+  {
+    code: 'ENGL 150',
+    title: "Shakespeare's Comedies and Romances",
+    description:
+      'Examines disguise, mistaken identity, and courtship across Twelfth Night, As You Like It, and The Tempest, read alongside modern stage productions.',
     kind: 'lecture'
   },
   {
     code: 'ENGL 240',
-    title: 'The Personal Essay',
+    title: 'Memoir and the Personal Essay',
     description:
-      'A writing workshop in memoir and the personal essay, reading masters of the form and turning in a polished essay every three weeks.',
+      'A creative nonfiction workshop centered on memoir craft, narrative voice, and revision, producing a polished personal essay every three weeks.',
+    kind: 'project'
+  },
+  {
+    code: 'ENGL 260',
+    title: 'Fiction Writing Workshop',
+    description:
+      'A short fiction workshop focused on scene building, dialogue, and point of view, with two revised stories submitted for peer critique.',
     kind: 'project'
   },
   {
     code: 'SPAN 101',
     title: 'Elementary Spanish I',
     description:
-      'Everyday conversation, the present tense and the vocabulary of food, family and travel, taught almost entirely in Spanish.',
+      'Introduces present-tense conjugation, everyday conversational phrases, and core vocabulary for food, family, and travel in an immersive classroom.',
+    kind: 'lecture'
+  },
+  {
+    code: 'FREN 101',
+    title: 'Elementary French I',
+    description:
+      'A conversation-based language course building nasal vowels, gendered nouns, and everyday phrases through French films, songs, and café role-plays.',
     kind: 'lecture'
   },
   {
     code: 'JPN 101',
     title: 'Elementary Japanese I',
     description:
-      'Hiragana, katakana and the first hundred kanji, with the polite speech of greetings, shopping and asking the way.',
+      'An introductory language course covering hiragana, katakana, the first hundred kanji, and polite speech for greetings, shopping, and directions.',
+    kind: 'lecture'
+  },
+  {
+    code: 'KOR 101',
+    title: 'Elementary Korean I',
+    description:
+      'Teaches the Hangul alphabet, polite verb endings, and essential phrases for ordering food and riding the subway, supported by television drama clips.',
     kind: 'lecture'
   },
   {
     code: 'RELS 150',
     title: 'World Religions',
     description:
-      'The scriptures, rituals and calendars of Hinduism, Buddhism, Judaism, Christianity and Islam, studied side by side and on their own terms.',
+      'Surveys the scriptures, rituals, and sacred calendars of Hinduism, Buddhism, Judaism, Christianity, and Islam in comparative perspective.',
+    kind: 'lecture'
+  },
+  {
+    code: 'HIST 230',
+    title: 'Mills, Labor, and the Industrial City',
+    description:
+      'Analyzes nineteenth-century textile mills, labor movements, and industrial decline through the history of an American river town.',
     kind: 'lecture'
   },
   {
     code: 'HIST 245',
     title: 'The Silk Roads',
     description:
-      'Caravans, monasteries and markets across Asia from the Han dynasty to the Mongols, traced through the goods and ideas they carried.',
+      'A sweeping historical survey tracing caravan trade, monastic networks, and cultural exchange across Asia from the Han dynasty to the Mongol Empire.',
+    kind: 'lecture'
+  },
+  {
+    code: 'RELS 240',
+    title: 'Mysticism and Sacred Poetry',
+    description:
+      'A seminar exploring Sufi poetry, Kabbalah, and Christian contemplative writing as traditions of direct religious experience.',
     kind: 'lecture'
   },
   {
     code: 'HIST 290',
-    title: 'Oral History Workshop',
+    title: 'Oral History and Community Archives',
     description:
-      'Students record, transcribe and archive interviews with members of the surrounding community, learning the craft and ethics of history told aloud.',
+      'A fieldwork practicum training students to record, transcribe, and archive interviews with local residents under the ethical standards of oral history.',
     kind: 'project'
+  },
+  {
+    code: 'CLAS 110',
+    title: 'Beginning Latin I',
+    description:
+      'Introduces noun declensions, verb conjugations, and core vocabulary through graded readings adapted from Caesar and Ovid.',
+    kind: 'lecture'
   },
   {
     code: 'CLAS 205',
     title: 'Greek and Roman Mythology',
     description:
-      'Gods, heroes and monsters in the epics and plays where they first appear, and in the paintings and films that keep retelling them.',
+      'Explores gods, heroes, and monsters in Homeric epic and Athenian tragedy alongside their retellings in painting and film.',
     kind: 'lecture'
+  },
+  {
+    code: 'HIST 310',
+    title: 'Digital Humanities Lab',
+    description:
+      'A project lab in which students digitize, map, and annotate historical archives, building an interactive online exhibit by the end of term.',
+    kind: 'project'
   }
 ]
 
 /** Arts: studio art, music, theater, film, design, dance and photography. */
 const ARTS_CLASSES: readonly CatalogEntry[] = [
   {
-    code: 'ARTS 110',
-    title: 'Drawing I',
+    code: 'ART 110',
+    title: 'Observational Drawing I',
     description:
-      'Line, value and proportion drawn from observation in graphite and charcoal, working from still lifes, interiors and the clothed figure.',
+      'A studio course developing line, value, and proportion in graphite and charcoal through still lifes, interiors, and the clothed figure.',
     kind: 'project'
   },
   {
-    code: 'ARTS 130',
+    code: 'ART 120',
+    title: 'Painting I: Oils',
+    description:
+      'Teaches color mixing, layered glazing, and alla prima technique through still life, landscape, and portrait studies in oil.',
+    kind: 'project'
+  },
+  {
+    code: 'ART 130',
     title: 'Ceramics: Wheel Throwing',
     description:
-      "Centering, pulling and trimming on the potter's wheel, through to glazing and firing a finished set of cups and bowls.",
+      "Teaches centering, pulling, and trimming on the potter's wheel through glazing and kiln firing a finished set of tableware.",
     kind: 'project'
   },
   {
-    code: 'MUS 105',
-    title: 'Music Appreciation',
+    code: 'ART 140',
+    title: 'Printmaking: Relief and Screen',
     description:
-      'How to listen to a symphony, a string quartet and an opera, on a tour of the concert tradition from Bach to the present.',
+      'A printmaking studio covering linocut carving, screen printing, and editioning, ending in a portfolio of signed limited prints.',
+    kind: 'project'
+  },
+  {
+    code: 'MUSC 105',
+    title: 'Music Appreciation and Listening Skills',
+    description:
+      'A guided listening lecture examining symphonic form, chamber repertoire, and operatic conventions across the concert tradition from Bach to the present.',
     kind: 'lecture'
   },
   {
-    code: 'MUS 140',
-    title: 'Music Theory I',
+    code: 'MUSC 160',
+    title: 'Class Voice and Vocal Technique',
     description:
-      'Scales, intervals, chords and four-part harmony, with ear training and sight-singing to make the notation audible.',
+      'Builds breath support, resonance, and diction through group vocal exercises and solo art songs performed at a term-end recital.',
+    kind: 'project'
+  },
+  {
+    code: 'MUSC 140',
+    title: 'Music Theory I: Scales and Harmony',
+    description:
+      'Covers scales, intervals, and four-part voice leading, reinforced through weekly ear training and sight-singing exercises.',
     kind: 'lecture'
+  },
+  {
+    code: 'MUSC 220',
+    title: 'Electronic Music Production',
+    description:
+      'A production studio teaching synthesis, sampling, and arrangement in a digital audio workstation, culminating in an original three-track EP.',
+    kind: 'project'
   },
   {
     code: 'THEA 120',
-    title: 'Acting I',
+    title: 'Acting I: Scene Study',
     description:
-      'Voice, movement and scene study, building toward two-person scenes performed for an audience in the last week of term.',
+      'A performance studio building vocal projection, physical presence, and scene analysis toward two-person scenes staged in the final week.',
+    kind: 'project'
+  },
+  {
+    code: 'THEA 210',
+    title: 'Stagecraft and Set Design',
+    description:
+      'Covers set construction, scenic painting, and stage lighting as students build and run the technical crew for a campus production.',
     kind: 'project'
   },
   {
     code: 'FILM 200',
-    title: 'Film History',
+    title: 'History of World Cinema',
     description:
-      'Silent comedy, the Hollywood studios, the European new waves and beyond, with a screening every week and the vocabulary to discuss it.',
+      'Traces silent comedy, the Hollywood studio system, and the European new waves through weekly screenings and formal analysis.',
     kind: 'lecture'
   },
   {
-    code: 'DSGN 150',
-    title: 'Typography',
+    code: 'FILM 150',
+    title: 'Introduction to Filmmaking',
     description:
-      'The anatomy of letterforms and the craft of setting text for print and screen, ending in a booklet designed from cover to colophon.',
+      'A hands-on production workshop covering camera operation, shot composition, and editing as students shoot and cut a five-minute short film.',
+    kind: 'project'
+  },
+  {
+    code: 'DSGN 150',
+    title: 'Typography and Editorial Layout',
+    description:
+      'A design studio exploring letterform anatomy, grid systems, and typesetting for print and screen, culminating in a bound booklet.',
+    kind: 'project'
+  },
+  {
+    code: 'DSGN 210',
+    title: 'Graphic Design Fundamentals',
+    description:
+      'Explores composition, color theory, and visual hierarchy through poster, logo, and packaging projects built in industry-standard software.',
     kind: 'project'
   },
   {
     code: 'DANC 140',
-    title: 'Contemporary Dance',
+    title: 'Contemporary Dance and Choreography',
     description:
-      'Floor work, release technique and improvisation, culminating in a short piece the class choreographs and performs together.',
+      'Explores floor work, release technique, and structured improvisation, culminating in an original group piece performed at the end of term.',
     kind: 'project'
   },
   {
-    code: 'ARTH 210',
-    title: 'Modern Art',
+    code: 'ARTH 150',
+    title: 'Art of the Italian Renaissance',
     description:
-      'From Impressionism to Abstract Expressionism, the movements, manifestos and scandals that remade painting between 1860 and 1960.',
+      'An illustrated survey tracing perspective, patronage, and humanism through the paintings, sculpture, and architecture of Florence, Rome, and Venice.',
     kind: 'lecture'
   },
   {
-    code: 'PHOT 120',
-    title: 'Black-and-White Photography',
+    code: 'ARTH 210',
+    title: 'Modern Art: Impressionism to Abstraction',
     description:
-      'Manual exposure, film developing and enlarging in the darkroom, toward a portfolio of a dozen finished silver gelatin prints.',
+      'A slide-based lecture charting the movements, manifestos, and gallery scandals that transformed European and American painting between 1860 and 1960.',
+    kind: 'lecture'
+  },
+  {
+    code: 'DANC 120',
+    title: 'Ballet Technique I',
+    description:
+      'Develops turnout, alignment, and classical vocabulary through barre and center work, closing with a short studio showing.',
     kind: 'project'
+  },
+  {
+    code: 'PHOT 120',
+    title: 'Black-and-White Darkroom Photography',
+    description:
+      'Teaches manual exposure, film development, and enlarger printing toward a portfolio of twelve finished silver gelatin prints.',
+    kind: 'project'
+  },
+  {
+    code: 'MUSC 130',
+    title: 'The History of Jazz',
+    description:
+      'A music history lecture tracing jazz from New Orleans brass bands through swing, bebop, and fusion, with weekly listening sessions.',
+    kind: 'lecture'
   }
 ]
 
@@ -292,448 +528,672 @@ const MISC_CLASSES: readonly CatalogEntry[] = [
     code: 'BIO 110',
     title: 'Principles of Biology',
     description:
-      'Cells, genes, evolution and ecology, the four big ideas of the life sciences, with a weekly lab to see them at work.',
+      'Introduces cellular structure, Mendelian genetics, evolution, and ecology, reinforced through weekly hands-on laboratory sessions.',
+    kind: 'lecture'
+  },
+  {
+    code: 'BIO 230',
+    title: 'Microbiology',
+    description:
+      'Examines bacterial structure, microbial metabolism, and host-pathogen interactions, with weekly lab work in culturing and staining.',
     kind: 'lecture'
   },
   {
     code: 'BIO 220',
-    title: 'Genetics',
+    title: 'Genetics and Genomics',
     description:
-      "From Mendel's peas to modern genomics: inheritance, gene expression, mutation and the tools that read and edit DNA.",
+      "A lecture course tracing inheritance, gene expression, and mutation from Mendel's pea plants to modern genome sequencing and editing tools.",
     kind: 'lecture'
   },
   {
     code: 'BIO 240',
     title: 'Human Anatomy and Physiology',
     description:
-      'The organ systems of the human body, how each is built and how each works, learned on models and in the dissection lab.',
+      'Examines the structure and function of human organ systems through anatomical models, clinical case studies, and dissection labs.',
+    kind: 'lecture'
+  },
+  {
+    code: 'BIO 260',
+    title: 'Marine Biology',
+    description:
+      'A field-oriented lecture surveying ocean ecosystems, marine invertebrates, and coral reef ecology, with an aquarium field trip midway through the term.',
     kind: 'lecture'
   },
   {
     code: 'BIO 315',
-    title: 'Field Ecology',
+    title: 'Field Ecology Research',
     description:
-      'Students design and carry out a study of a local population or habitat, from sampling plan to final report.',
+      'A field research practicum in which students design and carry out a population or habitat study, from sampling plan to final report.',
     kind: 'project'
   },
   {
     code: 'CHEM 111',
     title: 'General Chemistry I',
     description:
-      'Atoms, bonds, stoichiometry and the gas laws, with problem sets each week and lab sessions to match.',
+      'Covers atomic structure, chemical bonding, stoichiometry, and gas laws through weekly problem sets and laboratory experiments.',
+    kind: 'lecture'
+  },
+  {
+    code: 'BIO 330',
+    title: 'Neurobiology',
+    description:
+      'Traces neuron signaling, synaptic plasticity, and sensory systems from ion channels to the circuits behind memory and behavior.',
     kind: 'lecture'
   },
   {
     code: 'CHEM 230',
     title: 'Organic Chemistry I',
     description:
-      'The structure and reactions of carbon compounds, with mechanisms drawn arrow by arrow until they become second nature.',
+      'An intensive lecture course on carbon compound structure, stereochemistry, and reaction mechanisms drawn arrow by arrow.',
     kind: 'lecture'
   },
   {
     code: 'CHEM 340',
-    title: 'Biochemistry',
+    title: 'Principles of Biochemistry',
     description:
-      "Proteins, enzymes and metabolism, following the molecules that turn a meal into a muscle's work.",
+      'Analyzes protein structure, enzyme kinetics, and the metabolic pathways that convert nutrients into cellular energy.',
+    kind: 'lecture'
+  },
+  {
+    code: 'CHEM 112',
+    title: 'General Chemistry II',
+    description:
+      "A continuation lecture on equilibrium, acid-base chemistry, reaction kinetics, and electrochemistry, building directly on the first term's foundations.",
     kind: 'lecture'
   },
   {
     code: 'PHYS 101',
     title: 'Physics I: Mechanics',
     description:
-      'Motion, forces, energy and momentum, built on algebra and trigonometry and tested on real carts, springs and pendulums.',
+      'An algebra-based lecture course covering kinematics, Newtonian forces, energy, and momentum, tested on carts, springs, and pendulums in lab.',
     kind: 'lecture'
   },
   {
     code: 'PHYS 202',
     title: 'Electricity and Magnetism',
     description:
-      "Charges, fields, circuits and waves, from Coulomb's law to the four equations that unify them.",
+      "Develops electrostatics, circuit theory, and electromagnetic waves from Coulomb's law through Maxwell's equations.",
     kind: 'lecture'
   },
   {
-    code: 'ASTR 105',
-    title: 'The Solar System',
+    code: 'CHEM 260',
+    title: 'Analytical Chemistry Lab',
     description:
-      'The sun, planets, moons and comets, what we know of them and how, with telescope viewing on clear evenings.',
+      'Walks students through titration, spectroscopy, and chromatography experiments, ending in an independent analysis of a real water sample.',
+    kind: 'project'
+  },
+  {
+    code: 'ASTR 105',
+    title: 'Planetary Science and the Solar System',
+    description:
+      'A survey lecture examining the sun, planets, moons, and comets, with evening telescope viewing sessions on campus.',
     kind: 'lecture'
   },
   {
     code: 'GEOL 101',
     title: 'Physical Geology',
     description:
-      'Minerals, rocks, plate tectonics and the slow work of water and ice, with field trips to read the landscape firsthand.',
+      'Introduces mineral identification, plate tectonics, and erosional processes, with field trips along the local river valley.',
+    kind: 'lecture'
+  },
+  {
+    code: 'PHYS 150',
+    title: 'The Physics of Music and Sound',
+    description:
+      'An applied physics lecture exploring wave mechanics, resonance, and acoustics through the physics of instruments, voices, and concert halls.',
     kind: 'lecture'
   },
   {
     code: 'ENVS 120',
     title: 'Introduction to Environmental Science',
     description:
-      'Climate, water, energy and biodiversity as connected systems, and the science behind the policy arguments over each.',
+      'An interdisciplinary lecture examining climate systems, water resources, and biodiversity loss alongside the science behind environmental policy.',
     kind: 'lecture'
   },
   {
     code: 'ENVS 310',
     title: 'Sustainable Design Studio',
     description:
-      'Teams audit the energy and water use of a building on campus and present a costed plan to make it greener.',
+      'Guides teams through energy and water audits of a campus building, ending in a costed retrofit proposal presented to facilities staff.',
     kind: 'project'
+  },
+  {
+    code: 'ASTR 220',
+    title: 'Stars and Galaxies',
+    description:
+      'Surveys stellar evolution, black holes, and galaxy formation, connecting telescope observations to the physics of the universe.',
+    kind: 'lecture'
   },
   {
     code: 'PSYC 101',
     title: 'Introduction to Psychology',
     description:
-      'Perception, memory, learning, emotion and disorder, a survey of the mind and the experiments that mapped it.',
+      'A foundational survey covering perception, memory, learning, and psychological disorders through the landmark experiments that defined the field.',
     kind: 'lecture'
   },
   {
     code: 'PSYC 210',
-    title: 'Developmental Psychology',
+    title: 'Lifespan Developmental Psychology',
     description:
-      'How people change from infancy to old age, in body, thought and language and in the relationships that shape them.',
+      'Traces cognitive, linguistic, and social development from infancy through old age, with emphasis on attachment and family systems.',
+    kind: 'lecture'
+  },
+  {
+    code: 'ENVS 230',
+    title: 'Water Resources and Watershed Management',
+    description:
+      'A policy-focused lecture on river hydrology, groundwater recharge, and watershed governance, built around case studies of urban river restoration.',
     kind: 'lecture'
   },
   {
     code: 'PSYC 230',
     title: 'Social Psychology',
     description:
-      'Conformity, persuasion, prejudice and attraction, and the classic studies of how other people change what we do.',
+      'A lecture course examining conformity, persuasion, prejudice, and interpersonal attraction through classic and contemporary social experiments.',
     kind: 'lecture'
   },
   {
     code: 'PSYC 250',
     title: 'Research Methods in Psychology',
     description:
-      'Students design, run and write up an original experiment, from hypothesis and consent forms to statistics and a poster.',
+      'Guides students through designing, running, and analyzing an original experiment, from consent forms and hypotheses to a final research poster.',
     kind: 'project'
+  },
+  {
+    code: 'PSYC 220',
+    title: 'Abnormal Psychology',
+    description:
+      'Examines anxiety, mood, and personality disorders alongside the diagnostic criteria and treatments used in clinical practice.',
+    kind: 'lecture'
   },
   {
     code: 'SOC 101',
     title: 'Introduction to Sociology',
     description:
-      'Class, race, gender, family and religion as social forces, and the methods sociologists use to see them.',
+      'An introductory survey examining class, race, gender, and religion as social forces, alongside the research methods used to study them.',
     kind: 'lecture'
   },
   {
     code: 'SOC 240',
     title: 'Urban Sociology',
     description:
-      'Cities as places people make and are made by: neighborhoods, segregation, gentrification and the street life between them.',
+      'Analyzes neighborhood formation, residential segregation, and gentrification, with the districts of the surrounding city as a running case study.',
+    kind: 'lecture'
+  },
+  {
+    code: 'PSYC 270',
+    title: 'Cognitive Psychology',
+    description:
+      'A lab-informed lecture modeling attention, working memory, and decision-making as information processing, with reaction-time experiments run in class.',
     kind: 'lecture'
   },
   {
     code: 'ANTH 102',
     title: 'Cultural Anthropology',
     description:
-      "Kinship, ritual, exchange and belief across the world's cultures, studied through ethnographies of everyday life.",
+      'A comparative lecture exploring kinship, ritual, exchange, and belief systems through ethnographies of everyday life around the world.',
     kind: 'lecture'
   },
   {
     code: 'ANTH 260',
     title: 'Ethnographic Fieldwork',
     description:
-      'Students choose a community on or near campus, observe and interview its members through the term and write a short ethnography.',
+      'Trains students in participant observation, interviewing, and field notes as they produce an ethnography of a local community.',
+    kind: 'project'
+  },
+  {
+    code: 'PSYC 320',
+    title: 'Counseling Skills Practicum',
+    description:
+      'Trains students in active listening, reflective responses, and ethical boundaries through recorded role-play sessions and peer feedback.',
     kind: 'project'
   },
   {
     code: 'ECON 101',
     title: 'Principles of Microeconomics',
     description:
-      'Supply, demand, prices and the choices of households and firms, with the graphs that make them precise.',
+      'An introductory lecture covering supply and demand, price elasticity, and the decision-making of households and firms.',
     kind: 'lecture'
   },
   {
     code: 'ECON 102',
     title: 'Principles of Macroeconomics',
     description:
-      'Growth, inflation, unemployment and the tools central banks and governments use to steer a national economy.',
+      'Surveys economic growth, inflation, unemployment, and the monetary and fiscal tools used to steer national economies.',
+    kind: 'lecture'
+  },
+  {
+    code: 'SOC 250',
+    title: 'Sociology of Gender',
+    description:
+      'A sociology lecture tracing how gender norms shape work, family, and power across cultures and historical periods.',
     kind: 'lecture'
   },
   {
     code: 'ECON 201',
     title: 'Intermediate Microeconomics',
     description:
-      'Consumer and producer theory done properly with calculus, through to market structure, game theory and welfare.',
+      'A calculus-based lecture course developing consumer theory, producer theory, and market structure through game theory and welfare analysis.',
     kind: 'lecture'
   },
   {
-    code: 'POLS 110',
-    title: 'American Government',
+    code: 'POLI 110',
+    title: 'American Government and Politics',
     description:
-      'The Constitution, Congress, the presidency and the courts, and how parties, interest groups and voters work the machinery.',
+      'Examines the Constitution, Congress, the presidency, and the federal courts alongside the parties and interest groups that shape them.',
     kind: 'lecture'
   },
   {
-    code: 'POLS 220',
+    code: 'ANTH 210',
+    title: 'Archaeology Field Methods',
+    description:
+      'Teaches excavation, artifact cataloging, and site mapping through a supervised dig and a final site report.',
+    kind: 'project'
+  },
+  {
+    code: 'POLI 220',
     title: 'International Relations',
     description:
-      'War, trade, alliances and international institutions, read through the theories that try to explain how states behave.',
+      'A survey lecture analyzing war, trade, and international institutions through realist, liberal, and constructivist theories of state behavior.',
     kind: 'lecture'
   },
   {
-    code: 'POLS 245',
+    code: 'POLI 245',
     title: 'Model United Nations',
     description:
-      'Students represent assigned countries in simulated committee sessions, researching positions and drafting resolutions for a closing conference.',
+      'Prepares students to represent assigned nations in simulated committee sessions, drafting position papers and resolutions for a closing conference.',
     kind: 'project'
+  },
+  {
+    code: 'ECON 230',
+    title: 'Behavioral Economics',
+    description:
+      'A research-driven lecture examining the biases, heuristics, and nudges that explain why real people depart from rational economic models.',
+    kind: 'lecture'
   },
   {
     code: 'BUS 101',
     title: 'Introduction to Business',
     description:
-      'How firms are organized, financed, staffed and marketed, a tour of the functions a business degree goes on to cover.',
+      'An introductory survey covering business organization, financing, staffing, and marketing as a foundation for the business curriculum.',
     kind: 'lecture'
   },
   {
     code: 'ACCT 201',
     title: 'Financial Accounting',
     description:
-      'Journal entries, balance sheets, income statements and cash flow, the language every company reports itself in.',
+      'Covers journal entries, balance sheets, income statements, and cash flow reporting under generally accepted accounting principles.',
+    kind: 'lecture'
+  },
+  {
+    code: 'ECON 310',
+    title: 'Introduction to Econometrics',
+    description:
+      'Develops regression analysis, causal inference, and hypothesis testing using real economic data sets and statistical software.',
     kind: 'lecture'
   },
   {
     code: 'FIN 220',
     title: 'Corporate Finance',
     description:
-      'The time value of money, risk and return, valuation and capital budgeting, the arithmetic behind every investment decision.',
+      'A quantitative lecture course on the time value of money, risk and return, valuation, and capital budgeting decisions.',
     kind: 'lecture'
   },
   {
     code: 'MKTG 210',
     title: 'Principles of Marketing',
     description:
-      'Segmentation, branding, pricing and promotion, and the research that tells a company who its customers really are.',
+      'Introduces market segmentation, brand positioning, pricing strategy, and the consumer research methods behind modern advertising.',
+    kind: 'lecture'
+  },
+  {
+    code: 'POLI 150',
+    title: 'Introduction to Political Theory',
+    description:
+      'A political theory lecture weighing justice, liberty, and state authority in the works of Locke, Rousseau, Mill, and Rawls.',
     kind: 'lecture'
   },
   {
     code: 'MKTG 320',
     title: 'Marketing Campaign Workshop',
     description:
-      'Teams build a full campaign for a local client, from research and creative brief to the pitch presented in the final week.',
+      'A client-based workshop in which teams research, design, and pitch an integrated marketing campaign for a local business.',
     kind: 'project'
   },
   {
     code: 'MGMT 230',
     title: 'Organizational Behavior',
     description:
-      "Motivation, leadership, teams and workplace culture, and the research on why people work well together or don't.",
+      'Examines motivation, leadership styles, team dynamics, and workplace culture through organizational research and case studies.',
     kind: 'lecture'
   },
   {
-    code: 'MGMT 250',
-    title: 'Entrepreneurship',
+    code: 'POLI 260',
+    title: 'Campaigns and Elections',
     description:
-      'Students take a business idea from first sketch to a tested plan, interviewing customers along the way and pitching to a panel at the end of term.',
+      'Coaches teams through polling, message testing, and voter outreach as they design a full campaign plan for a mock candidate.',
+    kind: 'project'
+  },
+  {
+    code: 'MGMT 250',
+    title: 'Entrepreneurship and Venture Design',
+    description:
+      'A venture studio guiding students from an initial business concept through customer discovery interviews to a final investor pitch.',
     kind: 'project'
   },
   {
     code: 'CS 110',
     title: 'Introduction to Programming',
     description:
-      'Variables, loops, functions and lists in a high-level language, written and debugged through weekly programming assignments.',
+      'Introduces variables, control flow, functions, and lists in a high-level language through weekly programming assignments.',
+    kind: 'lecture'
+  },
+  {
+    code: 'BUS 210',
+    title: 'Business Law and Ethics',
+    description:
+      'A case-based lecture covering contracts, liability, and intellectual property alongside the ethical dilemmas managers face.',
     kind: 'lecture'
   },
   {
     code: 'CS 210',
     title: 'Data Structures',
     description:
-      'Lists, stacks, trees, hash tables and graphs, how to build them and how to tell which one a problem calls for.',
+      'A lecture course on the implementation and analysis of lists, stacks, trees, hash tables, and graphs.',
     kind: 'lecture'
   },
   {
     code: 'CS 240',
-    title: 'Algorithms',
+    title: 'Design and Analysis of Algorithms',
     description:
-      'Sorting, searching, graph algorithms and dynamic programming, with proofs of why they work and how fast.',
+      'Analyzes sorting, searching, graph traversal, and dynamic programming algorithms, with proofs of correctness and runtime complexity.',
+    kind: 'lecture'
+  },
+  {
+    code: 'HOSP 120',
+    title: 'Introduction to Hospitality Management',
+    description:
+      'Introduces hotel operations, guest services, and event management through case studies of resorts, restaurants, and convention centers.',
     kind: 'lecture'
   },
   {
     code: 'CS 260',
-    title: 'Web Development',
+    title: 'Full-Stack Web Development',
     description:
-      'Page structure, styling, scripting and databases, combined over the term into a working web application each student designs and deploys.',
+      'A project studio covering HTML structure, CSS styling, JavaScript, and databases, culminating in a deployed web application.',
     kind: 'project'
   },
   {
     code: 'CS 280',
-    title: 'Game Development',
+    title: 'Game Prototyping Studio',
     description:
-      'Students prototype, playtest and polish a small video game, learning engine basics, level design and the feel of good controls.',
+      'Guides students through prototyping, playtesting, and polishing a small video game, covering engine basics, level design, and control feel.',
+    kind: 'project'
+  },
+  {
+    code: 'FASH 110',
+    title: 'Fashion Design I',
+    description:
+      'A design studio covering fashion sketching, pattern drafting, and garment construction, culminating in a three-look mini collection.',
     kind: 'project'
   },
   {
     code: 'CS 350',
     title: 'Software Engineering',
     description:
-      'Teams of four plan, build, test and ship a real application over the term, with code reviews, sprints and a closing demo day.',
+      'A team-based capstone practicum in which groups of four plan, build, test, and ship an application through agile sprints and code reviews.',
     kind: 'project'
   },
   {
     code: 'ENGR 101',
     title: 'Introduction to Engineering Design',
     description:
-      'Teams sketch, prototype and test solutions to small real-world problems, learning computer-aided design, shop safety and the design process.',
+      'Introduces computer-aided design, shop safety, and iterative prototyping as teams tackle small real-world design challenges.',
     kind: 'project'
+  },
+  {
+    code: 'CS 220',
+    title: 'Computer Systems',
+    description:
+      'Explores memory, processors, operating systems, and low-level programming in C, from raw bits to running processes.',
+    kind: 'lecture'
   },
   {
     code: 'ENGR 210',
     title: 'Statics',
     description:
-      'Forces and moments on bodies at rest, and the free-body diagrams behind every bridge, truss and bookshelf.',
+      'A foundational engineering lecture on force systems, moments, and free-body diagrams applied to trusses, beams, and frames.',
     kind: 'lecture'
   },
   {
     code: 'ENGR 280',
-    title: 'Robotics Lab',
+    title: 'Mobile Robotics Lab',
     description:
-      'Teams build and program a small mobile robot, adding sensors and motors week by week until it can run a course on its own.',
+      'Teaches sensor integration, motor control, and embedded programming as teams build an autonomous robot to run an obstacle course.',
     kind: 'project'
+  },
+  {
+    code: 'CS 330',
+    title: 'Artificial Intelligence',
+    description:
+      'A technical lecture covering search, machine learning, and neural networks, with programming assignments that train and evaluate small models.',
+    kind: 'lecture'
   },
   {
     code: 'EE 220',
     title: 'Circuit Analysis',
     description:
-      "Resistors, capacitors and inductors, Kirchhoff's laws and alternating current, checked against real circuits on the lab bench.",
+      "An introductory electrical engineering lecture covering resistive networks, Kirchhoff's laws, capacitors, inductors, and alternating current.",
     kind: 'lecture'
   },
   {
     code: 'ME 240',
     title: 'Thermodynamics',
     description:
-      'Energy, heat, work and entropy, applied to engines, refrigerators and power plants.',
+      'Applies the laws of thermodynamics, entropy, and energy balances to engines, refrigeration cycles, and power plants.',
     kind: 'lecture'
+  },
+  {
+    code: 'CS 370',
+    title: 'Human-Computer Interaction',
+    description:
+      'Leads teams through user research, wireframing, and usability testing as they design and prototype a mobile app.',
+    kind: 'project'
   },
   {
     code: 'ARCH 110',
     title: 'Architectural Design Studio I',
     description:
-      'Drawing, model-making and the basics of space, light and structure, worked out through a sequence of small building projects.',
+      'A foundational design studio exploring space, light, and structure through hand drafting, physical model-making, and small building projects.',
     kind: 'project'
   },
   {
     code: 'MATH 121',
     title: 'Calculus I',
     description:
-      'Limits, derivatives and the beginnings of integration, with applications to rates, motion and optimization.',
+      'Covers limits, derivatives, and introductory integration, with applications to rates of change, motion, and optimization.',
+    kind: 'lecture'
+  },
+  {
+    code: 'ENGR 230',
+    title: 'Materials Science',
+    description:
+      'An engineering lecture on the structure, strength, and failure of metals, polymers, and ceramics, tested in the materials lab.',
     kind: 'lecture'
   },
   {
     code: 'MATH 220',
     title: 'Linear Algebra',
     description:
-      'Vectors, matrices, determinants and eigenvalues, the machinery behind computer graphics, data analysis and much of modern science.',
+      'A computational lecture on vector spaces, matrices, determinants, and eigenvalues, with applications in computer graphics and data analysis.',
     kind: 'lecture'
   },
   {
     code: 'MATH 230',
     title: 'Discrete Mathematics',
     description:
-      'Logic, sets, counting, induction and graphs, and the habit of writing a proof that holds up.',
+      'Introduces propositional logic, set theory, combinatorics, and graph theory alongside rigorous proof-writing techniques.',
     kind: 'lecture'
+  },
+  {
+    code: 'ME 260',
+    title: 'Machine Shop and Fabrication',
+    description:
+      'Teaches lathe, mill, and welding fundamentals as students machine and assemble a working mechanical project.',
+    kind: 'project'
   },
   {
     code: 'STAT 200',
     title: 'Introductory Statistics',
     description:
-      'Describing data, probability, sampling, confidence intervals and hypothesis tests, worked on real data sets.',
+      'An introductory lecture covering descriptive statistics, probability, confidence intervals, and hypothesis testing on real-world data sets.',
     kind: 'lecture'
   },
   {
     code: 'DATA 250',
     title: 'Data Science Practicum',
     description:
-      'Students clean, analyze and visualize a real public data set over the term, presenting their findings in a written report and a short talk.',
+      'Takes students through cleaning, analyzing, and visualizing a public data set, ending in a written report and a short presentation.',
     kind: 'project'
+  },
+  {
+    code: 'ARCH 210',
+    title: 'History of Architecture',
+    description:
+      'A visual survey tracing buildings from ancient temples to modern skyscrapers through structure, ornament, and urban form.',
+    kind: 'lecture'
   },
   {
     code: 'NURS 210',
     title: 'Foundations of Nursing Practice',
     description:
-      'Patient assessment, vital signs, safety and communication, practiced in the simulation lab before the first clinical placement.',
+      'A clinical foundations course covering patient assessment, vital signs, safety protocols, and therapeutic communication in the simulation lab.',
     kind: 'lecture'
   },
   {
     code: 'NURS 230',
-    title: 'Pharmacology',
+    title: 'Pharmacology for Nursing',
     description:
-      'How the major classes of drugs act on the body, their doses, interactions and side effects, and how a nurse gives them safely.',
+      'Examines drug classifications, mechanisms of action, dosage calculations, and safe medication administration in nursing practice.',
+    kind: 'lecture'
+  },
+  {
+    code: 'MATH 122',
+    title: 'Calculus II',
+    description:
+      'Extends single-variable calculus to integration techniques, sequences, and power series, applied to volumes, arc length, and probability.',
     kind: 'lecture'
   },
   {
     code: 'PUBH 101',
     title: 'Introduction to Public Health',
     description:
-      'Epidemics, vaccines, clean water and health inequality, and how the health of a whole population is measured and improved.',
+      'A global health survey examining epidemics, vaccination programs, sanitation, and health inequality at the population level.',
     kind: 'lecture'
   },
   {
     code: 'KIN 220',
     title: 'Exercise Physiology',
     description:
-      'How the heart, lungs and muscles respond to exercise and adapt to training, measured in the lab on the students themselves.',
+      'Analyzes cardiovascular, respiratory, and muscular responses to exercise, measured through lab testing on the students themselves.',
+    kind: 'lecture'
+  },
+  {
+    code: 'MATH 310',
+    title: 'Probability Theory',
+    description:
+      'A theoretical lecture on random variables, distributions, expectation, and limit theorems, built on rigorous calculus foundations.',
     kind: 'lecture'
   },
   {
     code: 'NUTR 150',
     title: 'Human Nutrition',
     description:
-      'Carbohydrates, fats, proteins, vitamins and minerals, what each does in the body and how to read the science behind diet advice.',
+      'A science-based lecture on macronutrients, vitamins, and minerals, their roles in human metabolism, and how to evaluate dietary research.',
     kind: 'lecture'
   },
   {
     code: 'COMM 110',
     title: 'Public Speaking',
     description:
-      'Students prepare and deliver informative, persuasive and impromptu speeches, coached on structure, delivery and nerves.',
+      'Builds speech structure, vocal delivery, and stage presence through informative, persuasive, and impromptu speeches delivered to the class.',
     kind: 'project'
+  },
+  {
+    code: 'NURS 310',
+    title: 'Maternal and Child Health Nursing',
+    description:
+      'Examines prenatal care, labor and delivery, and pediatric development, practiced through simulation and clinical case studies.',
+    kind: 'lecture'
   },
   {
     code: 'COMM 230',
     title: 'Interpersonal Communication',
     description:
-      'Listening, conflict, self-disclosure and nonverbal cues, and what research says about talking with the people closest to us.',
+      'A discussion-heavy lecture exploring active listening, conflict resolution, self-disclosure, and nonverbal cues in close relationships.',
     kind: 'lecture'
   },
   {
     code: 'JOUR 210',
     title: 'News Reporting and Writing',
     description:
-      'Students cover campus and city beats on deadline, learning interviewing, fact-checking and the inverted pyramid.',
+      'Trains students in interviewing, fact-checking, and inverted-pyramid writing as they cover campus and city beats on deadline.',
     kind: 'project'
+  },
+  {
+    code: 'KIN 150',
+    title: 'Sport Psychology',
+    description:
+      'A performance-focused lecture exploring motivation, focus, and performance anxiety in athletes, with mental training techniques tested in practice.',
+    kind: 'lecture'
   },
   {
     code: 'MDST 220',
     title: 'Media and Society',
     description:
-      'Television, advertising, news and social media, and the ways they shape what audiences believe about themselves and the world.',
+      'A critical survey analyzing how television, advertising, news, and social media shape public belief and personal identity.',
     kind: 'lecture'
   },
   {
     code: 'EDUC 201',
     title: 'Foundations of Education',
     description:
-      'The history, philosophy and politics of schooling, with weekly observations in a local classroom.',
+      'Surveys the history, philosophy, and politics of public schooling, paired with weekly observations in a local classroom.',
     kind: 'lecture'
+  },
+  {
+    code: 'COMM 250',
+    title: 'Podcast Production',
+    description:
+      'Coaches students through scripting, interviewing, and audio editing as they produce and publish a six-episode podcast series.',
+    kind: 'project'
   },
   {
     code: 'EDUC 310',
     title: 'Curriculum and Lesson Design',
     description:
-      'Students write a unit of lessons and teach it to their classmates, from learning objectives and activities to fair assessment.',
+      'A teaching practicum in which students write a full unit of lessons, from learning objectives to assessments, and deliver it to classmates.',
     kind: 'project'
   },
   {
     code: 'CRIM 101',
     title: 'Introduction to Criminology',
     description:
-      'Why crime happens, how it is measured and how police, courts and prisons respond, weighed against the evidence.',
+      'Examines theories of criminal behavior, methods of crime measurement, and the responses of police, courts, and prisons.',
+    kind: 'lecture'
+  },
+  {
+    code: 'LING 220',
+    title: 'Sociolinguistics',
+    description:
+      'A survey lecture examining dialects, slang, and code-switching, and how language marks identity, class, and community.',
     kind: 'lecture'
   },
   {
     code: 'LING 101',
     title: 'Introduction to Linguistics',
     description:
-      "Sounds, words, sentences and meaning, and how the world's languages differ from one another and change over time.",
+      "An introductory lecture covering phonetics, morphology, syntax, and semantics, and how the world's languages vary and change over time.",
     kind: 'lecture'
   }
 ]
@@ -742,170 +1202,310 @@ const MISC_CLASSES: readonly CatalogEntry[] = [
 const INTEREST_CLASSES: readonly CatalogEntry[] = [
   {
     code: 'AGRI 140',
-    title: 'Urban Beekeeping',
+    title: 'Urban Beekeeping and Apiary Management',
     description:
-      'Hive inspections, swarm prevention and the honey harvest, learned by tending a rooftop colony from early brood to the last frame of comb.',
+      'A hands-on apiary workshop covering hive inspections, swarm prevention, and honey extraction from a rooftop colony on campus.',
+    kind: 'project'
+  },
+  {
+    code: 'CULN 140',
+    title: 'Chocolate and Confectionery',
+    description:
+      'A confectionery lab covering tempering, ganache, and molded bonbons, ending in a hand-boxed collection of original chocolates.',
     kind: 'project'
   },
   {
     code: 'GAME 210',
-    title: 'A History of Video Games',
+    title: 'The History of Video Games',
     description:
-      'From arcade cabinets to open worlds, the machines, studios and design ideas that turned a novelty into the largest entertainment medium on earth.',
+      "Traces the arcade cabinets, home consoles, and design philosophies that turned video games into the world's largest entertainment medium.",
+    kind: 'lecture'
+  },
+  {
+    code: 'HIST 185',
+    title: 'A History of Cosmetics and Beauty',
+    description:
+      'Traces kohl, powder, and lipstick from ancient Egypt to the modern beauty counter, and the ideals of beauty each era sold.',
     kind: 'lecture'
   },
   {
     code: 'FOOD 130',
-    title: 'The World of Tea',
+    title: 'Global Tea Culture and Cultivation',
     description:
-      'Green, white, oolong, black and pu-erh, how each is grown and processed, and the ceremonies and trade routes built around a single leaf.',
+      'A sensory lecture course exploring the cultivation, processing, and ceremonial traditions of green, white, oolong, black, and pu-erh teas.',
+    kind: 'lecture'
+  },
+  {
+    code: 'ASTR 170',
+    title: 'Astrobiology and the Search for Life',
+    description:
+      'A speculative science lecture exploring the origins of life, extreme microbes, and the search for habitable worlds beyond Earth.',
     kind: 'lecture'
   },
   {
     code: 'LIT 250',
-    title: 'Tarot as Literature',
+    title: 'Tarot, Symbolism, and Narrative',
     description:
-      'The seventy-eight cards read as a narrative system, from Renaissance card games to occult revival decks and the novels and poems they inspired.',
+      'Examines the seventy-eight tarot cards as a narrative system, from Renaissance card games to occult revival decks and the fiction they inspired.',
     kind: 'lecture'
   },
   {
-    code: 'FOOD 220',
-    title: 'Fermentation',
+    code: 'ART 185',
+    title: 'Floral Design and Arrangement',
     description:
-      'Sourdough, kimchi, kombucha and fresh cheese, made from scratch in the teaching kitchen with the microbiology explained along the way.',
+      'Teaches color harmony, floral mechanics, and seasonal sourcing as students build hand-tied bouquets, centerpieces, and a final installation.',
+    kind: 'project'
+  },
+  {
+    code: 'FOOD 220',
+    title: 'Fermentation Science and Practice',
+    description:
+      'A teaching kitchen lab covering sourdough, kimchi, kombucha, and fresh cheese alongside the microbiology behind each ferment.',
+    kind: 'project'
+  },
+  {
+    code: 'MUSC 185',
+    title: 'Musical Theatre Workshop',
+    description:
+      'A performance workshop covering belting, character songs, and stage movement, culminating in a cabaret of Broadway numbers.',
     kind: 'project'
   },
   {
     code: 'ASTR 160',
-    title: 'Myths of the Night Sky',
+    title: 'Star Lore and Cultural Astronomy',
     description:
-      'The constellations as the Greeks, Polynesian navigators, Chinese astronomers and others told them, learned under the real stars on clear nights.',
+      'Explores constellation lore from Greek, Polynesian, and Chinese traditions, paired with evening stargazing sessions away from the city lights.',
     kind: 'lecture'
   },
   {
     code: 'TEXT 120',
     title: 'Knitting and Fiber Arts',
     description:
-      'Casting on, cables, colorwork and finishing, from a first scarf to a sweater sized to fit the knitter.',
+      'A fiber arts studio teaching cast-ons, cable patterns, and stranded colorwork, progressing from a first scarf to a fitted sweater.',
     kind: 'project'
   },
   {
-    code: 'HIST 270',
-    title: 'Pirates and Privateers',
+    code: 'PSYC 180',
+    title: 'The Science of Happiness',
     description:
-      'The real seafaring outlaws of the Caribbean and the Indian Ocean, their ships, articles and trials, and the legend that outgrew them.',
+      'Examines gratitude, flow, and social connection through positive psychology research, paired with weekly well-being experiments.',
+    kind: 'lecture'
+  },
+  {
+    code: 'HIST 270',
+    title: 'Pirates and Privateers of the Golden Age',
+    description:
+      'Investigates Caribbean and Indian Ocean piracy, privateering commissions, and the maritime trials that turned outlaws into legends.',
+    kind: 'lecture'
+  },
+  {
+    code: 'FILM 270',
+    title: 'Anime and Japanese Animation',
+    description:
+      'A genre-focused survey tracing Japanese animation from postwar studios to modern streaming, with attention to genre, style, and fandom.',
     kind: 'lecture'
   },
   {
     code: 'FILM 260',
-    title: 'The Horror Film',
+    title: 'Horror Cinema and Cultural Fear',
     description:
-      'A century of monsters, slashers and haunted houses, screened weekly and read for what each era was afraid of.',
+      "A screening-based lecture course analyzing monsters, slashers, and haunted houses as reflections of each era's cultural anxieties.",
+    kind: 'lecture'
+  },
+  {
+    code: 'LIT 230',
+    title: 'Fairy Tales and Folklore',
+    description:
+      'Analyzes Grimm, Perrault, and global folktales alongside their modern retellings, from Victorian picture books to animated films.',
     kind: 'lecture'
   },
   {
     code: 'BIO 180',
-    title: 'The Kingdom of Fungi',
+    title: 'Field Mycology and Lichen Identification',
     description:
-      'Mushrooms, molds and lichens, identified on field walks and under the microscope, with one firm rule against tasting anything.',
+      'Surveys fungal taxonomy, lichen symbiosis, and mushroom identification through guided field walks and spore-print microscopy.',
     kind: 'lecture'
   },
   {
-    code: 'MUS 175',
-    title: 'Ukulele Ensemble',
+    code: 'TEXT 140',
+    title: 'Sewing and Garment Alteration',
     description:
-      'Chords, strumming patterns and close harmony on the four-string ukulele, rehearsed as a group for an end-of-term concert.',
+      'A sewing studio teaching machine basics, hemming, and fitted alterations, ending with a garment tailored from a thrifted find.',
     kind: 'project'
   },
   {
-    code: 'CHEM 120',
-    title: 'The Chemistry of Perfume',
+    code: 'MUSC 175',
+    title: 'Ukulele Ensemble and Folk Harmony',
     description:
-      'The molecules behind citrus, rose, musk and amber, blended in the lab into an original fragrance each student names and bottles.',
+      'An ensemble workshop building chord voicings, strumming patterns, and close vocal harmony toward a group concert at the end of term.',
+    kind: 'project'
+  },
+  {
+    code: 'GAME 230',
+    title: 'Esports and Competitive Gaming',
+    description:
+      'Examines tournament structures, team strategy, and the business of streaming through case studies of major competitive titles.',
+    kind: 'lecture'
+  },
+  {
+    code: 'CHEM 120',
+    title: 'Perfumery and Aromatic Chemistry',
+    description:
+      'Explores the aromatic molecules behind citrus, floral, musk, and amber notes as students formulate and bottle an original fragrance.',
     kind: 'project'
   },
   {
     code: 'GAME 150',
-    title: 'Tabletop Game Design',
+    title: 'Tabletop Game Design and Playtesting',
     description:
-      'Students design, prototype and playtest an original board or card game, learning the balance, pacing and rules writing that keep players at the table.',
+      'A design studio in which students prototype, playtest, and balance an original board or card game, from core mechanics to rulebook.',
     kind: 'project'
+  },
+  {
+    code: 'HIST 160',
+    title: 'Ancient Egypt: Pharaohs and the Afterlife',
+    description:
+      'An archaeology-minded survey exploring pyramids, mummification, and hieroglyphic texts across three thousand years of Egyptian civilization.',
+    kind: 'lecture'
   },
   {
     code: 'PHIL 180',
     title: 'The Philosophy of Love',
     description:
-      'Plato, the troubadours and modern philosophers on desire, devotion and jealousy, and what it means to love someone well.',
+      "Examines desire, devotion, and jealousy through Plato's Symposium, troubadour poetry, and contemporary philosophical accounts of romantic love.",
     kind: 'lecture'
   },
   {
-    code: 'HIST 175',
-    title: 'Fashion in the Victorian Age',
+    code: 'ENVS 160',
+    title: 'Urban Gardening',
     description:
-      'Corsets, crinolines and calling cards: the clothes of the nineteenth century and the strict social codes they were made to carry.',
+      'Teaches soil building, companion planting, and container gardening as students tend a raised-bed plot through a full growing cycle.',
+    kind: 'project'
+  },
+  {
+    code: 'HIST 175',
+    title: 'Victorian Fashion and Social Codes',
+    description:
+      'A lecture course tracing corsetry, crinolines, and calling-card etiquette as expressions of nineteenth-century class and gender codes.',
+    kind: 'lecture'
+  },
+  {
+    code: 'PHIL 150',
+    title: 'Stoicism and the Good Life',
+    description:
+      'A seminar reading Seneca, Epictetus, and Marcus Aurelius on adversity, discipline, and the art of living well.',
     kind: 'lecture'
   },
   {
     code: 'CULN 110',
-    title: 'Pastry Fundamentals',
+    title: 'Pastry Arts Fundamentals',
     description:
-      'Laminated doughs, choux, custards and tarts, baked in the teaching kitchen and judged on taste as much as on looks.',
+      'Teaches laminated doughs, pâte à choux, custards, and tart construction in the teaching kitchen, judged on flavor and presentation.',
+    kind: 'project'
+  },
+  {
+    code: 'ART 195',
+    title: 'Tattoo Art and Flash Design',
+    description:
+      'Explores bold linework, traditional flash motifs, and stencil design as students build a portfolio of original tattoo flash sheets.',
     kind: 'project'
   },
   {
     code: 'ENVS 140',
     title: 'Birding and Field Ornithology',
     description:
-      'Identifying birds by sight and song on early-morning walks, logged in a field journal that builds into a term-long species list.',
+      'A field course training students to identify birds by plumage and song on dawn walks, logged in a term-long species journal.',
     kind: 'project'
   },
   {
-    code: 'LIT 210',
-    title: 'Detective Fiction',
+    code: 'FSCI 130',
+    title: 'Introduction to Forensic Science',
     description:
-      'From Poe and Conan Doyle to the hard-boiled and the cozy, the rules of the mystery story and the writers who broke them.',
+      'A case-file lecture covering fingerprinting, blood spatter analysis, and DNA evidence through reconstructed crime scene case studies.',
     kind: 'lecture'
   },
   {
-    code: 'ARTS 175',
+    code: 'LIT 210',
+    title: 'Detective Fiction and the Mystery Genre',
+    description:
+      'Traces the conventions of the mystery story from Poe and Conan Doyle through hard-boiled noir and the modern cozy.',
+    kind: 'lecture'
+  },
+  {
+    code: 'ART 175',
     title: 'Calligraphy and Hand Lettering',
     description:
-      'Italic and blackletter hands with the broad-edged pen, then brush lettering, ending in a hand-bound book of copied verse.',
+      'A lettering studio covering italic and blackletter hands with the broad-edged pen and modern brush lettering, ending in a hand-bound book.',
     kind: 'project'
+  },
+  {
+    code: 'LING 160',
+    title: 'American Sign Language I',
+    description:
+      'Introduces fingerspelling, everyday signs, and the grammar of facial expression through conversation-based practice with Deaf instructors.',
+    kind: 'lecture'
   },
   {
     code: 'RELS 220',
     title: 'Witchcraft and Magic in History',
     description:
-      'Cunning folk, witch trials and ceremonial magicians from the medieval world to the modern revival, and what each age meant by the word.',
+      'Surveys cunning folk, early modern witch trials, and ceremonial magicians from the medieval world to the modern pagan revival.',
     kind: 'lecture'
+  },
+  {
+    code: 'JOUR 150',
+    title: 'Food Writing and Restaurant Criticism',
+    description:
+      'A writing workshop centered on restaurant reviews, recipe headnotes, and food memoir, with tasting trips to local kitchens.',
+    kind: 'project'
   },
   {
     code: 'PSYC 160',
     title: 'The Psychology of Dreams',
     description:
-      'Sleep stages, nightmares, lucid dreaming and the theories that read dreams as wish, memory or noise, with a dream journal kept all term.',
+      'A seminar-style lecture on sleep stages, nightmares, and lucid dreaming, weighing psychoanalytic and neuroscientific theories against a term-long dream journal.',
     kind: 'lecture'
   },
   {
-    code: 'ARTS 160',
-    title: 'Comics and Graphic Novels',
+    code: 'GAME 170',
+    title: 'Escape Room Design',
     description:
-      'Panel layout, pacing, character design and inking, toward a short comic each student carries from script to printed page.',
+      'Guides teams through puzzle design, narrative theming, and playtesting as they build a working escape room in a campus classroom.',
     kind: 'project'
+  },
+  {
+    code: 'ART 160',
+    title: 'Comics and Sequential Art',
+    description:
+      'Covers panel layout, visual pacing, character design, and inking as students carry a short comic from script to printed page.',
+    kind: 'project'
+  },
+  {
+    code: 'ARTH 230',
+    title: 'Art Forgery and Famous Fakes',
+    description:
+      'A detective-style lecture examining notorious forgers, authentication science, and the art market scandals that fooled museums and collectors.',
+    kind: 'lecture'
   },
   {
     code: 'GEOG 175',
-    title: 'Mapmaking by Hand',
+    title: 'Hand-Drawn Cartography',
     description:
-      'Projection, scale, lettering and hand-inked relief, applied to a finished map of a real place or an invented one.',
+      'A cartography studio teaching projection, scale, hand lettering, and inked relief shading toward a finished map of a real or invented place.',
     kind: 'project'
   },
   {
-    code: 'LING 180',
-    title: 'Constructed Languages',
+    code: 'MUSC 195',
+    title: 'The History of Hip-Hop',
     description:
-      'From Esperanto to the tongues of fantasy epics, how invented languages build their sounds, grammar and scripts, and why people keep making them.',
+      'Traces hip-hop from Bronx block parties through its golden age to global streaming, examining sampling, lyricism, and DJ culture.',
+    kind: 'lecture'
+  },
+  {
+    code: 'LING 180',
+    title: 'Constructed Languages and Conlanging',
+    description:
+      'Analyzes the phonology, grammar, and writing systems of invented languages, from Esperanto to the tongues of fantasy epics.',
     kind: 'lecture'
   }
 ]

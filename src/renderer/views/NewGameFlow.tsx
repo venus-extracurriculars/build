@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
   APPLICATION_SCREENS,
   incompleteOf,
+  maskedOf,
   screenIndex,
   type ApplicationContinuation,
   type ApplicationDraft,
@@ -201,7 +202,7 @@ function faultName(
   return `${name}'s ${fault.kind}`
 }
 
-/** What Finalize's Next says it would lose: the changes it cannot keep. */
+/** What Finalize's Start game says it would lose: the changes it cannot keep. */
 function unusableLossOf(names: readonly string[]): string {
   return sentenceStart(`${andList(names)} can't be used. Your current input will be lost if you continue.`)
 }
@@ -268,13 +269,15 @@ export interface NewGameFlowProps {
   continuation: Continuation | null
   /**
    * The semester as Finalize leaves it, under a curtain still down, the reader as he was named,
-   * the roster, and what a later semester's application continues: the registrar is the caller's.
+   * the roster, what a later semester's application continues, and the random picks still masked:
+   * the registrar is the caller's.
    */
   onComposed: (
     semester: StartResult,
     reader: ApplicationReader,
     roster: Character[],
-    continued: ApplicationContinuation | undefined
+    continued: ApplicationContinuation | undefined,
+    masked: string[]
   ) => void
 }
 
@@ -438,7 +441,7 @@ export function NewGameFlow({
   }
 
   /**
-   * Finalize's Next: under a curtain that waits, once the heights and voices are written, the
+   * Finalize's Start game: under a curtain that waits, once the heights and voices are written, the
    * semester as Finalize leaves it goes to the caller, whose registrar lifts the curtain.
    */
   function start(): void {
@@ -452,7 +455,7 @@ export function NewGameFlow({
             endCrossing()
             return
           }
-          onComposed(semester, now.reader, rosterOf(now), now.continued)
+          onComposed(semester, now.reader, rosterOf(now), now.continued, [...maskedOf(now)])
         })()
       },
       { wait: true }
@@ -579,7 +582,7 @@ export function NewGameFlow({
 
   const flowNext: FrameNext | undefined =
     screen && screen !== 'loading'
-      ? { dead, onPress: next }
+      ? { dead, onPress: next, label: screen === 'finalize' ? 'Start game' : undefined }
       : undefined
 
   const stepAt = screen ? screenIndex(screen) : -1

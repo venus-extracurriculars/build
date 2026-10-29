@@ -98,7 +98,7 @@
 - `.vu-chip` — the neutral full pill in mono, at a smaller paper offset.
 - `.vu-tile` — a place the reader goes, mark over word, with `.vu-tile-badge` the count riding its square corner as a cutout ring; the fill stays the caller's.
 - `.vu-square` — the small recessed square beside a field or a value; flat, and never an answer, since it adjusts or opens the thing next to it — the folder beside a ComfyUI model slot among them. `--step` is the one that steps that value by one.
-- `.vu-arch` / `.vu-crop` / `.vu-crop-img` — a person and the child that clips her picture (§13); `.vu-card` is the tile around them, with `--card-zoom` saying how close the camera stands. `.vu-crop--masked` stands in for the picture where New Game's setup masks her: the archway's own shape dashed, a question in it sized off the archway.
+- `.vu-arch` / `.vu-crop` / `.vu-crop-img` — a person and the child that clips her picture (§13); `.vu-card` is the tile around them, with `--card-zoom` saying how close the camera stands. `.vu-crop--masked` stands in for the picture wherever New Game masks her: the archway's own shape dashed, a question in it sized off the archway.
 - `.vu-spoiler` — a masked name in the words or the heading it stands in: quiet and recessed, the struck eye before the name box's mask, and itself the control that lifts it.
 - `.vu-circle` — back on a screen, the eye that opens a gallery, and the plus that opens the custom outfits; never a modal's close.
 - A pill that opens a list wears the down chevron after its words and drops it while its pick is in force, when the same click clears the pick instead.
@@ -423,7 +423,7 @@
 - The Edit modal's portrait and the reader's own archway on his profile are the only archways in the app that are controls.
 - The Cast modal's CG button is an action shape that takes the accent fill while her CG is over the stage: it is both the way into the picker and the sign that the lock stands.
 - A character's room and the player's own backgrounds have no thumbnails, so the Change BG picker and the custom background gallery draw their full pictures, and only the shipped thumbnails are warmed.
-- New Game's primary, every flow screen's Next, stands at twice its size and tilted, the size riding a wrapper so the gesture composes.
+- New Game's primary, every flow screen's Next and Finalize's Start game, stands at twice its size and tilted, the size riding a wrapper so the gesture composes.
 - The Bunnyboard's chat rows and lorebook rows lift `.vu-row` to a surface fill, the list standing on the ground rather than in a panel.
 - A sticker is the only rotated text outside the fan.
 - The contact page and the self-improvement screen take the bare veil, both placing their own layers against the stage's edges.
