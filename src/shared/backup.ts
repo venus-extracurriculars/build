@@ -1,3 +1,4 @@
+import type { Application } from './application'
 import { isCharFileRel } from './characterFiles'
 import { SAFE_CHAR_ID } from './characterRules'
 import { isArchiveCruft } from './characterTransfer'
@@ -13,7 +14,7 @@ import type { ValidateRecordOptions } from './jsonValidate'
 import { readLorebookRecord, type LorebookRecord } from './lorebookRecord'
 import type { PhotoMeta } from './photos'
 import { REPLAY_ID, replayIdsOf, validateReplay, type SlotReplay } from './replays'
-import { SAFE_NUMERIC_ID } from './saveRules'
+import { readApplicationRecord, SAFE_NUMERIC_ID } from './saveRules'
 import { validateSavedScene, type SavedScene } from './sceneCreator'
 import { recordReplayIds } from './semesters'
 import type {
@@ -94,6 +95,8 @@ export interface BackupFile {
   replays?: BackupReplay[]
   /** Each playthrough's own lorebook, by playthrough id; absent in backups from before them. */
   lorebooks?: Record<string, LorebookRecord>
+  /** Each New Game in progress, by playthrough id; absent in backups from before them. */
+  applications?: Record<string, Application>
   characters: Character[]
 }
 
@@ -366,4 +369,27 @@ export function lorebooksFromBackup(record: BackupFile): Record<string, Lorebook
     )
   }
   return lorebooks
+}
+
+/**
+ * The New Games in progress a backup carries, each checked as its own file is under a
+ * playthrough id that can name a path; refuses the backup before anything is written.
+ */
+export function applicationsFromBackup(record: BackupFile): Record<string, Application> {
+  const carried: unknown = record.applications ?? {}
+  if (typeof carried !== 'object' || carried === null || Array.isArray(carried)) {
+    throw appError(BACKUP_READ.malformed.code, BACKUP_READ.malformed.message, 'applications')
+  }
+  const kept: Record<string, Application> = {}
+  for (const [playthroughId, value] of Object.entries(carried)) {
+    if (!SAFE_NUMERIC_ID.test(playthroughId)) {
+      throw appError(BACKUP_READ.malformed.code, BACKUP_READ.malformed.message, playthroughId)
+    }
+    kept[playthroughId] = readApplicationRecord(
+      value,
+      `applications.${playthroughId}`,
+      BACKUP_READ.malformed
+    )
+  }
+  return kept
 }

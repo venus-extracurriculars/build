@@ -1,5 +1,7 @@
 import { coursePointsOf, gradedCourses } from '@shared/academics'
+import type { ApplicationContinuation } from '@shared/application'
 import { overTextDesc } from '@shared/relationship'
+import { mintId } from '@shared/saveRules'
 import {
   advancesAfter,
   breakDaysOf,
@@ -7,6 +9,7 @@ import {
   charStateOf,
   graduatesOf,
   intakeOf,
+  semesterChain,
   semesterShiftOf,
   type SemesterCalendar,
   type SemesterView
@@ -31,7 +34,9 @@ import type {
   JobAssignment,
   JobState,
   OwnedItem,
+  PlaythroughRecord,
   SemesterCarry,
+  SemesterHandoff,
   SocialPost,
   Transcript
 } from '@shared/types'
@@ -41,7 +46,8 @@ import { hauntAssignmentOf } from './hiddenScheduler'
 
 /**
  * What one semester's ending hands the next: who graduates and who stays, every date moved onto
- * the next semester's clock, and the reader's bookkeeping carried across the break. Pure; the
+ * the next semester's clock, and the reader's bookkeeping carried across the break; and what the
+ * next semester's New Game sets up from. Pure but for the semester id a continuation mints; the
  * caller hands in the ending's state as the store holds it.
  */
 
@@ -79,25 +85,6 @@ export interface CarryInput {
   bunnybotThrough: number
   npcRelationships: NpcRelationshipMap
   npcFriendships: readonly NpcFriendship[]
-}
-
-/** The next semester as the ending leaves it, before anybody new is picked. */
-export interface SemesterHandoff {
-  /** The next semester's index. */
-  index: number
-  /** Who stays on the roster, in roster order. */
-  continuing: string[]
-  /** Who graduated at this ending, in roster order. */
-  graduated: string[]
-  /** Every graduate by the next semester, oldest first. */
-  alumni: string[]
-  /** The continuing girls' and the graduates' settled halves, each year and intake moved on. */
-  priorProfiles: Record<string, CharProfile>
-  /** Each continuing girl's employer and how many shifts she works, kept for the next term. */
-  jobs: Record<string, JobAssignment>
-  /** Each continuing girl's habits, read off her week to be dealt again around her new timetable. */
-  haunts: Record<string, HiddenScheduleAssignment>
-  carry: SemesterCarry
 }
 
 /** A memory moved onto the next semester's clock, its age frozen across the break. */
@@ -266,6 +253,15 @@ function carriedProfile(profile: CharProfile, graduate: boolean, view: SemesterV
   }
 }
 
+/** How many of the classes on a timetable are major classes in the catalog. */
+function majorLoadOf(
+  schedule: Readonly<Record<number, string>>,
+  classes: Readonly<Record<string, ClassEntry>>
+): number {
+  const codes = new Set(Object.values(schedule))
+  return [...codes].filter((code) => classes[code]?.category === 'major').length
+}
+
 /** Everything the ending of `view` hands the next semester. */
 export function carryOf(input: CarryInput, view: SemesterView): SemesterHandoff {
   const shift = semesterShiftOf(view.season)
@@ -285,14 +281,19 @@ export function carryOf(input: CarryInput, view: SemesterView): SemesterHandoff 
     if (profile) priorProfiles[charId] = carriedProfile(profile, isGraduate(charId), view)
   }
 
-  // Her routine, read before the carry empties it: the same employer and habits, dealt anew.
+  // Her routine, read before the carry empties it: the same employer, habits and share of her
+  // major, dealt anew.
   const girlsJobs: Record<string, JobAssignment> = {}
   const haunts: Record<string, HiddenScheduleAssignment> = {}
+  const majorLoads: Record<string, number> = {}
   for (const charId of continuing) {
-    const job = input.charInfo[charId]?.job
+    const info = input.charInfo[charId]
+    const job = info?.job
     if (job && job.shifts.length > 0) girlsJobs[charId] = { jobId: job.jobId, count: job.shifts.length }
     const week = view.profiles[charId]?.hiddenSchedule
     if (week) haunts[charId] = hauntAssignmentOf(week)
+    const settled = view.profiles[charId] ?? (info ? charProfileOf(info) : undefined)
+    if (settled) majorLoads[charId] = majorLoadOf(settled.schedule, input.classes)
   }
 
   const jobs = carriedJobs(input.job, input.jobsClosed, input.formerJobs)
@@ -338,6 +339,40 @@ export function carryOf(input: CarryInput, view: SemesterView): SemesterHandoff 
     priorProfiles,
     jobs: girlsJobs,
     haunts,
+    majorLoads,
     carry
+  }
+}
+
+/** Every class this timeline has run, by code, oldest semester first: what the catalog avoids. */
+function takenClassesOf(
+  record: PlaythroughRecord,
+  from: string | undefined
+): { code: string; name: string }[] {
+  const taken = new Map<string, string>()
+  for (const { view } of semesterChain(record, from)) {
+    for (const entry of Object.values(view.classes)) {
+      if (!taken.has(entry.code)) taken.set(entry.code, entry.name)
+    }
+  }
+  return [...taken].map(([code, name]) => ({ code, name }))
+}
+
+/**
+ * What a later semester's New Game sets up from: the ending's handoff, a semester id the record
+ * has not used, the semester `from` it continues where there is one, and every class run before.
+ */
+export function continuationOf(
+  record: PlaythroughRecord,
+  from: string | undefined,
+  ending: string | null,
+  handoff: SemesterHandoff
+): ApplicationContinuation {
+  return {
+    ...handoff,
+    id: mintId(new Set(Object.keys(record.semesters ?? {}))),
+    ...(from !== undefined ? { parent: from } : {}),
+    ...(ending !== null ? { ending } : {}),
+    taken: takenClassesOf(record, from)
   }
 }
