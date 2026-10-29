@@ -114,7 +114,7 @@ registerHooks(PHOTO_FEATURE, {
       (charId) => useGameStore.getState().characters[charId]?.firstName
     ),
 
-  // Only Photo writes draft ex; the character builder combines the mods' writes by plain spread.
+  // Her body for a newly written character, from the build the character call picked.
   characterFromDraft: (draft, { baseAppearance }) =>
     writeBody(bodyOfDraft(draft.body as DraftBody | undefined, baseAppearance)),
 
