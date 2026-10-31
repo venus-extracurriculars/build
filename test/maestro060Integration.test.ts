@@ -1,3 +1,4 @@
+import './fixtures/maestroModelKit'
 import { afterEach, describe, expect, it } from 'vitest'
 import { calendarOf } from '@shared/semesters'
 import { projectProgress } from '@shared/academics'
