@@ -1,3 +1,4 @@
+import './fixtures/maestroModelKit'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { slotOf } from '@shared/classes'
