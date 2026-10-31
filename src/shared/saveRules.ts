@@ -264,24 +264,7 @@ export const ENROLLMENT_NOT_FOUND = {
  * What an application must carry; where it is kept names the playthrough it will become, and the
  * fields only some applications carry are optional on the type and omitted here.
  */
-const APPLICATION_REQUIRED: Record<
-  keyof Omit<
-    Application,
-    | 'reader'
-    | 'skipped'
-    | 'dealtMajors'
-    | 'randomPicks'
-    | 'revealed'
-    | 'tokensGenerated'
-    | 'continued'
-    | 'pursuits'
-    | 'planChanged'
-    | 'fixedEdits'
-    | 'composed'
-    | 'finalEdits'
-  >,
-  true
-> = {
+const APPLICATION_REQUIRED: Record<RequiredKeys<Application>, true> = {
   schemaVersion: true,
   savedAt: true,
   screen: true,
