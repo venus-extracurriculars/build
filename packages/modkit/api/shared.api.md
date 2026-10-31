@@ -910,7 +910,9 @@ export interface PlayerStats {
 export interface PlaythroughRecord extends ModPlaythroughFields {
     chars: string[];
     classes: Record<string, ClassEntry>;
+    fixedEdits?: FixedOccasionEdits;
     jobClosures: Record<string, ShiftSlot[]>;
+    masked?: string[];
     name?: string;
     occasions: Occasion[];
     playerFirstName: string;

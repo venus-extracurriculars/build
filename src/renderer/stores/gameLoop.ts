@@ -52,8 +52,7 @@ import {
   introScrollLines,
   isOrientationSlot,
   isTutorialSlot,
-  ORIENTATION_PREMISE,
-  orientationLeaderPremise,
+  orientationPremise,
   tutorialLines
 } from '../prompts/introScript'
 import {
@@ -568,19 +567,29 @@ async function startOrientationScene(): Promise<void> {
   const run = currentRun()
   const game = useGameStore.getState()
 
-  // A freshman, or anyone at all when there are none, who gets the leader premise instead.
-  // No attendance filter: orientation cancels every class on day 0.
-  const freshmen = game.chars.filter((charId) => game.charInfo[charId]?.year === 1)
-  const pool = freshmen.length > 0 ? freshmen : game.chars
+  // A girl he has not met, a freshman first and else an upperclassman leading the group; one he
+  // knew before he came only where he knew them all. No attendance filter: orientation cancels
+  // every class on day 0.
+  const met = (charId: string): boolean => game.charInfo[charId]?.flags?.hasMet === true
+  const freshman = (charId: string): boolean => game.charInfo[charId]?.year === 1
+  const unmet = game.chars.filter((charId) => !met(charId))
+  const pool = [
+    unmet.filter(freshman),
+    unmet,
+    game.chars.filter(freshman),
+    game.chars
+  ].find((candidates) => candidates.length > 0) ?? []
   if (pool.length === 0) {
     console.warn('[intro] no characters on the roster; orientation plays solo')
   }
   const picked = pool.length > 0 ? anyOf(pool) : null
   const cast = picked ? [picked] : []
-  const action =
-    picked && freshmen.length === 0
-      ? orientationLeaderPremise(game.characters[picked]?.firstName ?? 'she')
-      : ORIENTATION_PREMISE
+  const action = orientationPremise({
+    firstName: (picked && game.characters[picked]?.firstName) || 'she',
+    freshman: picked === null || freshman(picked),
+    met: picked !== null && met(picked),
+    knowsSomebody: game.chars.some(met)
+  })
 
   const snapshot: TurnSnapshot = { scene: game.captureScene(), action, intro: true }
   loopState.lastTurn = snapshot
@@ -3207,7 +3216,13 @@ export async function leaveForNextSemester(): Promise<boolean> {
     if (Object.keys(mods).length > 0) handoff.carry.mods = mods
     const ex = modSlicesLeaving(game.modData, game.modValues, leaving)
     if (ex) handoff.carry.ex = ex
-    stageContinuation({ playthroughId, record, from: view.id, handoff })
+    stageContinuation({
+      playthroughId,
+      record,
+      from: view.id,
+      ending: loopState.slotSaveId,
+      handoff
+    })
   }
   await leaveToMenu({ keepCrossing: true })
   return Boolean(record && playthroughId)

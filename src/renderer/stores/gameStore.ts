@@ -25,6 +25,7 @@ import {
   calendarOf,
   charStateOf,
   graduatesOf,
+  semesterCalendarOf,
   semesterOf,
   type SemesterCalendar
 } from '@shared/semesters'
@@ -1322,7 +1323,7 @@ function patchConversation(
 }
 
 /** The calendar a store holds before any semester is loaded: a spring with nothing invented. */
-const NO_CALENDAR: SemesterCalendar = calendarOf('spring', [])
+const NO_CALENDAR: SemesterCalendar = calendarOf('spring', [], {})
 
 /** The entry for a charId the save has none for; the writers must survive one. */
 export function blankCharInfo(): CharInfo {
@@ -1749,7 +1750,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       replays: save.replays ?? {},
       bunnyboard: save.bunnyboard,
       events: save.events,
-      calendar: calendarOf(semester.season, semester.occasions),
+      calendar: semesterCalendarOf(semester),
       occasionsDeclined: save.occasionsDeclined ?? [],
       job: save.job,
       jobsClosed: save.jobsClosed,
