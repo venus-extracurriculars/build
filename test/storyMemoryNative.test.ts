@@ -183,7 +183,7 @@ describe('real native prompt builders', () => {
       backgrounds: { interior: ['library'], exterior: ['quad'] }, lorebook: [],
       charInfo: { a: charInfo({ nameKnown: true, notes: 'Alex prefers quiet meetings.' }) },
       npcRelationships: {}, roster: [], classes: {}, playerSchedule: {}, classRosters: {},
-      calendar: calendarOf('spring', []), bg: null, classCode: null, projectClass: null,
+      calendar: calendarOf('spring', [], {}), bg: null, classCode: null, projectClass: null,
       playerJob: null, jobId: null, visitJobId: null, giftNotes: [], emotions: {}, onStage: [],
       lessNsfwText: false, memoryBudgets: DEFAULT_MEMORY_BUDGETS, history,
       cgReady: {}, customCgReady: {}, outfitReady: {}, roomReady: {} }
