@@ -25,7 +25,7 @@ import { isPermanent } from '@shared/errors'
 import { canContinueAfter, GAME_OVER_SCENES, gameCompleteSceneOf } from '@shared/gameOver'
 import { hashString } from '@shared/hash'
 import { isGameOver } from '@shared/money'
-import { calendarOf } from '@shared/semesters'
+import { semesterCalendarOf } from '@shared/semesters'
 import { quizAnswers, type QuizAnswer } from '@shared/academics'
 import {
   allBackgrounds,
@@ -1019,7 +1019,7 @@ export function GameView(): JSX.Element {
         ? undefined
         : earlierSemesters().find(({ view }) => view.index === semesterIndex)?.view
     const earlier = from && {
-      calendar: calendarOf(from.season, from.occasions),
+      calendar: semesterCalendarOf(from),
       weather: from.weather,
       semesterIndex: from.index
     }
