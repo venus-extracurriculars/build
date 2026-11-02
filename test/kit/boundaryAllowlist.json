@@ -260,8 +260,6 @@
   "src/renderer/mods/venusWhisper.tsx -> ../stores/modsStore",
   "src/renderer/prompts/cityLifeLore.ts -> ./lorebook",
   "src/renderer/prompts/photoBrief.ts -> @shared/relationship",
-  "src/renderer/prompts/promptBlocks.ts -> @shared/presets/textBlocks",
-  "src/renderer/prompts/promptBlocks.ts -> @shared/presets/types",
   "src/renderer/stores/breakthrough.ts -> ../prompts/echoBreakthroughPrompt",
   "src/renderer/stores/breakthrough.ts -> ./gameStore",
   "src/renderer/stores/breakthrough.ts -> ./loop/playback",

@@ -26,7 +26,7 @@ import { CheckField } from '../components/CheckField'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { TitleTab } from '../components/TitleTab'
 import { useModalShell } from '../components/useModalShell'
-import { defaultBlockText, isNewGameBlock, PROMPT_BLOCKS, type PromptBlock } from '../prompts/promptBlocks'
+import { defaultBlockText, isNewGameBlock, PROMPT_BLOCKS, type PromptBlock } from '@vx/modkit/renderer'
 import { useGameStore } from '../stores/gameStore'
 import { usePromptStudioStore } from '../stores/promptStudioStore'
 import { useSettingsStore } from '../stores/settingsStore'
@@ -397,7 +397,7 @@ export function PromptStudioModal({ theme, onClose }: PromptStudioModalProps): J
 
   /** Writes one text block's edit to where its owner keeps it. */
   async function saveText(block: PromptBlock, value: string | undefined): Promise<boolean> {
-    if (block.owner === 'preset') {
+    if (block.owner === 'scene') {
       const current = usePromptStudioStore.getState().active
       if (!current) return false
       return usePromptStudioStore.getState().save(withSceneText(current, block.id as SceneTextId, value))
@@ -414,7 +414,7 @@ export function PromptStudioModal({ theme, onClose }: PromptStudioModalProps): J
 
   /** The stored edit of a text block, where there is one. */
   function editOf(block: PromptBlock): string | undefined {
-    return block.owner === 'preset'
+    return block.owner === 'scene'
       ? active?.overrides?.[block.id as SceneTextId]
       : prompts.blocks?.[block.id as GlobalTextId]
   }
@@ -860,7 +860,7 @@ export function PromptStudioModal({ theme, onClose }: PromptStudioModalProps): J
             {shown.id === 'presets' && presetsPage()}
             {shown.id === 'blocks' && blocksPage()}
             {shown.id === 'glossary' && glossaryPage()}
-            {shown.id === 'scene' && textPage('preset')}
+            {shown.id === 'scene' && textPage('scene')}
             {shown.id === 'other' && textPage('global')}
             {shown.id === 'newgame' && newGamePage()}
             {shown.id === 'variables' && variablesPage()}

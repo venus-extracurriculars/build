@@ -2,7 +2,7 @@ import { samplingOf } from '../settingsRules'
 import type { StructuredRequest } from '../types'
 import { applyPreset } from './assemble'
 import { applyVarOps, readPresetVars } from './varOps'
-import type { Preset } from './types'
+import { GAME_MARKERS, type GamePart, type GameMarker, type Preset } from './types'
 
 /** What applying a preset to a request leaves for reading its reply back. */
 export interface AppliedPreset {
@@ -40,7 +40,7 @@ export function planPresetRequest(
 
   const { names, vars } = request.preset
   const out = applyPreset(
-    { system: request.system, user: request.user, schema: request.schema, parts: request.parts },
+    { system: request.system, user: request.user, schema: request.schema, parts: request.parts?.filter((part): part is GamePart => GAME_MARKERS.includes(part.id as GameMarker)) },
     preset,
     readPresetVars(vars),
     { user: names.user, char: names.char, group: names.group, rand }

@@ -174,17 +174,28 @@ stay saved, so turning it on again finds them.
   each merges.
 - `src/main/services/presetsService.ts`, `studioPromptsService.ts` and
   `studioBackupService.ts`, with their twins in `src/web/`: the folders and the browser's
-  database. `src/main/ipc.ts` and `src/web/bridge.ts` apply the preset where a structured
-  request is sent, and read a scene reply's `vars` back.
-- `src/renderer/prompts/promptBlocks.ts`: the text blocks and their shipped text, the New Game
-  calls' included.
+  database. On desktop, `src/main/ipc.ts` prepares Story Memory first, then the bundled
+  mod's `registerFinalRequest` owner applies the preset and reads the reply's `vars` back.
+  The transport strips local-only metadata even when no request owner answers. The browser
+  retains its existing preset path in `src/web/bridge.ts`.
+- Core's `src/shared/promptText.ts` and `src/renderer/prompts/promptBlocks.ts`: the text-block
+  vocabulary and shipped text, including New Game. The editor reads the catalogue through
+  the public renderer kit.
 - `src/renderer/stores/promptStudioStore.ts` and `src/renderer/views/PromptStudio*.tsx`: the
   studio.
 - `test/preset*.test.ts`: assembly, macros, variables, imports and the request path;
-  `test/studioPrompts` and `studioBackup` the rest.
+  `test/studioPrompts` and `studioBackup` the rest. After a desktop build, run
+  `node test/e2e/promptHookIntegration.e2e.cjs` for a local-endpoint check of hook dispatch,
+  Story Memory ordering, single preset application, variables, sampling and the off switch.
 
-## Registration on core 0.3.1
+## Bundled registration
 
 - `src/shared/modEntries/prompt-studio.ts` supplies its mod definition and the semester carry
   for `presetVars`.
-- This mod has no renderer hook registration; its integration is switch-gated in place.
+- `promptStudioStore.ts` registers the `promptText` owner. Core's builders read its global
+  and scene text edits and class-pool sizes through the hook.
+- Desktop requests use the shared final-request mechanism once. Existing preset files,
+  variables, transcript-cut history and the editor remain in place. The renderer still
+  stamps the bundled preset context and commits its returned variables; the new generic
+  scene-call/reply/cut hooks are also dispatched for installed mods.
+- This is a core-to-main integration, not the completed standalone Prompt Studio package.

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { registerHooks } from '@vx/modkit/renderer'
 import { modOn } from '@shared/mods'
 import { PROMPT_STUDIO_MOD, type Preset, type PresetImport, type PresetSummary } from '@shared/presets/types'
 import {
@@ -237,3 +238,6 @@ export function classCatalogNow(): ClassCatalogEdits | undefined {
   if (!modIsOn(PROMPT_STUDIO_MOD)) return undefined
   return usePromptStudioStore.getState().prompts.classCatalog ?? {}
 }
+
+// The bundled editor provides its existing edits through core's text-owner hook.
+registerHooks(PROMPT_STUDIO_MOD, { promptText: { edits: textEditsNow, classCatalog: classCatalogNow } })

@@ -4,6 +4,7 @@
  * name Mini-games imports is taken from the game's own module that the kit re-exports.
  */
 export async function miniGamesKit(): Promise<Record<string, unknown>> {
+  const hooks = await import('../../src/renderer/mods/hooks')
   const readers = await import('../../src/renderer/mods/readers')
   const llm = await import('../../src/renderer/mods/llm')
   const schema = await import('../../src/renderer/prompts/schema')
@@ -13,6 +14,7 @@ export async function miniGamesKit(): Promise<Record<string, unknown>> {
   const mods = await import('../../src/renderer/stores/modsStore')
   return {
     ...readers,
+    registerHooks: hooks.registerHooks,
     completeStructured: llm.completeStructured,
     currentRun: state.currentRun,
     runStale: state.runStale,

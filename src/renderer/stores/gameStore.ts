@@ -12,8 +12,8 @@ import { normalizeMeanwhile, type MeanwhileStore } from '@shared/meanwhile'
 import { readCharacterDynamics, type CharacterDynamics } from '@shared/characterDynamics'
 import { presetVarsWithin, readPresetVarMarks, readPresetVars, type PresetVarsMark } from '@shared/presets/varOps'
 import { savedModScene } from '@shared/modScene'
-import { statFloor } from '../mods/hooks'
-import { bindGameBoundary, bindSaveFieldStore, readModSlices, writeModSlices } from '@vx/modkit/host/renderer'
+import { sceneCut, statFloor } from '../mods/hooks'
+import { bindGameBoundary, bindSaveFieldStore, bindSceneFieldStore, readModSlices, writeModSlices } from '@vx/modkit/host/renderer'
 import { useModSessionStore } from './modSessionStore'
 import { create } from 'zustand'
 import { blocksNewRomance } from '@shared/romanceRequirements'
@@ -2191,11 +2191,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       sceneSummaries: [...state.sceneSummaries, { at, summary }]
     })),
 
-  truncateUnread: () =>
+  truncateUnread: () => {
+    let length = 0
     set((state) => {
       const kept = cutLengthOf(state)
       const reconciled = reconcileTalentBreakthrough(state, state.currentSceneTranscript.slice(0, kept),
         !state.replaying && !state.createdScene ? state.currentSceneTranscript : undefined)
+      length = kept
       return {
         ...reconciled,
         ...rewindReckoning({...state,...reconciled},kept),
@@ -2206,11 +2208,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         ...giftsWithin(state, kept),
         ...presetVarsCut(state.scenePresetVars, kept)
       }
-    }),
+    })
+    sceneCut({ length })
+  },
 
   cutToRead: () => {
     while (get().forwardLine()) continue
     get().truncateUnread()
+    let length: number | null = null
     set((state) => {
       const transcript = state.currentSceneTranscript
       const last = transcript.length - 1
@@ -2218,6 +2223,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const kept = transcript.slice(0, last)
       const reconciled = reconcileTalentBreakthrough(state, kept,
         !state.replaying && !state.createdScene ? transcript : undefined)
+      length = last
       return {
         ...reconciled,
         ...rewindReckoning({ ...state, ...reconciled }, last),
@@ -2228,6 +2234,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         ...presetVarsCut(state.scenePresetVars, last)
       }
     })
+    if (length !== null) sceneCut({ length })
   },
 
   rewindLine: () => {
@@ -3496,6 +3503,17 @@ bindSaveFieldStore({
   subscribe: (onChange) =>
     useGameStore.subscribe((state, before) => {
       if (state.modValues !== before.modValues) onChange()
+    })
+})
+
+// The mods' scene fields read and write their values here.
+bindSceneFieldStore({
+  values: () => useGameStore.getState().sceneMods as Readonly<Record<string, unknown>>,
+  set: (modId, value) =>
+    useGameStore.setState((state) => ({ sceneMods: { ...state.sceneMods, [modId]: value } })),
+  subscribe: (onChange) =>
+    useGameStore.subscribe((state, before) => {
+      if (state.sceneMods !== before.sceneMods) onChange()
     })
 })
 

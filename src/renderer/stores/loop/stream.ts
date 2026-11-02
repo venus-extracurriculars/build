@@ -1,6 +1,7 @@
 import { appError } from '@shared/errors'
 import { PROMPT_STUDIO_MOD, type PresetRequest, type SceneSpotTag } from '@shared/presets/types'
 import type { AppError, SceneLine, SceneResponse, StructuredRequest } from '@shared/types'
+import { sceneCallTags, sceneReplyLanded } from '../../mods/hooks'
 import { useGameStore } from '../gameStore'
 import { modIsOn } from '../modsStore'
 import { usePromptStudioStore } from '../promptStudioStore'
@@ -98,6 +99,8 @@ export type SceneCall = Promise<
         applied: boolean
         at: number
         reply: SceneResponse
+        /** Which scene call this was, where its builder named one. */
+        spot?: SceneSpotTag
       }
     }
   | { ok: false; error: AppError }
@@ -144,6 +147,11 @@ export function commitPresetVars(vars: Record<string, string> | undefined, at: n
   if (vars !== undefined) useGameStore.getState().commitPresetVars(vars, at)
 }
 
+export function landScene(reply: SceneResponse, spot: SceneSpotTag | undefined, lineCount: number): void {
+  if (!spot) return
+  sceneReplyLanded({ reply: { ...reply } as unknown as Readonly<Record<string, unknown>>, modReply: Object.freeze({ ...reply.modReply }), spot, at: useGameStore.getState().currentSceneTranscript.length - lineCount })
+}
+
 /** How many scene calls this session has made, which names each one's deltas. */
 let streamCount = 0
 
@@ -183,6 +191,13 @@ export async function streamScene(
   if (request.sceneSpot && modIsOn(PROMPT_STUDIO_MOD)) {
     usePromptStudioStore.getState().noteSceneRequest(request)
     request = { ...request, preset: presetRequestOf(request.sceneSpot) }
+  }
+
+  const spot = request.sceneSpot
+  if (spot) {
+    const game = useGameStore.getState()
+    const tags = sceneCallTags({ request, spot, playthroughId: game.playthroughId, readerName: game.playerFirstName })
+    if (Object.keys(tags).length > 0) request = { ...request, modTags: { ...request.modTags, ...tags } }
   }
 
   if (!sink || sink.live) useGameStore.getState().setStreaming(true)
@@ -284,7 +299,7 @@ export async function streamScene(
 
   // A prefetch still holding its lines has nothing to reconcile; Begin appends the reply whole,
   // and keeps its variables then.
-  if (sink && !sink.live) return { ok: true, data: { lines, summary, end, applied: false, at, reply: result.data } }
+  if (sink && !sink.live) return { ok: true, data: { lines, summary, end, applied: false, at, reply: result.data, spot } }
 
   const game = useGameStore.getState()
 
@@ -319,7 +334,8 @@ export async function streamScene(
     )
   }
 
-  return { ok: true, data: { lines, summary, end, applied: true, at, reply: result.data } }
+  if (!abandoned()) landScene(result.data, spot, lines.length)
+  return { ok: true, data: { lines, summary, end, applied: true, at, reply: result.data, spot } }
 }
 
 /** Hands playback back to a player parked on the spinner at the end of the queue. */

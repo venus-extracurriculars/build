@@ -63,7 +63,7 @@ import { modRequest, dmHistoryNotes, promptFields, promptLines, promptRequired }
 import { relationshipLines } from './relationship'
 import { herColdLine } from './colds'
 import { weatherLines } from './weather'
-import type { GlobalTextId, TextEdits } from '@shared/presets/types'
+import type { GlobalTextId, TextEdits } from '@shared/promptText'
 import { textingPersonaFor } from './promptBlocks'
 
 /**

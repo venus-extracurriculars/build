@@ -1112,6 +1112,8 @@ export function AppSettingsModal({ theme, onClose }: AppSettingsModalProps): JSX
                 onEditPrompt={() => setEditing(true)}
                 onPromptStudio={() => setStudio(true)}
                 onBackgrounds={() => setBackgrounds(true)}
+                theme={theme}
+                busy={backingUp || restoring}
               />
             )}
           </div>

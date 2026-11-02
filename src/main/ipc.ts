@@ -12,7 +12,7 @@ import {
   savePreset,
   setActivePreset
 } from './services/presetsService'
-import type { Preset } from '@shared/presets/types'
+import { PROMPT_STUDIO_MOD, type Preset } from '@shared/presets/types'
 import type { StudioPrompts } from '@shared/presets/studioPrompts'
 import { getStudioPrompts, setStudioPrompts } from './services/studioPromptsService'
 import { readStudioBackupFile, saveStudioBackup } from './services/studioBackupService'
@@ -155,7 +155,8 @@ import {
 } from './services/comfyService'
 import { classifyCloud } from '@shared/llm/cloudClassifier'
 import { generatePhoto } from '@shared/llm/cloudImage'
-import { completeStructured as completeCloudStructured, type StructuredRequest } from '@shared/llm/cloudLlm'
+import type { StructuredRequest } from '@shared/llm/cloudLlm'
+import { completeWithFinalRequest, registerFinalRequest } from './services/finalRequest'
 import type { FeedThreadsResponse } from '@shared/bunnyfeeds'
 import { cancelModCalls, completeModRequest } from '@shared/llm/modCall'
 import {
@@ -1181,10 +1182,23 @@ async function openFolder(path: string, message: string): Promise<void> {
  * applied where the request asks for one, and the fields only this app reads never reach the
  * provider. A preset that cannot be loaded costs nothing but a warning.
  */
+// The bundled Prompt Studio keeps its existing variables and storage while using core's request owner.
+registerFinalRequest(PROMPT_STUDIO_MOD, async (request) => {
+  const preset = request.preset ? await loadActivePreset() : null
+  const plan = planPresetRequest(request, preset)
+  return {
+    request: plan.request,
+    sampling: plan.applied ? preset?.sampling : undefined,
+    finish: (reply) => {
+      for (const warning of finishPresetReply(reply, plan.applied)) console.warn('[presets] '+warning)
+    }
+  }
+})
+
 async function completeStructured<T>(request: StructuredRequest, signal?: AbortSignal, onDelta?: (delta: string) => void): Promise<T> {
   const prepared = await prepareStoryRequest(request)
-  const plan = planPresetRequest(prepared, prepared.preset ? await loadActivePreset() : null)
-  const reply = await completeCloudStructured<T>(plan.request, signal, onDelta, undefined, plan.sampling)
-  for (const warning of finishPresetReply(reply, plan.applied)) console.warn(`[presets] ${warning}`)
-  return reply
+  const tagged = prepared.preset
+    ? { ...prepared, modTags: { ...prepared.modTags, [PROMPT_STUDIO_MOD]: prepared.preset } }
+    : prepared
+  return completeWithFinalRequest<T>(tagged, signal, onDelta)
 }

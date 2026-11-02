@@ -1,4 +1,4 @@
-import { classCatalogNow, textEditsNow } from './promptStudioStore'
+import { classCatalogEdits, promptTextEdits } from '../mods/hooks'
 import { enrollmentMods } from '@shared/enrollmentMods'
 import { useModsStore } from './modsStore'
 import { useMemo } from 'react'
@@ -274,7 +274,7 @@ export function rosterOf(draft: Pick<ApplicationDraft, 'chars'>): Character[] {
  * character store holds them, a deleted one left out.
  */
 function requestWorld(): RequestWorld {
-  const world: RequestWorld = { setting: settingNow(), book: lorebookNow(), textEdits: textEditsNow()?.global, classCatalog: classCatalogNow() }
+  const world: RequestWorld = { setting: settingNow(), book: lorebookNow(), textEdits: promptTextEdits()?.global, classCatalog: classCatalogEdits() }
   const continued = useApplicationStore.getState().application?.continued
   if (!continued) return world
   const { characters } = useCharacterStore.getState()

@@ -10,9 +10,9 @@ import * as introPrompt from '../src/renderer/prompts/slotIntroPrompt'
 import { character, charInfo, restoreApi, stubApi } from './fixtures'
 
 // Stand in only for the saved prompt edits; exercise the real ending and request builders.
-vi.mock('../src/renderer/stores/promptStudioStore', async (original) => ({
-  ...await original<typeof import('../src/renderer/stores/promptStudioStore')>(),
-  textEditsNow: () => ({ global: {
+vi.mock('../src/renderer/mods/hooks', async (original) => ({
+  ...await original<typeof import('../src/renderer/mods/hooks')>(),
+  promptTextEdits: () => ({ global: {
     'persona.solo': 'Keep the player-authored bookkeeping instructions.',
     'persona.narration': 'Keep the player-authored opening instructions.'
   } })
