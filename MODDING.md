@@ -1,5 +1,10 @@
 # Mods in this build
 
+Mods can type their own job and location catalogues with `import type { JobDef, LocationDef }
+from '@vx/modkit/shared'`. These are the game's existing definition types, not copies.
+The import is erased at runtime and does not register a catalogue or load native jobs or
+locations. Existing hook registration and mod on/off rules still control whether entries act.
+
 ### Character sprite URLs
 
 Renderer mods can import `spriteUrl(charId, sprite, version?, staged?)` from
