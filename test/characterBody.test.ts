@@ -1,3 +1,4 @@
+import { SHIPPED_DEFAULT_TAGS } from '@shared/defaultTags'
 import { describe, expect, it } from 'vitest'
 import {
   allowedBeside,
@@ -14,7 +15,7 @@ import {
   withBodyTags,
   type CharacterBody
 } from '../src/shared/characterBody'
-import { cgSetDraft, spriteDraft } from '../src/shared/imagePrompt'
+import { cgSetDraft as nativeCgSetDraft, spriteDraft as nativeSpriteDraft } from '../src/shared/imagePrompt'
 import { setSharedModRules } from '../src/shared/modRules'
 import { setPhotoSwitches } from '../src/shared/photoSwitches'
 import { registerImagePromptDraft } from '@vx/modkit/shared'
@@ -401,3 +402,7 @@ describe('body storage', () => {
     setPhotoSwitches({ body: true })
   })
 })
+
+// Existing body fixtures use shipped defaults; 0.8 callers pass the active tag groups.
+function spriteDraft(c: Parameters<typeof nativeSpriteDraft>[0], poses: Parameters<typeof nativeSpriteDraft>[1], set: Parameters<typeof nativeSpriteDraft>[2]) { return nativeSpriteDraft(c, poses, set, SHIPPED_DEFAULT_TAGS) }
+function cgSetDraft(c: Parameters<typeof nativeCgSetDraft>[0]) { return nativeCgSetDraft(c, SHIPPED_DEFAULT_TAGS) }
