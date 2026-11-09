@@ -212,3 +212,40 @@ it('lets an installed mod require a built-in without a main entry, held to its r
   const outOfRange = run({}, { requireMain })
   expect(sessionRow(outOfRange.table, 'hello-mod')).toMatchObject({ status: 'blocked', message: 'needs notes ^2.0.0, 1.0.0 is installed' })
 })
+
+it('blocks an installed mod whose built-in requirement without a main entry needs a mod that is absent', () => {
+  installMods([{ ...def('notes'), requires: ['backend'] }])
+  const folder = installFixture(root, 'hello-mod')
+  const manifest = JSON.parse(readFileSync(join(folder, 'vxmod.json'), 'utf8')) as Record<string, unknown>
+  writeFileSync(join(folder, 'vxmod.json'), JSON.stringify({ ...manifest, requires: { notes: '*' } }))
+  const requireMain = vi.fn((_ctx: MainContext) => ({}))
+  const result = run({}, { requireMain })
+  expect(sessionRow(result.table, 'hello-mod')).toMatchObject({ status: 'blocked', message: 'needs notes, which did not load' })
+  expect(requireMain).not.toHaveBeenCalled()
+  expect(sessionRow(result.table, 'notes')).toBeUndefined()
+})
+
+it('blocks a built-in whose requirement without a main entry needs a built-in whose entry threw', () => {
+  installMods([
+    { ...def('companion', ['invoke']), requires: ['notes'] },
+    { ...def('notes'), requires: ['backend'] },
+    def('backend', ['invoke'])
+  ])
+  const load = vi.fn(entry)
+  const result = run({ companion: load, backend: throwingEntry })
+  expect(sessionRow(result.table, 'backend')?.status).toBe('failed')
+  expect(sessionRow(result.table, 'companion')).toMatchObject({ status: 'blocked', message: 'needs notes, which did not load' })
+  expect(load).not.toHaveBeenCalled()
+  expect(result.invokes.has('companion')).toBe(false)
+  expect(sessionRow(result.table, 'notes')).toBeUndefined()
+  expect(result.table.order).toEqual([])
+})
+
+it('blocks a built-in that requires itself through a built-in without a main entry', () => {
+  installMods([{ ...def('companion', ['invoke']), requires: ['notes'] }, { ...def('notes'), requires: ['companion'] }])
+  const load = vi.fn(entry)
+  const result = run({ companion: load })
+  expect(sessionRow(result.table, 'companion')).toMatchObject({ status: 'blocked', message: 'requires itself through companion → notes → companion' })
+  expect(load).not.toHaveBeenCalled()
+  expect(sessionRow(result.table, 'notes')).toBeUndefined()
+})

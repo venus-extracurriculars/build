@@ -175,8 +175,8 @@ function builtInCandidates(input: LoaderInput): Candidate[] {
 
 /**
  * The built-ins with no main entry, which `builtInCandidates` leaves out of the table. They are
- * still part of the build and always running, so a mod that requires one finds it there, at the
- * version `MODS` gives it.
+ * still part of the build, so a mod that requires one finds it there, at the version `MODS` gives
+ * it, and loads only where everything that built-in requires in turn did.
  */
 function rowlessBuiltIns(input: LoaderInput): ModDef[] {
   const entries = input.builtInMain ?? BUILT_IN_MAIN_ENTRIES
@@ -259,10 +259,14 @@ function orderCandidates(candidates: Candidate[], input: LoaderInput): { order: 
       Object.fromEntries((one.entry.def?.requires ?? []).map((id) => [id, '*'])),
     optional: one.entry.manifest?.optional
   }))
-  // A built-in without a row runs whatever the table says, so it orders as present and loadable
-  // with nothing to wait for; it has no main code, so where it falls in the order does not matter.
+  // A built-in without a row orders with its own requirements, so a missing one or a cycle
+  // through it blocks whatever requires it; the built-in itself stays out of the table.
   for (const def of rowlessBuiltIns(input)) {
-    if (!byId.has(def.id)) inputs.push({ id: def.id, name: def.name, version: def.version, loadable: true })
+    if (byId.has(def.id)) continue
+    inputs.push({
+      id: def.id, name: def.name, version: def.version, loadable: true,
+      requires: Object.fromEntries((def.requires ?? []).map((id) => [id, '*']))
+    })
   }
   const ordered = orderMods(inputs)
   for (const [id, message] of Object.entries(ordered.blocked)) {
@@ -362,8 +366,16 @@ function requireCandidates(
   const invokes = new Map<string, Map<string, InvokeHandler>>()
   const mainExports = new Map<string, unknown>()
   const requireMain = input.requireMain ?? requireMainFile
-  const rowless = new Set(rowlessBuiltIns(input).map((def) => def.id))
-  const running = (dep: string): boolean => rowless.has(dep) || byId.get(dep)?.entry.status === 'loaded'
+  const rowless = new Map(rowlessBuiltIns(input).map((def) => [def.id, def]))
+  // A built-in without a row has no status of its own: it counts as loaded while everything it
+  // requires, down the chain, is loaded, and a chain that comes back to itself is not.
+  const running = (dep: string, through: ReadonlySet<string> = new Set()): boolean => {
+    const def = rowless.get(dep)
+    if (!def) return byId.get(dep)?.entry.status === 'loaded'
+    if (through.has(dep)) return false
+    const next = new Set([...through, dep])
+    return (def.requires ?? []).every((id) => running(id, next))
+  }
   for (const id of order) {
     const candidate = byId.get(id)
     const manifest = candidate?.entry.manifest
@@ -371,7 +383,7 @@ function requireCandidates(
     const required = manifest ? Object.keys(manifest.requires ?? {}) : candidate.entry.def?.requires ?? []
     const gone = required.find((dep) => !running(dep))
     if (gone) {
-      fail(candidate, 'blocked', `needs ${byId.get(gone)?.entry.manifest?.name ?? gone}, which did not load`)
+      fail(candidate, 'blocked', `needs ${byId.get(gone)?.entry.manifest?.name ?? rowless.get(gone)?.name ?? gone}, which did not load`)
       continue
     }
     // An optional dependency that was ordered first but whose main.js then failed is as if absent.
