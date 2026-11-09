@@ -5,16 +5,13 @@ import { ECHO_ASPECTS, aspectOf, changePlayerEcho, echoAffinity, echoCreatureOf,
 import { chooseSetupEchoAspect } from '../../shared/echoSetup'
 import { ECHO_FLOAT_SECONDS_DEFAULT, ECHO_STAGE_DEFAULT, PLAYER_ECHO_STAGE_DEFAULT, ECHO_STAGE_LIMITS, echoStageOpacity, echoStageStyle, normalizeEchoStage, resolveEchoStage, type EchoStagePlacement } from '../../shared/echoStage'
 import { spriteUrl, useSpriteVersion } from '../stores/characterStore'
-import { pictureKeySet } from '@shared/settingsRules'
-import { comfySourceOf } from '@shared/comfyModels'
 import { suggestEchoName, suggestEchoCreature } from '../../shared/echoNaming'
 import { echoBreakthroughAbility, ECHO_BREAKTHROUGH_OPTION } from '../../shared/echoBreakthrough'
 import { fullNameOf, type Character } from '@vx/modkit/shared'
 import { useGameStore } from '../stores/gameStore'
 import { useModsStore } from '../stores/modsStore'
-import { useModOn, modIsOn } from '@vx/modkit/renderer'
-import { useSettingsStore } from '../stores/settingsStore'
-import { manualSaveOffer, writeEcho } from '../stores/loop/saves'
+import { useModOn, modIsOn, useImageApiConfigured, useLocalImageSource, useSafePoint } from '@vx/modkit/renderer'
+import { writeEcho } from '../stores/loop/saves'
 import { ensureEchoes } from '../stores/echoAssignments'
 import { useDismissLayer } from '@vx/modkit/renderer'
 import { EchoNotice } from '../components/EchoNotice'
@@ -181,8 +178,8 @@ export function EchoPanel({hidden,gallery=false,owner,onClose,setup,theme}: {hid
   const localArt=useModsStore(s=>optionOn(s.switches,'echo','megaten-art'))
   const glitchEffects=useModsStore(s=>optionOn(s.switches,'reckoning','glitch-effects'))
   const abilityOption=useModsStore(s=>optionOn(s.switches,'echo',ECHO_BREAKTHROUGH_OPTION)),breakthroughOn=useModOn('breakthrough')
-  const settings=useSettingsStore(s=>s.settings),imageReady=localArt||(!!settings&&pictureKeySet(settings))
-  const externalComfy=!!settings&&comfySourceOf(settings)==='external'
+  const apiConfigured=useImageApiConfigured(),imageSource=useLocalImageSource()
+  const imageReady=localArt||apiConfigured,externalComfy=imageSource==='external'
   const autoStarting=useRef(false)
   const dialog = useRef<HTMLDialogElement>(null), live = useRef(false), request = useRef<string | null>(null)
   const batch = useRef(false)
@@ -214,7 +211,8 @@ export function EchoPanel({hidden,gallery=false,owner,onClose,setup,theme}: {hid
   const matches = ids.filter(id => matchingEcho(state,id))
   const competitors = ids.filter(id => echoAffinity(state,id)==='competing')
   const missing = ['player',...ids].filter(id => !(id === 'player' ? state.player : state.girls[id])?.art)
-  const safe = !!setup || (manualSaveOffer() === 'open' && !game.sceneEnding)
+  const saveOffer = useSafePoint()
+  const safe = !!setup || (saveOffer === 'open' && !game.sceneEnding)
   const namePending=editedName.trim()!==(identity?.name??'')
   const creaturePending=editedCreatureType.trim()!==creature.type||editedDescription.trim()!==creature.description
   useEffect(()=>{

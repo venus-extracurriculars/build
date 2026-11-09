@@ -19,14 +19,14 @@ import {
   rollCrowd
 } from '../../shared/bunnyfeedsCrowd'
 import {
+  drawFeedHandles,
+  drawFeedEmoji,
   FEED_EMOJI,
-  FEED_EMOJI_BAG,
-  FEED_HANDLE_BAG,
   FEED_HANDLE_POOL,
   isFeedContact
 } from '@vx/modkit/renderer'
-import { useGameStore } from './gameStore'
-import { useGrabBagStore } from './grabBagStore'
+import { readBunnyfeedsContext } from './bunnyfeedsReadContext'
+import { commentData } from './bunnyfeedsData'
 
 /** Bunnyfeeds' side of a post's replies: who may write them, and how they are filed. */
 
@@ -38,7 +38,7 @@ const plannedCrowds = new Map<string, { words: number; picture: number }>()
  * many replies as are kept and no more; the ones planned for the slot before are forgotten.
  */
 export function planSlotCrowds(charIds: readonly string[]): Map<string, { words: number; picture: number }> {
-  const game = useGameStore.getState()
+  const game = readBunnyfeedsContext()
   plannedCrowds.clear()
   for (const charId of charIds) {
     plannedCrowds.set(
@@ -79,7 +79,7 @@ export function replierOf(
   posterId: string,
   relationships: NpcRelationshipMap | undefined
 ): Replier | null {
-  const game = useGameStore.getState()
+  const game = readBunnyfeedsContext()
   const character = game.characters[charId]
   if (!character) return null
   return {
@@ -92,7 +92,7 @@ export function replierOf(
 
 /** The friend of hers, if the roll offers one, who may reply under a post as it is written. */
 export function repliersFor(posterId: string, relationships: NpcRelationshipMap | undefined): Replier[] {
-  const friends = npcFriendsOf(relationships, posterId, useGameStore.getState().chars)
+  const friends = npcFriendsOf(relationships, posterId, readBunnyfeedsContext().chars)
   const picked = pickOpeningFriend(friends)
   const replier = picked ? replierOf(picked, posterId, relationships) : null
   return replier ? [replier] : []
@@ -106,7 +106,7 @@ export function joiningFriendOf(
   posterId: string,
   relationships: NpcRelationshipMap | undefined
 ): Replier | null {
-  const game = useGameStore.getState()
+  const game = readBunnyfeedsContext()
   const friends = npcFriendsOf(relationships, posterId, game.chars)
   const mutuals = friends.filter((id) => isFeedContact(game.charInfo[id]))
   const others = friends.filter((id) => !mutuals.includes(id))
@@ -121,7 +121,7 @@ export function joiningFriendOf(
  */
 export function writtenComments(raw: unknown, posterId: string): WrittenComment[] {
   if (!Array.isArray(raw)) return []
-  const game = useGameStore.getState()
+  const game = readBunnyfeedsContext()
   return raw.flatMap((one): WrittenComment[] => {
     if (typeof one === 'string') return [{ text: one }]
     if (!one || typeof one !== 'object') return []
@@ -158,7 +158,7 @@ export function rollFeedComments(
     .filter((one) => one.text)
   if (lines.length === 0) return []
 
-  const game = useGameStore.getState()
+  const game = readBunnyfeedsContext()
   // As many as she was told to draw; a post nobody planned for, rolled now.
   const planned = plannedCrowds.get(charId)
   plannedCrowds.delete(charId)
@@ -177,10 +177,9 @@ export function rollFeedComments(
   )
   if (kept.length === 0) return []
   const strangers = kept.filter((one) => !isFriend(one)).length
-  const bag = useGrabBagStore.getState()
   // Through the bags, so a handle and a face are both spent before either comes round again.
-  const handles = bag.drawMany(FEED_HANDLE_BAG, FEED_HANDLE_POOL, strangers, (one) => one.key)
-  const emoji = bag.drawMany(FEED_EMOJI_BAG, FEED_EMOJI, strangers)
+  const handles = drawFeedHandles(strangers)
+  const emoji = drawFeedEmoji(strangers)
 
   // Three to a slot, so a loud post arrives loud and still grows; a quiet one trickles.
   const posted = globalSlotOf(game.date, game.time)
@@ -189,21 +188,20 @@ export function rollFeedComments(
     const at = posted + Math.min(2, Math.floor(i / 3))
     const replier = one.charId ? game.characters[one.charId] : undefined
     if (one.charId && replier) {
-      return {
+      return commentData.with<PostComment>({
         id: crypto.randomUUID(),
-        charId: one.charId,
         handle:
           game.charInfo[one.charId]?.handle ??
           fallbackHandleOf(replier.firstName, replier.lastName),
         emoji: '',
         text: one.text,
         at
-      }
+      }, { charId: one.charId })
     }
     const n = drawn++
     return {
       id: crypto.randomUUID(),
-      handle: handles[n]?.handle ?? FEED_HANDLE_POOL[0].handle,
+      handle: handles[n] ?? FEED_HANDLE_POOL[0].handle,
       emoji: emoji[n] ?? FEED_EMOJI[0],
       text: one.text,
       at

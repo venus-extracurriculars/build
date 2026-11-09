@@ -33,6 +33,53 @@ const listed = (side: string): string[] =>
   KIT_APIS.filter((api) => api.startsWith(`${side}:`)).map((api) => api.slice(side.length + 1)).sort()
 
 describe('the entry points', () => {
+  it('re-exports read-only game readers as the native functions', async () => {
+    const native = await import('../../src/renderer/mods/gameReaders')
+    for (const name of [
+      'character',
+      'useCharacter',
+      'subscribeCharacter',
+      'characterInfo',
+      'useCharacterInfo',
+      'subscribeCharacterInfo',
+      'rosterIds',
+      'subscribeRosterIds',
+      'useRosterIds',
+      'conversation',
+      'useConversation',
+      'subscribeConversation',
+      'feed',
+      'useFeed',
+      'subscribeFeed',
+      'npcRelationships',
+      'useNpcRelationships',
+      'subscribeNpcRelationships',
+      'clock',
+      'useClock',
+      'subscribeClock',
+      'playerStats',
+      'usePlayerStats',
+      'subscribePlayerStats',
+      'playerProfilePicture',
+      'usePlayerProfilePicture',
+      'subscribePlayerProfilePicture',
+      'feedReadThrough',
+      'useFeedReadThrough',
+      'subscribeFeedReadThrough',
+      'sceneActive',
+      'useSceneActive',
+      'subscribeSceneActive',
+      'readerPromptText',
+      'useReaderPromptText',
+      'subscribeReaderPromptText',
+      'useProfileImageUrl',
+      'profileImageUrl',
+      'subscribeProfileImageUrl'
+    ] as const) {
+      expect(rendererKit[name], name).toBe(native[name])
+    }
+  })
+
   it('re-exports narrow native readers and feed draws without wrapping stores', async () => {
     const readers = await import('../../src/renderer/mods/readers')
     const mods = await import('../../src/renderer/stores/modsStore')
@@ -46,7 +93,16 @@ describe('the entry points', () => {
     expect(rendererKit.modOptionOn).toBe(mods.modOptionOn)
   })
 
+  it('re-exports the scene view and the turn hold as the native functions', async () => {
+    const native = await import('../../src/renderer/mods/sceneView')
+    for (const name of ['scene', 'useScene', 'subscribeScene', 'holdTurn'] as const) {
+      expect(rendererKit[name], name).toBe(native[name])
+    }
+  })
+
   it('re-exports the native lightbox and prompt helpers without wrappers', async () => {
+    const characters = await import('../../src/renderer/stores/characterStore')
+    expect(rendererKit.spriteUrl).toBe(characters.spriteUrl)
     const lightbox = await import('../../src/renderer/components/Lightbox')
     const relationship = await import('../../src/renderer/prompts/relationship')
     const scene = await import('../../src/renderer/prompts/scenePrompt')
@@ -231,6 +287,15 @@ describe('the entry points', () => {
     }
   })
 
+  it("hands mods the game's own record writes and save, so a mod's change is the game's", async () => {
+    const records = await import('../../src/renderer/mods/records')
+    const saves = await import('../../src/renderer/stores/loop/saves')
+    for (const name of ['addMemory', 'addPostComments', 'toggleFeedLike'] as const) {
+      expect(rendererKit[name], name).toBe(records[name])
+    }
+    expect(rendererKit.saveChanges).toBe(saves.saveChanges)
+  })
+
   it("hands main the game's guarded archive, image sniffer and live option reader", async () => {
     const archive = await import('../../src/main/services/archiveService')
     const images = await import('../../src/main/services/imageFiles')
@@ -380,6 +445,7 @@ const PROBES: Record<RendererHook, (id: string) => Probe> = {
   afterReachOut: fn('afterReachOut', undefined, (host) => host.afterReachOut({ charId: 'c', character: never, reply: {} })),
   playerActs: fn('playerActs', undefined, (host) => host.playerActs()),
   gameEntered: fn('gameEntered', undefined, (host) => host.gameEntered()),
+  keepSceneLedgerEntry: fn('keepSceneLedgerEntry', true, host => host.filterSceneLedger({memories:[{charKey:'test',type:'liked',desc:'test'}]})),
   slotSettled: fn('slotSettled', undefined, (host) => host.slotSettled(never)),
   slotStatusLines: fn('slotStatusLines', [], (host) => host.slotStatusLines({ nextSlot: 1 })),
   projectSlotMemories: fn('projectSlotMemories', {}, (host) => host.projectSlotMemories(never, {})),

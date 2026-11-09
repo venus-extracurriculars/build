@@ -17,6 +17,18 @@ import { UseBoundStore } from 'zustand';
 import { Variants } from 'motion/react';
 
 // @public
+export function addMemory(modId: string, charId: string, memory: CharMemory, options?: RecordWriteOptions & {
+    replacing?: (memory: Readonly<CharMemory>) => boolean;
+    replacingUnmarked?: (memory: Readonly<CharMemory>) => boolean;
+}): Result<null>;
+
+// @public
+export function addPostComments(modId: string, post: {
+    charId: string;
+    postId: string;
+}, comments: readonly PostComment[], options?: RecordWriteOptions): Result<null>;
+
+// @public
 export function boxParts(text: string): string[];
 
 // @public
@@ -49,6 +61,12 @@ export function BunnyMark(): JSX.Element;
 export function cancelCalls(modId: string, group: string): Promise<void>;
 
 // @public
+export function canInviteToScene(): boolean;
+
+// @public
+export function canRecordSceneTurn(modId?: string): boolean;
+
+// @public
 export function canRenderLocalImages(): boolean;
 
 // @public
@@ -57,6 +75,12 @@ export function Card(input: {
     className?: string;
     children: ReactNode;
 }): JSX.Element;
+
+// @public
+export const character: (id: string) => Readonly<Character> | undefined;
+
+// @public
+export const characterInfo: (id: string) => Readonly<CharInfo> | undefined;
 
 // @public
 export function CheckField(input: CheckFieldProps): JSX.Element;
@@ -82,6 +106,13 @@ export function ChevronIcon(input?: {
     back?: boolean;
     down?: boolean;
 }): JSX.Element;
+
+// @public
+export const clock: () => Readonly<{
+    date: number;
+    time: TimeSlot;
+    season: Season;
+}> | undefined;
 
 // @public (undocumented)
 export function CloseIcon(): JSX.Element;
@@ -147,6 +178,9 @@ export interface ContactTabProps {
 }
 
 // @public
+export const conversation: (id: string) => Readonly<Conversation> | undefined;
+
+// @public
 export function currentRun(): object;
 
 // @public
@@ -204,6 +238,23 @@ export interface EndingChoice extends WayOn {
     label: string;
 }
 
+// @public (undocumented)
+export interface ExternalSceneTurn {
+    // (undocumented)
+    actions: readonly string[];
+    // (undocumented)
+    deferSave?: boolean;
+    id: number;
+    // (undocumented)
+    lines: readonly {
+        charId: string;
+        emotion: Emotion;
+        text: string;
+    }[];
+    // (undocumented)
+    participants: readonly string[];
+}
+
 // @public
 export function EyeIcon(input: {
     size: number;
@@ -217,6 +268,9 @@ export function EyeOffIcon(input: {
 
 // @public
 export const fadeIn: (delay: number, duration?: number) => Variants;
+
+// @public
+export const feed: (id: string) => readonly Readonly<SocialPost>[];
 
 // @public
 export const FEED_EMOJI: readonly string[];
@@ -234,6 +288,9 @@ export const FEED_HANDLE_POOL: FeedHandle[];
 export const FEED_PAGE = 30;
 
 // @public
+export const feedReadThrough: () => number | undefined;
+
+// @public
 export function fileLatePost(post: NonNullable<SlotIntroResponse['posts']>[number]): Promise<void>;
 
 // @public
@@ -244,6 +301,9 @@ export function formatNumericGameDate(date: number, season: Season): string;
 
 // @public
 export function formatShortGameDate(date: number, season: Season): string;
+
+// @public
+export function freeForInvitation(id: string): boolean;
 
 // @public
 export function gameFacts(): {
@@ -280,10 +340,16 @@ export function gestures(dead: boolean, hover: TargetAndTransition, tap: TargetA
 };
 
 // @public
+export function hasDesktopSurfaces(): boolean;
+
+// @public
 export function hasTexted(conversation: Conversation | undefined): boolean;
 
 // @public
 export function HeartIcon(input?: MarkProps): JSX.Element;
+
+// @public
+export function holdTurn(modId: string): Result<() => void>;
 
 // @public
 export function imageApiConfigured(): boolean;
@@ -431,6 +497,7 @@ export interface ModHooks {
     gameEntered?: () => void;
     gameMenuEntry?: ComponentType<ScreenSlotProps['gameMenuEntry']>;
     gameModals?: Record<string, ComponentType<GameModalProps>>;
+    keepSceneLedgerEntry?: (entry: Readonly<SceneLedgerEntry>) => boolean;
     landingTool?: ComponentType<ScreenSlotProps['landingTool']>;
     mapOverlay?: ComponentType<ScreenSlotProps['mapOverlay']>;
     messageAttachment?: ComponentType<ScreenSlotProps['messageAttachment']>;
@@ -531,10 +598,16 @@ export function noNsfwImages(): boolean;
 export const noteIn: Variants;
 
 // @public
+export const npcRelationships: () => Readonly<NpcRelationshipMap> | undefined;
+
+// @public
 export function objectSchema(name: string, required: readonly string[], properties: Record<string, unknown>): StructuredRequest['schema'];
 
 // @public
 export function openPanel(id: string, arg?: string): boolean;
+
+// @public
+export function openSceneExchange(modId: string): SceneExchange | null;
 
 // @public
 export interface OptionPreviewProps {
@@ -550,6 +623,12 @@ export const panelUnderTab: Variants;
 
 // @public
 export function phoneOpen(): boolean;
+
+// @public
+export const playerProfilePicture: () => string | null;
+
+// @public
+export const playerStats: () => Readonly<PlayerStats> | undefined;
 
 // @public
 export function PlusIcon(input: {
@@ -605,6 +684,9 @@ export function postVisible(post: SocialPost): boolean;
 
 // @public
 export const press: TargetAndTransition;
+
+// @public
+export const profileImageUrl: (id: string) => string | undefined;
 
 // @public
 export function profileLines(character: Character, flags: CharFlags, castSize?: number): string[];
@@ -745,6 +827,7 @@ export interface PromptState {
     stats?: PlayerStats;
     // (undocumented)
     storyMemory?: StorySnapshot;
+    subjectTags?: readonly string[];
     textEdits?: TextEditSet;
     textedWith?: readonly string[];
     textingSummaries?: Record<string, string[]>;
@@ -784,6 +867,9 @@ export interface RailSeatProps {
 export function reachTurn(): boolean;
 
 // @public
+export const readerPromptText: () => string | undefined;
+
+// @public
 export function readerSaysInScene(text: string): boolean;
 
 // @public
@@ -792,6 +878,8 @@ export function recordField<T>(modId: string, spec: RecordFieldSpec<T>): RecordF
 // @public
 export interface RecordFieldHandle<T> {
     read(record: ModDataRecord): T;
+    set(ref: RecordRef, next: T, options?: RecordWriteOptions): Result<null>;
+    update(ref: RecordRef, change: (current: T) => T | undefined, options?: RecordWriteOptions): Result<null>;
     with<R extends ModDataRecord>(record: R, next: T): R;
 }
 
@@ -800,6 +888,27 @@ export interface RecordFieldSpec<T> {
     empty: T;
     legacy?: readonly string[];
     normalize?: (stored: unknown, legacy: Readonly<Record<string, unknown>>, from: string | null) => T;
+}
+
+// @public
+export type RecordRef = {
+    kind: 'message';
+    charId: string;
+    messageId: string;
+} | {
+    kind: 'post';
+    charId: string;
+    postId: string;
+} | {
+    kind: 'comment';
+    charId: string;
+    postId: string;
+    commentId: string;
+};
+
+// @public
+export interface RecordWriteOptions {
+    run?: object;
 }
 
 // @public
@@ -855,6 +964,11 @@ export interface ResolvedSave {
 export function retrySilently(call: string, error: AppError, spent: number, options?: SilentRetryOptions): Promise<boolean>;
 
 // @public
+export function rosterIds(options?: {
+    alumni?: boolean;
+}): readonly string[];
+
+// @public
 export const rowLift: TargetAndTransition;
 
 // @public (undocumented)
@@ -865,6 +979,11 @@ export function runStale(run: object): boolean;
 
 // @public
 export function safePoint(): ManualSaveOffer;
+
+// @public
+export function saveChanges(modId: string, options?: {
+    run?: object;
+}): Promise<Result<'written' | 'deferred'>>;
 
 // @public
 export interface SaveChoice extends WayOn {
@@ -899,6 +1018,12 @@ export interface SaveFieldSpec<T> {
 export function sayInScene(modId: string, text: string, options?: SceneLineOptions): boolean;
 
 // @public
+export function scene(): SceneView | null;
+
+// @public
+export const sceneActive: () => boolean;
+
+// @public
 export interface SceneCall {
     // (undocumented)
     playthroughId: string | null;
@@ -919,6 +1044,42 @@ export interface SceneDividerProps {
     // (undocumented)
     word: DividerWord;
 }
+
+// @public (undocumented)
+export interface SceneExchange {
+    append(turn: ExternalSceneTurn): boolean;
+    close(): void;
+    current(): boolean;
+    flush(): void;
+}
+
+// @public (undocumented)
+export interface SceneExchangeContext {
+    // (undocumented)
+    onScreen: (string | null)[];
+    // (undocumented)
+    people: Array<{
+        id: string;
+        profile: Pick<Character, 'charId' | 'firstName' | 'lastName' | 'personality' | 'behavior' | 'backstory' | 'likes' | 'dislikes'>;
+        relationship: Pick<CharInfo, 'memories' | 'flags' | 'nameKnown' | 'notes'> & {
+            disposition?: Disposition;
+        };
+    }>;
+    // (undocumented)
+    reader: string;
+    // (undocumented)
+    scene: {
+        kind: 'creator' | 'story';
+        location: string | null;
+        summary: string | null;
+        readerBio: string;
+        premise?: string;
+        relationships?: NpcRelationshipMap;
+    };
+}
+
+// @public
+export function sceneExchangeContext(): SceneExchangeContext;
 
 // @public
 export function sceneField<T>(modId: string, spec: SceneFieldSpec<T>): SceneFieldHandle<T>;
@@ -946,6 +1107,18 @@ export interface SceneInputLayout {
 }
 
 // @public
+export type SceneLedgerEntry = {
+    kind: 'memory';
+    value: NonNullable<LedgerResponse['memories']>[number];
+} | {
+    kind: 'event';
+    value: NonNullable<LedgerResponse['events']>[number];
+} | {
+    kind: 'act';
+    value: NonNullable<LedgerResponse['acts']>[number];
+};
+
+// @public
 export interface SceneLineOptions {
     charId?: string;
     expression?: Emotion;
@@ -961,6 +1134,7 @@ export interface ScenePanelProps {
 
 // @public
 export interface ScenePlay {
+    creator?: boolean;
     // (undocumented)
     Panel: ComponentType<ScenePanelProps>;
     // (undocumented)
@@ -1005,6 +1179,39 @@ export interface SceneStatSettlement {
     // (undocumented)
     ctx: StatContext;
     ledger: LedgerStats | undefined;
+}
+
+// @public
+export interface SceneView {
+    readonly active: boolean;
+    readonly activity: Readonly<SlotActivity> | null;
+    readonly atTurn: boolean;
+    readonly background: string | null;
+    readonly busy: boolean;
+    readonly canInterject: boolean;
+    readonly cast: readonly string[];
+    readonly classCode: string | null;
+    readonly created: boolean;
+    readonly ending: boolean;
+    readonly failed: boolean;
+    readonly jobId: string | null;
+    readonly line: SceneViewLine | null;
+    readonly lines: readonly SceneViewLine[];
+    readonly location: string | null;
+    readonly over: boolean;
+    readonly present: readonly string[];
+    readonly projectClass: string | null;
+    readonly quiz: boolean;
+    readonly replay: boolean;
+    readonly resolved: boolean;
+    readonly scripted: ScriptedSlot | null;
+    readonly stage: readonly (string | null)[];
+}
+
+// @public
+export interface SceneViewLine {
+    readonly speaker: string;
+    readonly text: string;
 }
 
 // @public (undocumented)
@@ -1098,6 +1305,9 @@ export interface ScreenSlotProps {
 
 // @public
 export type ScreenTheme = 'day' | 'night';
+
+// @public
+export type ScriptedSlot = 'orientation' | 'graduation';
 
 // @public
 export function SelectField(input: SelectFieldProps): JSX.Element;
@@ -1210,6 +1420,12 @@ export interface SlotSettled {
 export function spaced(lines: readonly string[]): string[];
 
 // @public
+export function spriteUrl(charId: string, value: SpriteRef, version?: number, staged?: boolean): string;
+
+// @public
+export function startInvitedScene(modId: string, id: string, action: string, initialize: () => void, eligible?: () => boolean): Promise<void>;
+
+// @public
 export function submitAction(action: string, gift?: boolean, preset?: Verdict,
 planId?: string,
 sceneEvents?: TurnSnapshot['sceneEvents'],
@@ -1219,7 +1435,28 @@ answeredReminder?: string, activity?: SlotActivityOffer): Promise<void>;
 export function subscribeCanRenderLocalImages(onChange: () => void): () => void;
 
 // @public
+export const subscribeCharacter: (id: string, onChange: () => void) => () => void;
+
+// @public
+export const subscribeCharacterInfo: (id: string, onChange: () => void) => () => void;
+
+// @public
+export const subscribeClock: (onChange: () => void) => () => void;
+
+// @public
+export const subscribeConversation: (id: string, onChange: () => void) => () => void;
+
+// @public
+export const subscribeFeed: (id: string, onChange: () => void) => () => void;
+
+// @public
+export const subscribeFeedReadThrough: (onChange: () => void) => () => void;
+
+// @public
 export function subscribeImageApiConfigured(onChange: () => void): () => void;
+
+// @public
+export function subscribeInvitations(listener: () => void): () => void;
 
 // @public
 export function subscribeLocalImageSource(onChange: () => void): () => void;
@@ -1228,7 +1465,36 @@ export function subscribeLocalImageSource(onChange: () => void): () => void;
 export function subscribeNoNsfwImages(onChange: () => void): () => void;
 
 // @public
+export const subscribeNpcRelationships: (onChange: () => void) => () => void;
+
+// @public
 export function subscribePhoneView(onChange: () => void): () => void;
+
+// @public
+export const subscribePlayerProfilePicture: (onChange: () => void) => () => void;
+
+// @public
+export const subscribePlayerStats: (onChange: () => void) => () => void;
+
+// @public
+export const subscribeProfileImageUrl: (id: string, onChange: () => void) => () => void;
+
+// @public
+export const subscribeReaderPromptText: (onChange: () => void) => () => void;
+
+// @public
+export function subscribeRosterIds(onChange: () => void, options?: {
+    alumni?: boolean;
+}): () => void;
+
+// @public
+export function subscribeScene<T>(onChange: () => void, select?: (view: SceneView | null) => T): () => void;
+
+// @public
+export const subscribeSceneActive: (onChange: () => void) => () => void;
+
+// @public (undocumented)
+export function subscribeSceneTurns(listener: () => void): () => void;
 
 // @public
 export function takeTurnFromReply(): boolean;
@@ -1325,6 +1591,9 @@ export interface TitleTabProps {
 }
 
 // @public
+export function toggleFeedLike(charId: string, postId: string): void;
+
+// @public
 export const toggleLift: TargetAndTransition;
 
 // @public
@@ -1380,10 +1649,32 @@ export interface UpdatesTab {
 export function useBareMessage(text: string): boolean;
 
 // @public
+export const useCharacter: (id: string) => Readonly<Character> | undefined;
+
+// @public
+export const useCharacterInfo: (id: string) => Readonly<CharInfo> | undefined;
+
+// @public
+export const useClock: () => Readonly<{
+    date: number;
+    time: TimeSlot;
+    season: Season;
+}> | undefined;
+
+// @public
+export const useConversation: (id: string) => Readonly<Conversation> | undefined;
+
+// @public
 export function useDismissLayer(onDismiss: () => void, active: boolean): void;
 
 // @public
 export function useEmojiTool(): boolean;
+
+// @public
+export const useFeed: (id: string) => readonly Readonly<SocialPost>[];
+
+// @public
+export const useFeedReadThrough: () => number | undefined;
 
 // @public
 export function useGameFacts(): {
@@ -1413,7 +1704,33 @@ export function useModOption(modId: string, optionId: string): boolean;
 export function useNoNsfwImages(): boolean;
 
 // @public
+export const useNpcRelationships: () => Readonly<NpcRelationshipMap> | undefined;
+
+// @public
+export const usePlayerProfilePicture: () => string | null;
+
+// @public
+export const usePlayerStats: () => Readonly<PlayerStats> | undefined;
+
+// @public
+export const useProfileImageUrl: (id: string) => string | undefined;
+
+// @public
+export const useReaderPromptText: () => string | undefined;
+
+// @public
+export function useRosterIds(options?: {
+    alumni?: boolean;
+}): readonly string[];
+
+// @public
 export function useSafePoint(): ManualSaveOffer;
+
+// @public
+export function useScene<T>(select: (view: SceneView | null) => T): T;
+
+// @public
+export const useSceneActive: () => boolean;
 
 // @public
 export function useSceneInput(layout: SceneInputLayout | null): void;

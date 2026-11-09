@@ -1,7 +1,6 @@
 import { prepareStoryRequest, inspectStoryMemory } from './storyMemory'
 import * as echo from './echoArtwork'
 import type { ClassifierPromptRequest, ClassifierVerdict } from '@shared/classifier'
-import type { FeedThreadsResponse } from '@shared/bunnyfeeds'
 import { base64ToBytes } from '@shared/base64'
 import { appError, toAppError } from '@shared/errors'
 import {
@@ -37,7 +36,7 @@ import { isCustomCgSlot } from '@shared/positions'
 import { validateRecord } from '@shared/jsonValidate'
 import { ENDING_IMAGE_MODEL_ID } from '@shared/providers'
 import { keptReplayIds } from '@shared/replays'
-import { assertProfilePicture } from '@shared/profilePicture'
+import { assertProfilePicture, assertProfileSource } from '@shared/profilePicture'
 import { assertSafePlaythroughId } from '@shared/saveRules'
 import { storedEndpointKeyFor } from '@shared/settingsRules'
 import {
@@ -55,7 +54,6 @@ import {
 } from '@shared/types'
 import { truncate } from '@shared/errors'
 import type { VenusUniversityApi } from '../preload/api'
-import { photoBridge } from './photoBridge'
 import { imageBlob } from './blob'
 import { DESKTOP_ONLY_NOTE } from '../renderer/platform'
 import { exportBackup, importBackup } from './backup'
@@ -183,7 +181,6 @@ export function buildApi(): VenusUniversityApi {
       read: key => result('read a custom soundtrack', () => soundtrackLibrary.read(key)),
       cleanup: () => result('clean up imported music', () => soundtrackLibrary.cleanup())
     },
-    ...photoBridge,
     assets: {
       getPoseManifest: () => result('read the poses', getPoseManifest),
       getQuickstart: () => result('read the quickstart', getQuickstart),
@@ -330,10 +327,6 @@ export function buildApi(): VenusUniversityApi {
         result('write the status updates', () =>
           runAbortable(group, (signal) => completeStructured<EndingPostsResponse>(request, signal))
         ),
-      completeFeedThreads: (request, group) =>
-        result('answer the feed', () =>
-          runAbortable(group, (signal) => completeStructured<FeedThreadsResponse>(request, signal))
-        ),
       // Several texting calls can stream at once, so every delta carries its `group`.
       completeTexting: (request, group) =>
         result('write the text', () =>
@@ -379,9 +372,9 @@ export function buildApi(): VenusUniversityApi {
           const bytes = await chars.readImage(charId, rel)
           return bytes === null ? null : new Uint8Array(bytes)
         }),
-      applyWardrobeFix: (charId, target, images, paintLayer, kind) =>
+      applyWardrobeFix: (charId, target, images, paintLayer, kind, base) =>
         result('save the repaired sprites', () =>
-          chars.applyWardrobeFix(charId, target, images, paintLayer, kind)
+          chars.applyWardrobeFix(charId, target, images, paintLayer, kind, base)
         ),
       discardWardrobeLayer: (charId, target, kind) =>
         result('clear the paint layer', () =>
@@ -474,12 +467,21 @@ export function buildApi(): VenusUniversityApi {
           const bytes = await saves.readProfilePicture(playthroughId)
           return bytes === null ? null : new Uint8Array(bytes)
         }),
-      writeProfilePicture: (playthroughId, png) =>
+      readProfileSource: (playthroughId) =>
+        result('read the profile picture', () => saves.readProfileSource(playthroughId)),
+      writeProfilePicture: (playthroughId, png, source) =>
         result('save the profile picture', async () => {
           assertSafePlaythroughId(playthroughId)
-          const bytes = base64ToBytes(png)
-          assertProfilePicture(bytes)
-          await saves.writeProfilePicture(playthroughId, imageBlob(bytes))
+          const crop = base64ToBytes(png)
+          assertProfilePicture(crop)
+          const image = source.image === undefined ? null : base64ToBytes(source.image)
+          if (image) assertProfileSource(image)
+          await saves.writeProfilePicture(
+            playthroughId,
+            imageBlob(crop),
+            image ? imageBlob(image) : null,
+            source.frame
+          )
         }),
       deleteProfilePicture: (playthroughId) =>
         result('remove the profile picture', () => saves.deleteProfilePicture(playthroughId))

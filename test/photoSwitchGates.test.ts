@@ -1,5 +1,5 @@
-import './fixtures/maestroModelKit'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { setRendererPhotoSwitches } from './fixtures/photoSwitchState'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { restoreApi, stubApi } from './fixtures'
 
 /**
@@ -10,17 +10,12 @@ import { restoreApi, stubApi } from './fixtures'
 
 stubApi({ jobs: { onProgress: () => () => {} } })
 
-beforeEach(() => {
-  vi.resetModules()
-})
-
 afterEach(() => {
   vi.restoreAllMocks()
   restoreApi()
 })
 
 async function load() {
-  const switches = await import('../src/shared/photoSwitches')
   const { useSettingsStore } = await import('../src/renderer/stores/settingsStore')
   const { useSetupStore } = await import('../src/renderer/stores/setupStore')
   const { useGameStore } = await import('../src/renderer/stores/gameStore')
@@ -30,17 +25,17 @@ async function load() {
   useSettingsStore.setState({
     settings: { noNsfwImages: false } as never
   })
-  switches.setPhotoSwitches({ on: true, photos: true, body: true })
+  setRendererPhotoSwitches({ on: true, photos: true, body: true })
   useSetupStore.setState({ status: { comfyReady: true } as never })
-  return { switches, useSettingsStore, useGameStore, photos, bodyDetailsOn, comments }
+  return { useSettingsStore, useGameStore, photos, bodyDetailsOn, comments }
 }
 
 describe('Photo Feature asks its switch', () => {
   it('makes photos and asks for body details while on, and neither while off', async () => {
-    const { switches, photos, bodyDetailsOn } = await load()
+    const { photos, bodyDetailsOn } = await load()
     expect(photos.canSendPhotos()).toBe(true)
     expect(bodyDetailsOn()).toBe(true)
-    switches.setPhotoSwitches({ on: false })
+    setRendererPhotoSwitches({ on: false })
     expect(photos.canSendPhotos()).toBe(false)
     expect(bodyDetailsOn()).toBe(false)
   })
@@ -59,21 +54,21 @@ describe('Photo Feature asks its switch', () => {
   })
 
   it('forbids an explicit photo when either switch does', async () => {
-    const { switches, photos, useSettingsStore } = await load()
+    const { photos, useSettingsStore } = await load()
     expect(photos.noExplicitPhotos()).toBe(false)
-    switches.setPhotoSwitches({ explicit: false })
+    setRendererPhotoSwitches({ explicit: false })
     expect(photos.noExplicitPhotos()).toBe(true)
-    switches.setPhotoSwitches({ explicit: true })
+    setRendererPhotoSwitches({ explicit: true })
     useSettingsStore.setState({ settings: { noNsfwImages: true } as never })
     expect(photos.noExplicitPhotos()).toBe(true)
   })
 
   it('files a post with no comments and the game’s own likes while off', async () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.9)
-    const { switches, comments, useGameStore } = await load()
+    const { comments, useGameStore } = await load()
     useGameStore.setState({ playthroughId: '1', chars: ['a'], npcRelationships: {} } as never)
     expect(comments.rollComments('a', ['nice', 'wow', 'cute'], 'suggestive').length).toBeGreaterThan(0)
-    switches.setPhotoSwitches({ on: false })
+    setRendererPhotoSwitches({ on: false })
     expect(comments.rollComments('a', ['nice', 'wow', 'cute'], 'suggestive')).toEqual([])
     // The game's own roll: her friends (none here) and a handful more, never a crowd.
     for (let i = 0; i < 20; i++) expect(comments.postLikes('a', 'suggestive')).toBeLessThan(10)

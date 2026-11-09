@@ -2,9 +2,8 @@ import { rollPostLikes, npcFriendsOf, globalSlotOf, type PostComment } from '@vx
 import { photoFeatureOn } from '../../shared/photoSwitches'
 import type { PhotoTier } from '../../shared/photoGate'
 import { reachOf, rollAudienceLikes, rollCrowdCount } from '../../shared/postAudience'
-import { FEED_EMOJI, FEED_EMOJI_BAG, FEED_HANDLE_BAG, FEED_HANDLE_POOL } from '@vx/modkit/renderer'
-import { useGameStore } from './gameStore'
-import { useGrabBagStore } from './grabBagStore'
+import { photoGame } from './photoGame'
+import { drawFeedEmoji, drawFeedHandles, FEED_EMOJI, FEED_HANDLE_POOL } from '@vx/modkit/renderer'
 
 /**
  * Dresses the replies the model wrote for one post: a handle, an emoji for a face, and the slot
@@ -27,22 +26,21 @@ export function rollComments(
   // Off, the mod writes no comments; a post files as the game alone would file it.
   if (lines.length === 0 || !photoFeatureOn()) return []
 
-  const game = useGameStore.getState()
+  const game = photoGame()
   const reach = reachOf(game.playthroughId, charId, game.characters[charId])
   const count = Math.min(lines.length, rollCrowdCount({ photoTier, reach }))
   if (count === 0) return []
 
   const kept = lines.slice(0, count)
-  const bag = useGrabBagStore.getState()
   // Through the bags, so a handle and a face are both spent before either comes round again.
-  const handles = bag.drawMany(FEED_HANDLE_BAG, FEED_HANDLE_POOL, kept.length, (one) => one.key)
-  const emoji = bag.drawMany(FEED_EMOJI_BAG, FEED_EMOJI, kept.length)
+  const handles = drawFeedHandles(kept.length)
+  const emoji = drawFeedEmoji(kept.length)
 
   // Three to a slot, so a loud post arrives loud and still grows; a quiet one trickles.
   const posted = globalSlotOf(game.date, game.time)
   return kept.map((text, i) => ({
     id: crypto.randomUUID(),
-    handle: handles[i]?.handle ?? FEED_HANDLE_POOL[0].handle,
+    handle: handles[i] ?? FEED_HANDLE_POOL[0].handle,
     emoji: emoji[i] ?? FEED_EMOJI[0],
     text,
     at: posted + Math.min(2, Math.floor(i / 3))
@@ -54,7 +52,7 @@ export function rollComments(
  * she is actually close to.
  */
 export function postLikes(charId: string, photoTier: PhotoTier = 'none'): number {
-  const game = useGameStore.getState()
+  const game = photoGame()
   // Off, likes are the game's own: her friends and a few more.
   if (!photoFeatureOn()) {
     return rollPostLikes(npcFriendsOf(game.npcRelationships, charId, game.chars).length)
@@ -70,7 +68,7 @@ export function postLikes(charId: string, photoTier: PhotoTier = 'none'): number
 export function strangerLikes(handle: string): number {
   // Off, the game's own roll for a stranger: nobody she is close to, and a handful more.
   if (!photoFeatureOn()) return rollPostLikes(0)
-  const game = useGameStore.getState()
+  const game = photoGame()
   return rollAudienceLikes({
     reach: reachOf(game.playthroughId, handle, undefined),
     friends: 0,

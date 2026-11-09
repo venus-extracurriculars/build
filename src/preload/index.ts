@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { VenusUniversityApi } from './api'
-import { photoApi } from './photoApi'
 
 /**
  * The bridge implementation; every method's contract is documented on {@link VenusUniversityApi}
@@ -33,7 +32,6 @@ const api: VenusUniversityApi = {
     read: key => ipcRenderer.invoke('soundtracks:read', key),
     cleanup: () => ipcRenderer.invoke('soundtracks:cleanup')
   },
-  ...photoApi,
   assets: {
     getPoseManifest: () => ipcRenderer.invoke('assets:getPoseManifest'),
     getQuickstart: () => ipcRenderer.invoke('assets:getQuickstart'),
@@ -119,8 +117,6 @@ const api: VenusUniversityApi = {
     completeIntro: (request, group) => ipcRenderer.invoke('llm:completeIntro', request, group),
     completeEndingPosts: (request, group) =>
       ipcRenderer.invoke('llm:completeEndingPosts', request, group),
-    completeFeedThreads: (request, group) =>
-      ipcRenderer.invoke('llm:completeFeedThreads', request, group),
     completeTexting: (request, group) =>
       ipcRenderer.invoke('llm:completeTexting', request, group),
     onSceneDelta: (listener) => {
@@ -158,8 +154,8 @@ const api: VenusUniversityApi = {
     readWardrobeImage: (charId, target, image) =>
       ipcRenderer.invoke('chars:readWardrobeImage', charId, target, image),
     readImage: (charId, rel) => ipcRenderer.invoke('chars:readImage', charId, rel),
-    applyWardrobeFix: (charId, target, images, paintLayer, kind) =>
-      ipcRenderer.invoke('chars:applyWardrobeFix', charId, target, images, paintLayer, kind),
+    applyWardrobeFix: (charId, target, images, paintLayer, kind, base) =>
+      ipcRenderer.invoke('chars:applyWardrobeFix', charId, target, images, paintLayer, kind, base),
     discardWardrobeLayer: (charId, target, kind) =>
       ipcRenderer.invoke('chars:discardWardrobeLayer', charId, target, kind),
     profileCrop: (charId) => ipcRenderer.invoke('chars:profileCrop', charId),
@@ -218,8 +214,10 @@ const api: VenusUniversityApi = {
       ipcRenderer.invoke('saves:exportEndingArt', playthroughId, semesterId),
     readProfilePicture: (playthroughId) =>
       ipcRenderer.invoke('saves:readProfilePicture', playthroughId),
-    writeProfilePicture: (playthroughId, png) =>
-      ipcRenderer.invoke('saves:writeProfilePicture', playthroughId, png),
+    readProfileSource: (playthroughId) =>
+      ipcRenderer.invoke('saves:readProfileSource', playthroughId),
+    writeProfilePicture: (playthroughId, png, source) =>
+      ipcRenderer.invoke('saves:writeProfilePicture', playthroughId, png, source),
     deleteProfilePicture: (playthroughId) =>
       ipcRenderer.invoke('saves:deleteProfilePicture', playthroughId)
   },
