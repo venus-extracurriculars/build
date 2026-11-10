@@ -1,5 +1,9 @@
 # City Life
 
+Catalogue definitions import the native `JobDef` and `LocationDef` types from
+`@vx/modkit/shared`; the imports are erased at runtime. Catalogue values, job gates,
+shift pay and location registration keep their existing behavior.
+
 Two separate switches appear in Mods. **City Life locations** adds Lucky Strike Lanes,
 Starlight Roller Rink, Purr & Pour Cat Café, and Dance Studio. **City Life jobs** adds part-time work at
 those venues and requires the locations switch. Locations work without jobs or any other mod.
