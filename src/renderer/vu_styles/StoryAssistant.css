@@ -52,10 +52,13 @@
 
 /* Over the stage: one column standing between the insets the dialogue box keeps, ending clear of
    the speaker label over the box's top edge, so neither the box nor who is talking is covered.
+   The reader's picture over the box climbs as the stage narrows below 16:9; the padding climbs
+   with it by the same sum, a percentage here being the stage's width and the box 65.6% of it.
    The column takes no pointer; only the choices and the line in it do. */
 .vu-assistant-stage {
   position: absolute;
   inset: 96px 17.2% calc(70px + 56px + 232px + 40px + 18px);
+  padding-bottom: clamp(0px, calc((1250px - 65.6%) * 6), 122px);
   z-index: 3;
   display: flex;
   flex-direction: column;
