@@ -68,15 +68,22 @@
   pointer-events: none;
 }
 
-/* The ways forward: a visual novel's menu, a stack of answers in the middle of the stage. */
+/* The ways forward: a visual novel's menu, a stack of answers in the middle of the stage. A menu
+   taller than the column scrolls inside it from its first choice, padded for each choice's shadow
+   and tilt and taking that back in its margin, so a menu that fits stands where it did. It takes
+   the pointer so the wheel and the bar reach it between choices too. */
 .vu-assistant-menu {
   display: flex;
+  flex: 0 1 auto;
   flex-direction: column;
   gap: 14px;
-  width: min(820px, 100%);
-  margin: 0;
-  padding: 0;
+  width: calc(min(820px, 100%) + 24px);
+  min-height: 0;
+  margin: -8px -12px -14px;
+  padding: 8px 12px 14px;
+  overflow: hidden auto;
   list-style: none;
+  pointer-events: auto;
 }
 
 .vu-assistant-choice {
