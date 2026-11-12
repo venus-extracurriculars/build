@@ -35,6 +35,14 @@ export default defineConfig({
     }
   },
   preload: {
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve('src/preload/index.ts'),
+          modSurface: resolve('src/preload/modSurface.ts')
+        }
+      }
+    },
     resolve: {
       alias: {
         '@shared': resolve('src/shared'),
@@ -51,7 +59,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        input: { index: resolve('src/renderer/index.html'), echoCutout: resolve('src/renderer/echoCutout.html') }
+        input: { index: resolve('src/renderer/index.html'), echoCutout: resolve('src/renderer/echoCutout.html'), screenCompanion: resolve('src/renderer/screenCompanion.html') }
       }
     },
     resolve: {

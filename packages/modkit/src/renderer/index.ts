@@ -36,6 +36,7 @@ export type {
   ScreenSlot,
   ScreenSlotProps,
   SentTextSpot,
+  SceneLedgerEntry,
   SlotMemoryProjection,
   SlotSettled,
   UpdatesTab,
@@ -242,3 +243,9 @@ export {
 
 export { scene, useScene, subscribeScene, holdTurn } from '../bridge/renderer'
 export type { SceneView, SceneViewLine, ScriptedSlot } from '../bridge/renderer'
+
+export { canInviteToScene, freeForInvitation, subscribeInvitations, startInvitedScene } from '../bridge/renderer'
+
+export { hasDesktopSurfaces, canRecordSceneTurn, openSceneExchange, sceneExchangeContext, subscribeSceneTurns } from '../bridge/renderer'
+export type { ExternalSceneTurn, SceneExchange, SceneExchangeContext } from '../bridge/renderer'
+export { setSceneSuggestionsPaused, sceneSuggestionsPaused, useSceneSuggestionsPaused, subscribeSceneSuggestionsPaused } from '../bridge/renderer'

@@ -1,15 +1,28 @@
 import type { ModSet } from './boundaryScan'
 
 /**
- * Each in-repo mod's files beyond its two entries, by id: globs from the repo's root, and the mods
- * it requires where its entry does not say. The boundary test holds every file listed here to the
- * kit. On `core` there are no mods and this is empty; on `main` each author lists their own mod's
- * files, and a mod has moved out when its entry here is gone.
+ * Each in-repo mod's files beyond its entries, by id: globs from the repo's root, and the mods it
+ * requires where its entry does not say. The boundary test holds every file listed here to the
+ * kit, and keeps the game's own files from importing them. On `core` there are no mods and this
+ * is empty; on `main` each author lists their own mod's files, and a mod has moved out when its
+ * entry here is gone.
  *
  * A file two mods share is listed under the one the other requires (City Life), or split by what
  * each entry registers (the [MK] packs' games).
  */
 export const MOD_FILES: Record<string, ModSet> = {
+  'screen-companion': {
+    globs: [
+      'src/shared/screenCompanion.ts', 'src/shared/companionPointer.ts',
+      'src/renderer/screenCompanion*', 'src/renderer/ScreenCompanionEntry.tsx',
+      'src/renderer/Companion*.tsx', 'src/renderer/companionMedia.ts', 'src/renderer/companionCapture.ts',
+      'src/renderer/stores/screenCompanion.ts', 'src/renderer/companionSurface.ts',
+      'src/renderer/vu_styles/ScreenCompanion.css', 'src/main/screenCompanion.ts',
+      'src/main/services/companion*.ts', 'src/main/modEntries/screen-companion.ts'
+    ]
+  },
+
+  'scene-notes': { globs: ['src/shared/sceneNotes.ts', 'src/renderer/sceneNotes/**'] },
   breakthrough: {
     globs: [
       'src/shared/breakthrough*.ts',
@@ -163,25 +176,24 @@ export const MOD_FILES: Record<string, ModSet> = {
   },
   'photo-feature': {
     globs: [
-      'src/shared/photo{Body,Duo,Files,Framing,Gate,Loader,Pose,Prompt,Switches,Types,Wardrobe,Words}.ts',
+      'src/shared/photo{Body,Definition,Draft,Duo,Files,Framing,Gate,Loader,Pose,Prompt,Switches,Types,Wardrobe,Words}.ts',
       'src/shared/characterBody.ts',
       'src/shared/heldPosts.ts',
       'src/shared/postAudience.ts',
       'src/main/photo*.ts',
+      'src/main/modEntries/photo-feature.ts',
       'src/main/bodySetting.ts',
       'src/main/localPhotoBackup.ts',
       'src/main/services/localPhotoService.ts',
       'assets/workflows/characterPhoto.json',
       'assets/workflows/characterPhotoDuo.json',
-      'src/preload/photoApi.ts',
-      'src/web/photoBridge.ts',
       'src/renderer/components/PhotoBubble.tsx',
       'src/renderer/components/PhotoInfo.tsx',
       'src/renderer/stores/photoRedraw.ts',
       'src/renderer/vu_styles/PhotoInfo.css',
       'src/renderer/components/PhotoPostSpots.tsx',
       'src/renderer/stores/localPhotoStore.ts',
-      'src/renderer/stores/photo{Comments,Group,Post,Recovery,SwitchHooks,TipDelivery,Turn,Webp}.ts',
+      'src/renderer/stores/photo{Comments,Game,Group,Invoke,Post,Records,Recovery,SwitchHooks,TipDelivery,Turn,Webp}.ts',
       'src/renderer/views/ContactGallery.tsx',
       'src/renderer/views/bodyFields.tsx',
       'src/renderer/views/bodyDrafts.ts',
@@ -229,6 +241,16 @@ export const MOD_FILES: Record<string, ModSet> = {
       'src/renderer/vu_styles/StoryMemory.css'
     ]
   },
+  'story-assistant': {
+    globs: [
+      'src/shared/storyAssistant.ts',
+      'src/renderer/prompts/storyAssistantPrompt.ts',
+      'src/renderer/stores/storyAssistant.ts',
+      'src/renderer/views/StoryAssistant*',
+      'src/renderer/vu_styles/StoryAssistant.css'
+    ]
+  },
+  'study-room': { globs: ['src/shared/studyRoom.ts', 'src/renderer/studyRoom/**'] },
   'text-regeneration': {
     globs: ['src/shared/textRegeneration.ts', 'src/renderer/components/TextRegenerate.tsx', 'src/renderer/vu_styles/TextRegenerate.css']
   },

@@ -61,6 +61,12 @@ export function BunnyMark(): JSX.Element;
 export function cancelCalls(modId: string, group: string): Promise<void>;
 
 // @public
+export function canInviteToScene(): boolean;
+
+// @public
+export function canRecordSceneTurn(modId?: string): boolean;
+
+// @public
 export function canRenderLocalImages(): boolean;
 
 // @public
@@ -232,6 +238,23 @@ export interface EndingChoice extends WayOn {
     label: string;
 }
 
+// @public (undocumented)
+export interface ExternalSceneTurn {
+    // (undocumented)
+    actions: readonly string[];
+    // (undocumented)
+    deferSave?: boolean;
+    id: number;
+    // (undocumented)
+    lines: readonly {
+        charId: string;
+        emotion: Emotion;
+        text: string;
+    }[];
+    // (undocumented)
+    participants: readonly string[];
+}
+
 // @public
 export function EyeIcon(input: {
     size: number;
@@ -280,6 +303,9 @@ export function formatNumericGameDate(date: number, season: Season): string;
 export function formatShortGameDate(date: number, season: Season): string;
 
 // @public
+export function freeForInvitation(id: string): boolean;
+
+// @public
 export function gameFacts(): {
     playthroughId: string | null;
     readerName: string;
@@ -312,6 +338,9 @@ export function gestures(dead: boolean, hover: TargetAndTransition, tap: TargetA
     whileFocus: TargetAndTransition;
     'data-lift'?: '';
 };
+
+// @public
+export function hasDesktopSurfaces(): boolean;
 
 // @public
 export function hasTexted(conversation: Conversation | undefined): boolean;
@@ -468,6 +497,7 @@ export interface ModHooks {
     gameEntered?: () => void;
     gameMenuEntry?: ComponentType<ScreenSlotProps['gameMenuEntry']>;
     gameModals?: Record<string, ComponentType<GameModalProps>>;
+    keepSceneLedgerEntry?: (entry: Readonly<SceneLedgerEntry>) => boolean;
     landingTool?: ComponentType<ScreenSlotProps['landingTool']>;
     mapOverlay?: ComponentType<ScreenSlotProps['mapOverlay']>;
     messageAttachment?: ComponentType<ScreenSlotProps['messageAttachment']>;
@@ -575,6 +605,9 @@ export function objectSchema(name: string, required: readonly string[], properti
 
 // @public
 export function openPanel(id: string, arg?: string): boolean;
+
+// @public
+export function openSceneExchange(modId: string): SceneExchange | null;
 
 // @public
 export interface OptionPreviewProps {
@@ -797,6 +830,7 @@ export interface PromptState {
     stats?: PlayerStats;
     // (undocumented)
     storyMemory?: StorySnapshot;
+    subjectTags?: readonly string[];
     textEdits?: TextEditSet;
     textedWith?: readonly string[];
     textingSummaries?: Record<string, string[]>;
@@ -1014,6 +1048,42 @@ export interface SceneDividerProps {
     word: DividerWord;
 }
 
+// @public (undocumented)
+export interface SceneExchange {
+    append(turn: ExternalSceneTurn): boolean;
+    close(): void;
+    current(): boolean;
+    flush(): void;
+}
+
+// @public (undocumented)
+export interface SceneExchangeContext {
+    // (undocumented)
+    onScreen: (string | null)[];
+    // (undocumented)
+    people: Array<{
+        id: string;
+        profile: Pick<Character, 'charId' | 'firstName' | 'lastName' | 'personality' | 'behavior' | 'backstory' | 'likes' | 'dislikes'>;
+        relationship: Pick<CharInfo, 'memories' | 'flags' | 'nameKnown' | 'notes'> & {
+            disposition?: Disposition;
+        };
+    }>;
+    // (undocumented)
+    reader: string;
+    // (undocumented)
+    scene: {
+        kind: 'creator' | 'story';
+        location: string | null;
+        summary: string | null;
+        readerBio: string;
+        premise?: string;
+        relationships?: NpcRelationshipMap;
+    };
+}
+
+// @public
+export function sceneExchangeContext(): SceneExchangeContext;
+
 // @public
 export function sceneField<T>(modId: string, spec: SceneFieldSpec<T>): SceneFieldHandle<T>;
 
@@ -1040,6 +1110,18 @@ export interface SceneInputLayout {
 }
 
 // @public
+export type SceneLedgerEntry = {
+    kind: 'memory';
+    value: NonNullable<LedgerResponse['memories']>[number];
+} | {
+    kind: 'event';
+    value: NonNullable<LedgerResponse['events']>[number];
+} | {
+    kind: 'act';
+    value: NonNullable<LedgerResponse['acts']>[number];
+};
+
+// @public
 export interface SceneLineOptions {
     charId?: string;
     expression?: Emotion;
@@ -1055,6 +1137,7 @@ export interface ScenePanelProps {
 
 // @public
 export interface ScenePlay {
+    creator?: boolean;
     // (undocumented)
     Panel: ComponentType<ScenePanelProps>;
     // (undocumented)
@@ -1100,6 +1183,9 @@ export interface SceneStatSettlement {
     ctx: StatContext;
     ledger: LedgerStats | undefined;
 }
+
+// @public
+export function sceneSuggestionsPaused(): boolean;
 
 // @public
 export interface SceneView {
@@ -1273,6 +1359,9 @@ export interface SentTextSpot {
 }
 
 // @public
+export function setSceneSuggestionsPaused(modId: string, active: boolean): void;
+
+// @public
 export const SETTING = "VENUS UNIVERSITY (VU)\nMotto: Concordia et Prosperitas | Founded 2014 by Frederic Thorne | 6k Student Population.\n\nVenus University is a private megacampus built to maximize social connection. It admits students by a controversial lottery draw and funds a robust financial aid program off a seemingly bottomless endowment. The campus blends classical and ultra-modern architecture and walls itself off from the noisy city with lush gardens. Towering statues of Roman gods mark it: Venus in the quad, Jupiter at the North Entrance, Pluto at the South. Roads are paved with colored stone for navigation and purpose-built to be long and winding. The two major roads are the Gold Road, which links Jupiter and Pluto, and the Rose Road, which passes Venus and links the academic and residential areas. \"Meet me where Gold crosses Rose\" was cemented in national lingo by a romance film shot here called \"Love Between Gods\".\n\nCampus: Venus Quad (Concord Fountain), Agora (food court, study pods), Pino-Cola Lounge (games, study desks), Kendall Library, Whitman Greenhouse, Thorne Auditorium (concert hall, practice rooms, recording studios), Palaestra Stadium (gym, pool, turf, track).\nHousing: Elysium Village (upperclassmen townhouses), Lowrises 1 to 5 (anyone). All rooms are single-occupancy with shared facilities: no roommates.\nStudent government: VSA, split into CAPC (decor, plants) and SEB (events, mixers).\nSocial App: Bunnyboard.\n\nVERIDAN, USA\nRiver City (the Silk River) | Always Spring | 300k Population | Transit: The Loop electric tram.\n\nNineteenth-century textile money built Veridan, but its mills died in the 1970s and it coasted downhill until Thorne planted VU here in 2014, triggering an investment boom that delighted some longtime residents and enraged others. Sheltered by the river valley, it sits in a near-perpetual spring that meteorologists still can't explain properly.\n\nDistricts: Stanchion Street ($), Downtown ($$), Promenade ($$$).\nStanchion: BTB Arcade, Stalestein Bar (and stage), Hotel DREAMS (love hotel), Freights Books & Records, Pastel Palace (sweets), CuteTea, Eastern Buffet.\nDowntown: Green Hill Park, Lotterdale Market, Reserve Bank Cafe, Bobby's Diner, SpringMart, Fast Eats, Pier 44 Amusement Park.\nPromenade: Riverside Mall, Aquarium at Riverside, Future Cinema, Selkie Beach, Club Apogee, Lumiere Fusion (fine dining), Veridan Museum of Art.";
 
 // @public
@@ -1343,6 +1432,9 @@ export function spaced(lines: readonly string[]): string[];
 export function spriteUrl(charId: string, value: SpriteRef, version?: number, staged?: boolean): string;
 
 // @public
+export function startInvitedScene(modId: string, id: string, action: string, initialize: () => void, eligible?: () => boolean): Promise<void>;
+
+// @public
 export function submitAction(action: string, gift?: boolean, preset?: Verdict,
 planId?: string,
 sceneEvents?: TurnSnapshot['sceneEvents'],
@@ -1371,6 +1463,9 @@ export const subscribeFeedReadThrough: (onChange: () => void) => () => void;
 
 // @public
 export function subscribeImageApiConfigured(onChange: () => void): () => void;
+
+// @public
+export function subscribeInvitations(listener: () => void): () => void;
 
 // @public
 export function subscribeLocalImageSource(onChange: () => void): () => void;
@@ -1406,6 +1501,12 @@ export function subscribeScene<T>(onChange: () => void, select?: (view: SceneVie
 
 // @public
 export const subscribeSceneActive: (onChange: () => void) => () => void;
+
+// @public
+export function subscribeSceneSuggestionsPaused(listener: () => void): () => void;
+
+// @public (undocumented)
+export function subscribeSceneTurns(listener: () => void): () => void;
 
 // @public
 export function takeTurnFromReply(): boolean;
@@ -1648,6 +1749,9 @@ export function useSceneInput(layout: SceneInputLayout | null): void;
 
 // @public
 export function useScenePersona(): string | undefined;
+
+// @public
+export function useSceneSuggestionsPaused(): boolean;
 
 // @public
 export function useSfxGain(): number;

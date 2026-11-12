@@ -154,7 +154,6 @@ import { classifyCloud } from '@shared/llm/cloudClassifier'
 import { generatePhoto } from '@shared/llm/cloudImage'
 import type { StructuredRequest } from '@shared/llm/cloudLlm'
 import { completeWithFinalRequest } from './services/finalRequest'
-import type { FeedThreadsResponse } from '@shared/bunnyfeeds'
 import { cancelModCalls, completeModRequest } from '@shared/llm/modCall'
 import {
   listImageModels,
@@ -177,6 +176,7 @@ import {
   type OccasionsFile
 } from '@shared/occasionsFile'
 import { photoExportName, type PhotoMeta, type PhotoRequest } from '@shared/photos'
+import type { ProfileSourceWrite } from '@shared/profilePicture'
 import { exportFileName } from '@shared/characterTransfer'
 import { endingArtExportName } from '@shared/endingPicture'
 import type { ExportKind } from '@shared/sillyTavern'
@@ -192,11 +192,11 @@ import {
   runAbortable,
   setProgressSink
 } from '@shared/jobQueue'
-import { registerPhotoIpc } from './photoIpc'
 import { copyEndingArtTo, generateEndingArt, readEndingArt } from './services/endingArtService'
 import {
   deleteProfilePicture,
   readProfilePicture,
+  readProfileSource,
   writeProfilePicture
 } from './services/profilePictureService'
 import {
@@ -304,8 +304,6 @@ async function enqueueComfyJob<T>(
 
 /** Registers every IPC channel; keep this, preload and the d.ts in sync. */
 export function registerIpcHandlers(): void {
-  // The photo feature's three channels, which keep their own module and their own queue.
-  registerPhotoIpc(handle)
   handle('echo:reflectionExport',async(event,charId:string)=>{
     const data=await readReflectionPortrait(charId)
     if(!data)throw Error('Generate or upload an Unheard Soul portrait first.')
@@ -551,11 +549,6 @@ export function registerIpcHandlers(): void {
     runAbortable(group, (signal) => completeStructured<EndingPostsResponse>(request, signal))
   )
 
-  // Bunnyfeeds' thread call: answers what the reader wrote under her posts.
-  handle('llm:completeFeedThreads', (_event, request: StructuredRequest, group: string) =>
-    runAbortable(group, (signal) => completeStructured<FeedThreadsResponse>(request, signal))
-  )
-
   // A Bunnyboard texting turn, streamed. Several can stream at once, so every
   // delta carries its `group` to say whose text it is.
   handle('llm:completeTexting', (event, request: StructuredRequest, group: string) =>
@@ -666,8 +659,13 @@ export function registerIpcHandlers(): void {
   handle('saves:readProfilePicture', (_event, playthroughId: string) =>
     readProfilePicture(playthroughId)
   )
-  handle('saves:writeProfilePicture', (_event, playthroughId: string, png: string) =>
-    writeProfilePicture(playthroughId, png)
+  handle('saves:readProfileSource', (_event, playthroughId: string) =>
+    readProfileSource(playthroughId)
+  )
+  handle(
+    'saves:writeProfilePicture',
+    (_event, playthroughId: string, png: string, source: ProfileSourceWrite) =>
+      writeProfilePicture(playthroughId, png, source)
   )
   handle('saves:deleteProfilePicture', (_event, playthroughId: string) =>
     deleteProfilePicture(playthroughId)
@@ -998,8 +996,9 @@ export function registerIpcHandlers(): void {
       target: WardrobeTarget,
       images: WardrobeFixImage[],
       paintLayer: string | null,
-      kind: WardrobeLayer
-    ) => applyWardrobeFix(charId, target, images, paintLayer, kind)
+      kind: WardrobeLayer,
+      base?: string
+    ) => applyWardrobeFix(charId, target, images, paintLayer, kind, base)
   )
   // The hand repair's own housekeeping: strokes outlive the hand they placed a finger on.
   handle(
