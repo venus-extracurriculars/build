@@ -772,6 +772,8 @@ export interface PromptState {
     backFromBreak?: readonly string[];
     backgrounds: BackgroundSets;
     bg: string | null;
+    // (undocumented)
+    breakthrough?: BreakthroughState;
     calendar: SemesterCalendar;
     cgReady: Record<string, boolean>;
     charInfo: Record<string, CharInfo>;
@@ -786,6 +788,10 @@ export interface PromptState {
     droppedNotices?: readonly DroppedNotice[];
     emotions: Record<string, SpriteRef>;
     ex?: Readonly<Record<string, unknown>>;
+    // (undocumented)
+    exCharacterDynamics?: CharacterDynamics;
+    // (undocumented)
+    exReckoning?: ReckoningState;
     farewell?: {
         firstName: string;
         forAWhile: boolean;
@@ -822,6 +828,8 @@ export interface PromptState {
     slotRumor?: LoreRumor;
     springBreakAway?: readonly string[] | null;
     stats?: PlayerStats;
+    // (undocumented)
+    storyMemory?: StorySnapshot;
     subjectTags?: readonly string[];
     textEdits?: TextEditSet;
     textedWith?: readonly string[];
@@ -1379,6 +1387,8 @@ export interface SlotIntroInput {
     backOnCampus?: number;
     breakups: readonly IntroBreakup[];
     date: number;
+    // (undocumented)
+    exCharacterDynamics?: CharacterDynamics;
     globalTextEdits?: TextEdits<GlobalTextId>;
     homecomingVisitor?: string;
     leavers: readonly IntroLeaver[];
@@ -1395,6 +1405,8 @@ export interface SlotIntroInput {
     secretBudget?: number;
     springBreakAway?: readonly string[] | null;
     stats?: PlayerStats;
+    // (undocumented)
+    storyMemory?: StorySnapshot;
     time: TimeSlot;
     visitors: readonly IntroVisitor[];
     weather?: readonly Weather[];
@@ -1504,6 +1516,7 @@ export function TextEditModal(input: TextEditModalProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface TextEditModalProps {
+    allowEmpty?: boolean;
     discardMessage: string;
     id: string;
     // (undocumented)
@@ -1548,6 +1561,7 @@ export interface TextFieldProps {
 
 // @public
 export interface TextingPromptState {
+    breakthrough?: BreakthroughState;
     calendar: SemesterCalendar;
     charCompanions?: NpcCompanions;
     charHaunt?: Haunt | null;
@@ -1557,6 +1571,8 @@ export interface TextingPromptState {
     classRosters: Readonly<Record<string, ClassRoster>>;
     // (undocumented)
     date: number;
+    // (undocumented)
+    exCharacterDynamics?: CharacterDynamics;
     globalTextEdits?: TextEdits<GlobalTextId>;
     history: GameHistory;
     historyLimit?: number;
@@ -1570,6 +1586,8 @@ export interface TextingPromptState {
     secretBudget?: number;
     springBreakAway?: readonly string[] | null;
     stats?: PlayerStats;
+    // (undocumented)
+    storyMemory?: StorySnapshot;
     // (undocumented)
     time: TimeSlot;
     upcomingPlans?: Record<string, string[]>;
