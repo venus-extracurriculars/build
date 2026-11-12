@@ -13,6 +13,21 @@ const thoughts=[
 ]
 const dungeon:ReckoningDungeon={id:'link',charId:'zira',aspect:'wildspark',phase:'unlocked',unlockedByReckoning:true,context,replies:0,farewellReplies:0,lines:[],thoughts}
 
+it.each([
+ ['He believes every mistake proves his worthlessness.',null],
+ ['They believe every mistake proves their worthlessness.',null],
+ ['He believes every mistake proves failure.','I believe every mistake proves failure.'],
+ ['They believe every mistake proves failure.','I believe every mistake proves failure.'],
+ ['They are always one mistake away from failure.','I am always one mistake away from failure.'],
+ ['They were never good enough.','I was never good enough.'],
+ ['His attitude is defensive.',null],
+ ['Their attitude is defensive.',null],
+ ["I worry my brother will leave; he has done it before.","I worry my brother will leave; he has done it before."],
+ ["I worry my friend will leave; they have done it before.","I worry my friend will leave; they have done it before."]
+])('handles neutral and gendered input without rewriting another person’s history', (input,expected)=>{
+ expect(firstPersonThought(input,context.name)).toBe(expected)
+})
+
 it('repairs the named narrator opener without losing its belief, and keeps direct first-person thoughts intact',()=>{
  expect(firstPersonThought(thoughts[0].belief,context.name)).toBe('I believe everything is a power struggle.')
  expect(firstPersonThought('Zira Vale is always one mistake away from losing everything.',context.name)).toBe('I am always one mistake away from losing everything.')
@@ -41,5 +56,5 @@ it('validates new generation while retaining old saved encounters and their answ
  expect(loaded.active).toEqual(active)
  expect(unspokenWhispers(loaded.dungeon!)[0]).toBe(bad[0].challenge)
  const prompt=beginReckoningPrompt(context)
- expect(prompt.system).toContain('every belief as her own first-person thought')
+ expect(prompt.system).toContain('every belief as their own first-person thought')
 })
