@@ -1727,6 +1727,8 @@ before loading a playthrough or building requests. `ShippedLoreEntry` and `LoreE
 are the native types exported by the same kit entry. A stable `ref` uses the native
 lowercase underscore format and is the key for player-authored lorebook edits; never
 rename it after shipping. Place `id`s and refs must be unique across native and mod lore.
+Refs matching `custom1`, `custom2`, … are reserved for the player’s own entries.
+Place IDs use the same lowercase underscore format as refs.
 
 ```ts
 import { registerLoreEntries } from '@vx/modkit/renderer'
@@ -1744,10 +1746,14 @@ snapshots cannot inject a removed entry.
 
 By default availability follows the owner's `sharedModOn` lookup. Optional
 `{ available: () => boolean }` replaces that lookup for a mod with an existing native
-enrollment/world rule. Keep it synchronous, pure and inexpensive. A disabled entry
+enrollment/world rule. Keep it synchronous, pure and inexpensive. A throwing rule counts as unavailable,
+with one warning naming its owner per registration; unrelated native and mod lore
+continues to work. Text matching checks the keys before evaluating the rule. A disabled entry
 stays readable in the editor, retaining player edits, but contributes no matching
 prompt paragraphs, place lookup or rumor suggestions. The native lorebook store
 also retains valid unknown edits as dormant data while an optional mod is absent;
 loading, changing an unrelated field and saving must not erase those edits. They
 become effective again when the same stable ref is registered on a later load.
+This also retains dormant edits for removed native entries: the file format cannot
+distinguish those from an absent mod’s refs. Dormant edits are not prompt content.
 Explicit player reset/delete actions retain their normal meaning.

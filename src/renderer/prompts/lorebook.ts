@@ -43,6 +43,7 @@ export interface LoreEntry {
 
 /** A shipped entry, with the handle a playthrough's edits of it are kept under. */
 export interface ShippedLoreEntry extends LoreEntry {
+  /** Stable key under which the player’s edits of this entry are kept. */
   ref: string
 }
 
@@ -327,10 +328,10 @@ export function registerLoreEntries(
   const refs = new Set(LOREBOOK.map(entry => entry.ref))
   const ids = new Set(LOREBOOK.flatMap(entry => entry.id ? [entry.id] : []))
   const copies = entries.map((entry: ShippedLoreEntry) => {
-    if (!entry || typeof entry.ref !== 'string' || !/^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(entry.ref) || entry.ref in Object.prototype ||
+    if (!entry || typeof entry.ref !== 'string' || !/^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(entry.ref) || /^custom[1-9][0-9]*$/.test(entry.ref) || entry.ref in Object.prototype ||
         typeof entry.text !== 'string' || !entry.text.trim() || !Array.isArray(entry.keys) ||
         !entry.keys.length || entry.keys.some((key: unknown) => typeof key !== 'string' || !key.trim()) ||
-        (entry.id !== undefined && (typeof entry.id !== 'string' || !entry.id.trim() || entry.id !== entry.id.trim())) ||
+        (entry.id !== undefined && (typeof entry.id !== 'string' || !/^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(entry.id))) ||
         (entry.bg !== undefined && (typeof entry.bg !== 'string' || !entry.bg.trim())) ||
         refs.has(entry.ref) || (entry.id !== undefined && ids.has(entry.id))) {
       throw new Error('Lore entries need valid unique refs, places, keys and text.')
@@ -341,7 +342,22 @@ export function registerLoreEntries(
       ...(entry.id !== undefined ? { id: entry.id } : {}), ...(entry.bg !== undefined ? { bg: entry.bg } : {}) })
   })
   if (options.available !== undefined && typeof options.available !== 'function') throw new Error('Lore availability must be a function.')
-  const registration = { entries: copies, available: options.available ?? (() => sharedModOn(modId)) }
+  const available = options.available ?? (() => sharedModOn(modId))
+  let warned = false
+  const registration = {
+    entries: copies,
+    available: () => {
+      try {
+        return available()
+      } catch (error) {
+        if (!warned) {
+          warned = true
+          console.warn(`[lorebook] ${modId}: availability rule failed; lore is unavailable.`, error)
+        }
+        return false
+      }
+    }
+  }
   registeredLore.set(modId, registration)
   for (const entry of copies) ownedLoreRefs.add(entry.ref)
   refreshRegisteredLore()
@@ -396,7 +412,7 @@ export function rumorSentenceFor(entry: LoreEntry, lines: readonly string[]): st
  * so `bar` cannot pull in a barn.
  */
 function matchLore(book: readonly BookEntry[], scanned: string): BookEntry[] {
-  return book.filter((entry) => loreAvailable(entry) && entryPattern(entry).test(scanned))
+  return book.filter((entry) => entryPattern(entry).test(scanned) && loreAvailable(entry))
 }
 
 /**

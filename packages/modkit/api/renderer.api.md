@@ -1374,7 +1374,6 @@ export const SETTING = "VENUS UNIVERSITY (VU)\nMotto: Concordia et Prosperitas |
 
 // @public
 export interface ShippedLoreEntry extends LoreEntry {
-    // (undocumented)
     ref: string;
 }
 
