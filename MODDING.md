@@ -1719,3 +1719,35 @@ only an explicit player removal drops one. A missing mod never rewrites the card
 See `test/characterTraits.test.ts` for generator/editor separation, import-before-registration,
 pending-request snapshots, duplicate owners, deterministic order, metadata disposal, UI tone
 and hints, and read/edit/export with a missing provider. No particular mod trait ships in core.
+
+### Mod-owned lore
+
+Renderer entries can call `registerLoreEntries` from `@vx/modkit/renderer` at boot,
+before loading a playthrough or building requests. `ShippedLoreEntry` and `LoreEntry`
+are the native types exported by the same kit entry. A stable `ref` uses the native
+lowercase underscore format and is the key for player-authored lorebook edits; never
+rename it after shipping. Place `id`s and refs must be unique across native and mod lore.
+
+```ts
+import { registerLoreEntries } from '@vx/modkit/renderer'
+registerLoreEntries('my-venues', [{
+  ref: 'my_venue', id: 'my_venue', keys: ['My Venue'], text: 'A quiet place.'
+}])
+```
+
+The registration copies the entries and their keys. Registered entries precede native
+lore in stable owner-ID order. Held `LOREBOOK` and `SHIPPED_BOOK` references are updated
+in place, so imports made before boot registration see the additions. Registration
+is for boot, not asynchronous injection into an already-loaded editor snapshot.
+The returned idempotent disposer removes only its registration; even older prompt
+snapshots cannot inject a removed entry.
+
+By default availability follows the owner's `sharedModOn` lookup. Optional
+`{ available: () => boolean }` replaces that lookup for a mod with an existing native
+enrollment/world rule. Keep it synchronous, pure and inexpensive. A disabled entry
+stays readable in the editor, retaining player edits, but contributes no matching
+prompt paragraphs, place lookup or rumor suggestions. The native lorebook store
+also retains valid unknown edits as dormant data while an optional mod is absent;
+loading, changing an unrelated field and saving must not erase those edits. They
+become effective again when the same stable ref is registered on a later load.
+Explicit player reset/delete actions retain their normal meaning.

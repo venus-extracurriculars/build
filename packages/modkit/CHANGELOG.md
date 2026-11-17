@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Renderer mods can register shipped lore with `registerLoreEntries`. Stable handles preserve
+  native player edits, disabled content stays out of prompts/rumors, and optional mod edits
+  survive loading and saving while the registration is absent.
+
 - Activities can call `setSceneSuggestionsPaused` to pause optional scene suggestions for
   the loaded game. Providers can query `sceneSuggestionsPaused`, render from
   `useSceneSuggestionsPaused` or observe boolean changes with `subscribeSceneSuggestionsPaused`.

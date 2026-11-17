@@ -223,7 +223,7 @@ export const useLorebookStore = create<LorebookState>((set, get) => {
           useUiStore.getState().showError(read.error)
           return
         }
-        const record = normalizedLorebook(read.data ?? emptyLorebook(), SHIPPED)
+        const record = normalizedLorebook(read.data ?? emptyLorebook(), SHIPPED, true)
         set({ status: 'ready', record, ...readOf(record) })
       })()
       return loaded

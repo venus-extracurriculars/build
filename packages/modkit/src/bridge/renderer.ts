@@ -173,3 +173,6 @@ export { canInviteToScene, freeForInvitation, subscribeInvitations, startInvited
 export { hasDesktopSurfaces, canRecordSceneTurn, openSceneExchange, sceneExchangeContext, subscribeSceneTurns } from '../../../../src/renderer/mods/sceneExchange'
 export type { ExternalSceneTurn, SceneExchange, SceneExchangeContext } from '../../../../src/renderer/mods/sceneExchange'
 export { setSceneSuggestionsPaused, sceneSuggestionsPaused, useSceneSuggestionsPaused, subscribeSceneSuggestionsPaused } from '../../../../src/renderer/mods/sceneSuggestions'
+
+export { registerLoreEntries } from '../../../../src/renderer/prompts/lorebook'
+export type { LoreEntry, ShippedLoreEntry, LoreRegistrationOptions } from '../../../../src/renderer/prompts/lorebook'

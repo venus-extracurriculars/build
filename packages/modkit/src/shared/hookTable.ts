@@ -384,6 +384,7 @@ export const KIT_APIS = [
   'renderer:readerSaysInScene',
   'renderer:recordField',
   'renderer:registerHooks',
+  'renderer:registerLoreEntries',
   'renderer:retrySilently',
   'renderer:rowLift',
   'renderer:rowPress',

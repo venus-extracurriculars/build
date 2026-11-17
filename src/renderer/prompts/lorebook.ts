@@ -5,6 +5,7 @@
  * them, and may rewrite the setting too; roster characters and the class catalog are built per
  * call from the save's own.
  */
+import { sharedModOn } from '@shared/modRules'
 import { fullDescriptionOf, kindSentenceOf } from '@shared/academics'
 import { slotFullLabel, yearLabel } from '@shared/classes'
 import { dormSentence } from '@shared/dorms'
@@ -282,6 +283,80 @@ if (new Set(LOREBOOK.map((entry) => entry.ref)).size !== LOREBOOK.length) {
   throw new Error('Two shipped lorebook entries share a ref.')
 }
 
+
+/** Optional native availability rule, for content fixed to enrollment or world state. */
+export interface LoreRegistrationOptions {
+  /** Replaces the owner's usual mod switch lookup. Evaluated when a prompt reads an entry. */
+  available?: () => boolean
+}
+
+const nativeLore = [...LOREBOOK]
+const registeredLore = new Map<string, { entries: readonly ShippedLoreEntry[]; available: () => boolean }>()
+// Remember removed handles so an older book snapshot cannot inject uninstalled content.
+const ownedLoreRefs = new Set<string>()
+
+function loreAvailable(entry: LoreEntry & { ref?: string; handle?: string; custom?: boolean }): boolean {
+  if (entry.custom) return true
+  const ref = entry.handle ?? entry.ref
+  if (!ref || !ownedLoreRefs.has(ref)) return true
+  for (const registration of registeredLore.values()) {
+    if (registration.entries.some(one => one.ref === ref)) return registration.available()
+  }
+  return false
+}
+
+function refreshRegisteredLore(): void {
+  const added = [...registeredLore.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+    .flatMap(([, registration]) => registration.entries)
+  ;(LOREBOOK as ShippedLoreEntry[]).splice(0, LOREBOOK.length, ...added, ...nativeLore)
+  shippedBook.splice(0, shippedBook.length, ...effectiveLorebook(null))
+}
+
+/**
+ * Register at renderer boot, before loading a playthrough or building prompts. Entries precede
+ * native lore in owner-ID order. Stable refs keep the player's native lorebook edits intact.
+ * Off owners retain editor data but contribute no prompt, place or rumor context. Duplicate
+ * refs/places fail atomically. The returned disposer removes only this registration.
+ */
+export function registerLoreEntries(
+  modId: string, entries: readonly ShippedLoreEntry[], options: LoreRegistrationOptions = {}
+): () => void {
+  if (typeof modId !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(modId) || registeredLore.has(modId) || !Array.isArray(entries) || !entries.length) {
+    throw new Error('Lore needs a unique mod owner and at least one entry.')
+  }
+  const refs = new Set(LOREBOOK.map(entry => entry.ref))
+  const ids = new Set(LOREBOOK.flatMap(entry => entry.id ? [entry.id] : []))
+  const copies = entries.map((entry: ShippedLoreEntry) => {
+    if (!entry || typeof entry.ref !== 'string' || !/^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(entry.ref) || entry.ref in Object.prototype ||
+        typeof entry.text !== 'string' || !entry.text.trim() || !Array.isArray(entry.keys) ||
+        !entry.keys.length || entry.keys.some((key: unknown) => typeof key !== 'string' || !key.trim()) ||
+        (entry.id !== undefined && (typeof entry.id !== 'string' || !entry.id.trim() || entry.id !== entry.id.trim())) ||
+        (entry.bg !== undefined && (typeof entry.bg !== 'string' || !entry.bg.trim())) ||
+        refs.has(entry.ref) || (entry.id !== undefined && ids.has(entry.id))) {
+      throw new Error('Lore entries need valid unique refs, places, keys and text.')
+    }
+    refs.add(entry.ref)
+    if (entry.id !== undefined) ids.add(entry.id)
+    return Object.freeze({ ref: entry.ref, keys: Object.freeze([...entry.keys]), text: entry.text,
+      ...(entry.id !== undefined ? { id: entry.id } : {}), ...(entry.bg !== undefined ? { bg: entry.bg } : {}) })
+  })
+  if (options.available !== undefined && typeof options.available !== 'function') throw new Error('Lore availability must be a function.')
+  const registration = { entries: copies, available: options.available ?? (() => sharedModOn(modId)) }
+  registeredLore.set(modId, registration)
+  for (const entry of copies) ownedLoreRefs.add(entry.ref)
+  refreshRegisteredLore()
+  return () => {
+    if (registeredLore.get(modId) !== registration) return
+    registeredLore.delete(modId)
+    refreshRegisteredLore()
+  }
+}
+
+/** Native and registered entries allowed to introduce a place in the current world. */
+export function availableLore(): readonly ShippedLoreEntry[] {
+  return LOREBOOK.filter(loreAvailable)
+}
+
 /**
  * One key as a regex source fragment, for a pattern carrying the `u` flag: it stands alone
  * wherever no letter, number or underscore of any script touches either end of it.
@@ -321,7 +396,7 @@ export function rumorSentenceFor(entry: LoreEntry, lines: readonly string[]): st
  * so `bar` cannot pull in a barn.
  */
 function matchLore(book: readonly BookEntry[], scanned: string): BookEntry[] {
-  return book.filter((entry) => entryPattern(entry).test(scanned))
+  return book.filter((entry) => loreAvailable(entry) && entryPattern(entry).test(scanned))
 }
 
 /**
@@ -354,13 +429,14 @@ export function effectiveLorebook(record: LorebookRecord | null): readonly BookE
 }
 
 /** The lorebook as it ships, for every prompt built outside a playthrough. */
-export const SHIPPED_BOOK: readonly BookEntry[] = effectiveLorebook(null)
+const shippedBook = [...effectiveLorebook(null)]
+export const SHIPPED_BOOK: readonly BookEntry[] = shippedBook
 
 /** The entry of `book` for the place `id`, or null. */
 export function placeEntryOf(book: readonly BookEntry[], id: string): BookEntry | null {
   const wanted = id.trim().toLowerCase()
   if (!wanted) return null
-  return book.find((entry) => entry.id === wanted) ?? null
+  return book.find((entry) => entry.id === wanted && loreAvailable(entry)) ?? null
 }
 
 /** An entry's description on one line, its line breaks folded into spaces. */
@@ -655,7 +731,7 @@ export function classLore(scanned: string, view: ClassLoreView): string[] {
 export function loreEntryById(id: string): LoreEntry | null {
   const wanted = id.trim().toLowerCase()
   if (!wanted) return null
-  return LOREBOOK.find((entry) => entry.id === wanted) ?? null
+  return LOREBOOK.find((entry) => entry.id === wanted && loreAvailable(entry)) ?? null
 }
 
 /** Grab bag id for the slot opening's SOMEWHERE TO GO draw off the shipped entries. */
@@ -668,7 +744,7 @@ export function loreKeyOf(entry: BookEntry): string {
 
 /** What SOMEWHERE TO GO is drawn from: the shipped entries, as the player has them. */
 export function rumorPoolOf(book: readonly BookEntry[]): BookEntry[] {
-  return book.filter((entry) => !entry.custom)
+  return book.filter((entry) => !entry.custom && loreAvailable(entry))
 }
 
 /** What the slot's opening put about somewhere, ready to ride that place's entry. */
