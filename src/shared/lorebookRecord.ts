@@ -283,15 +283,16 @@ function trimmedEdit(edit: LoreEdit, shipped: ShippedLore): LoreEdit | null {
 /**
  * The record read against this build: an edit of an entry the build no longer ships is dropped,
  * and so is any field, or the setting, the build now ships as the player wrote it. Hands back
- * `record` itself where nothing changed.
+ * `record` itself where nothing changed. Pass keepUnknown when loading optional mod content
+ * so missing registrations keep dormant edits for reinstallation.
  */
-export function normalizedLorebook(record: LorebookRecord, shipped: ShippedBook): LorebookRecord {
+export function normalizedLorebook(record: LorebookRecord, shipped: ShippedBook, keepUnknown = false): LorebookRecord {
   const byRef = new Map(shipped.entries.map((entry) => [entry.ref, entry]))
   const edits: Record<string, LoreEdit> = {}
   let changed = false
   for (const [ref, edit] of Object.entries(record.edits)) {
     const entry = byRef.get(ref)
-    const kept = entry ? trimmedEdit(edit, entry) : null
+    const kept = entry ? trimmedEdit(edit, entry) : keepUnknown ? edit : null
     if (kept) edits[ref] = kept
     if (!kept || kept.keys !== edit.keys || kept.text !== edit.text) changed = true
   }

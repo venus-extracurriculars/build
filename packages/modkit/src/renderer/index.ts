@@ -249,3 +249,6 @@ export { canInviteToScene, freeForInvitation, subscribeInvitations, startInvited
 export { hasDesktopSurfaces, canRecordSceneTurn, openSceneExchange, sceneExchangeContext, subscribeSceneTurns } from '../bridge/renderer'
 export type { ExternalSceneTurn, SceneExchange, SceneExchangeContext } from '../bridge/renderer'
 export { setSceneSuggestionsPaused, sceneSuggestionsPaused, useSceneSuggestionsPaused, subscribeSceneSuggestionsPaused } from '../bridge/renderer'
+
+export { registerLoreEntries } from '../bridge/renderer'
+export type { LoreEntry, ShippedLoreEntry, LoreRegistrationOptions } from '../bridge/renderer'
