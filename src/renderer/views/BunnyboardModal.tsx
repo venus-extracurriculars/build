@@ -1489,7 +1489,7 @@ function Composer({
           <CheckField
             id="bb-incoming"
             label="Incoming text"
-            note="Your direction is not sent. Only her texts appear."
+            note="Your direction is not sent. Only the contact's texts appear."
             checked={incoming}
             disabled={closed}
             onChange={onIncoming}
