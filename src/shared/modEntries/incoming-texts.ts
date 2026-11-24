@@ -8,6 +8,7 @@ const mod: ModDef = {
   name: 'Incoming Texts',
   author: 'sav',
   version: '0.1.0',
+  game: '0.9.2',
   scope: 'anytime',
   defaultOn: true,
   blurb: 'Describe an incoming text or send a photo description in Bunnyboard. With Photo Feature on in the desktop app, you can also attach or paste an image for the texting model to read.',
