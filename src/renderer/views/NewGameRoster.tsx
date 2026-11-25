@@ -70,6 +70,7 @@ export interface Roster {
   covered: boolean
   locked: ReadonlySet<string>
   alumni: readonly string[]
+  removed: readonly string[]
   setRoster: (next: Character[]) => void
   picking: boolean
   setPicking: (picking: boolean) => void
@@ -86,7 +87,8 @@ export function useRoster(
   size: number,
   setRoster: (next: Character[]) => void,
   alumni: readonly string[],
-  locked: ReadonlySet<string>
+  locked: ReadonlySet<string>,
+  removed: readonly string[]
 ): Roster {
   const characters = useCharacterStore((s) => s.characters)
   const allOrder = useCharacterStore((s) => s.order)
@@ -111,9 +113,9 @@ export function useRoster(
         (charId) =>
           EMOTIONS.every((emotion) => expressions[charId]?.[emotion]) &&
           !roster.some((c) => c.charId === charId) &&
-          !alumni.includes(charId)
+          !alumni.includes(charId) && !removed.includes(charId)
       ),
-    [order, expressions, roster, alumni]
+    [order, expressions, roster, alumni, removed]
   )
 
   /**
@@ -163,6 +165,7 @@ export function useRoster(
     covered: picking || inspecting !== null,
     locked,
     alumni,
+    removed,
     setRoster,
     picking,
     setPicking,
@@ -239,7 +242,7 @@ export function RosterModals({
         {picking && (
           <LoadCharacterModal
             key="picker"
-            taken={[...roster.map((c) => c.charId), ...alumni]}
+            taken={[...roster.map((c) => c.charId), ...alumni, ...state.removed]}
             theme={theme}
             onClose={() => setPicking(false)}
             onPick={(character) => {

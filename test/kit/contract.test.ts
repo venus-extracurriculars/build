@@ -25,6 +25,7 @@ const slotShim = await import('../../src/renderer/mods/ModSlot')
 const saveFieldKit = await import('../../packages/modkit/src/renderer/saveField')
 const modStateKit = await import('../../packages/modkit/src/renderer/modState')
 const sceneFieldKit = await import('../../packages/modkit/src/renderer/sceneField')
+const studentRemovalKit = await import('../../packages/modkit/src/renderer/studentRemoval')
 
 const ROOT = resolve(__dirname, '../..')
 
@@ -194,7 +195,7 @@ describe('the entry points', () => {
   })
 
   it('split every runtime export of hooks.ts, ModSlot, saveField.ts, sceneField.ts and modState.ts between the host and the mod', () => {
-    const moved = [...runtime(hooksShim), ...runtime(slotShim), ...runtime(saveFieldKit), ...runtime(sceneFieldKit), ...runtime(modStateKit)].sort()
+    const moved = [...runtime(hooksShim), ...runtime(slotShim), ...runtime(saveFieldKit), ...runtime(sceneFieldKit), ...runtime(modStateKit), ...runtime(studentRemovalKit)].sort()
     const host = runtime(hostRenderer)
     const mod = runtime(rendererKit).filter((name) => moved.includes(name))
     expect([...host, ...mod].sort()).toEqual(moved)

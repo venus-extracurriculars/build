@@ -435,6 +435,7 @@ export const KIT_APIS = [
   'renderer:veilIn',
   'renderer:writeModField',
   'renderer:writeModFields',
+  'renderer:removeStudent',
   'main:backupPart',
   'main:characterTransferPart',
   'main:comfyNodePackState',

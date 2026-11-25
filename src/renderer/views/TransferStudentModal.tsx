@@ -83,6 +83,7 @@ export function TransferStudentModal({
 }: TransferStudentModalProps): JSX.Element | null {
   const chars = useGameStore((s) => s.chars)
   const alumni = useGameStore((s) => s.alumni)
+  const removed = useGameStore((s) => s.removedStudents)
   const characters = useGameStore((s) => s.characters)
   const pending = useGameStore((s) => s.pendingTransfers)
   const pendingCharacters = useGameStore((s) => s.pendingCharacters)
@@ -128,6 +129,7 @@ export function TransferStudentModal({
     const ids = new Set([
       ...chars,
       ...alumni,
+      ...Object.keys(removed),
       ...pending.map((entry) => entry.charId),
       ...Object.keys(jobs)
     ])
@@ -143,7 +145,7 @@ export function TransferStudentModal({
     return Object.values(library)
       .filter((character) => ids.has(character.charId) || keys.has(firstNameKeyOf(character)))
       .map((character) => character.charId)
-  }, [chars, alumni, pending, jobs, characters, pendingCharacters, library])
+  }, [chars, alumni, removed, pending, jobs, characters, pendingCharacters, library])
 
   // The picker mounts one sprite per finished character at once, so they are decoded first.
   const pickerUrls = useMemo(

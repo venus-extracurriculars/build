@@ -1650,6 +1650,9 @@ export interface BreakupOwed {
 
 /** On-disk save file — `/data/saves/{playthroughId}/{saveId}.json`. */
 export interface NativeGameSave {
+  /** Permanent absences in this save, retained even after their initiating mod is disabled. */
+  removedStudents?: import('./studentRemoval').RemovedStudents
+
   schemaVersion: 13
   /**
    * The playthrough this save belongs to. Derived from the containing folder
@@ -2199,6 +2202,7 @@ export interface SemesterLog {
  */
 export type SemesterCarry = Pick<
   GameSave,
+  | 'removedStudents'
   | 'stats'
   | 'money'
   | 'bio'

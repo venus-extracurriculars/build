@@ -1,3 +1,4 @@
+import { assertRemovedStudents } from './studentRemoval'
 import {
   APPLICATION_SCREENS,
   CATALOG_POOLS,
@@ -158,6 +159,7 @@ export const SAVE_READ: ValidateRecordOptions<GameSave> = {
   schemaVersion: { code: 'SAVE_SCHEMA_VERSION' },
   expects: SAVE_SCHEMA_VERSION,
   required: SAVE_REQUIRED,
+  check: (save, where) => assertRemovedStudents(save.removedStudents, where),
   // A version-12 save is one from before semesters: it lacks only fields a save may lack.
   upgrade: versionStep(12, SAVE_SCHEMA_VERSION)
 }

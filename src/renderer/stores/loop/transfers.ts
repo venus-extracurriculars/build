@@ -360,6 +360,7 @@ export async function startTransfer(character: Character, skip: boolean): Promis
     attempts.has(charId) ||
     game.chars.includes(charId) ||
     game.alumni.includes(charId) ||
+    Object.hasOwn(game.removedStudents, charId) ||
     game.pendingTransfers.some((entry) => entry.charId === charId)
   ) {
     return

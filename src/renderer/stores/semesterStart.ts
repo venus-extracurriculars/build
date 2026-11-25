@@ -137,6 +137,9 @@ export function continuedStartOf(
   if (!continued) throw new Error('a first semester has no continuation')
   const season = seasonOf(continued.index)
   const { carry, priorProfiles, alumni } = continued
+  if (roster.some(student => Object.hasOwn(carry.removedStudents ?? {}, student.charId))) {
+    throw new Error('A removed student cannot return to this playthrough.')
+  }
   // Who knows whom: the carried pairs, those the player set laid over them, a pair set to dating
   // a couple on day 0 where each may date, off how she stands with the reader.
   const npcRelationships = pairsOver(
@@ -340,6 +343,7 @@ export function continuedStartOf(
       : carry.bunnybotDeferred
 
   const save: SaveDraft = {
+    ...(carry.removedStudents ? { removedStudents: structuredClone(carry.removedStudents) } : {}),
     // The mods' own fields first, each as its mod carried it, so none can stand in for the game's.
     ...carriedModFields(carry.mods ?? {}),
     schemaVersion: SAVE_SCHEMA_VERSION,

@@ -1,4 +1,5 @@
 import { appError } from './errors'
+import { withoutRemoved, withoutRemovedRecords, type RemovedStudents } from './studentRemoval'
 import { FINAL_DATE, SENIOR_YEAR, yearAge, yearLabel } from './classes'
 import { replayIdsOf } from './replays'
 import type {
@@ -192,10 +193,11 @@ export function semesterOf(record: PlaythroughRecord, id?: string): SemesterView
  */
 export function withTransfers(
   view: SemesterView,
-  from: { transfers?: readonly Transfer[] } | null | undefined
+  from: { transfers?: readonly Transfer[]; removedStudents?: RemovedStudents } | null | undefined
 ): SemesterView {
   const transfers = from?.transfers ?? []
-  if (transfers.length === 0) return view
+  const removed = from?.removedStudents
+  if (transfers.length === 0 && !Object.keys(removed ?? {}).length) return view
   const chars = [...view.chars]
   const profiles = { ...view.profiles }
   let classes = view.classes
@@ -204,7 +206,7 @@ export function withTransfers(
     profiles[charId] = profile
     if (hers && Object.keys(hers).length > 0) classes = { ...classes, ...hers }
   }
-  return { ...view, chars, profiles, classes }
+  return { ...view, chars: withoutRemoved(chars, removed), alumni: withoutRemoved(view.alumni, removed), profiles: withoutRemovedRecords(profiles, removed), classes }
 }
 
 /**

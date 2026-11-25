@@ -365,12 +365,14 @@ export function NewGameFlow({
   // The girls returning from the last semester, who stay on a New Game+'s roster.
   const locked = useMemo(() => (continued ? new Set(continued.continuing) : NONE), [continued])
   const size = rosterSizeOf({ size: draft?.size, chars: chars ?? [] })
+  const removed = useMemo(() => Object.keys(continued?.carry.removedStudents ?? {}), [continued])
   const rosterState = useRoster(
     roster,
     size,
     (next) => updateApplication((d) => ({ ...d, chars: next.map((c) => c.charId) })),
     continued?.alumni ?? NO_ALUMNI,
-    locked
+    locked,
+    removed
   )
 
   // A leave is carried out once the screen's editors have unmounted, their last commits in.

@@ -944,6 +944,9 @@ export interface RelationshipMedium {
 // @public
 export type RelationshipProgress = Pick<CharInfo, 'romanceScenes' | 'upperHalves'>;
 
+// @public
+export function removeStudent(modId: string, request: StudentRemovalRequest): Promise<Result<null>>;
+
 // @public (undocumented)
 export interface RequestSpots {
     // (undocumented)
@@ -1449,6 +1452,21 @@ export function spriteUrl(charId: string, value: SpriteRef, version?: number, st
 
 // @public
 export function startInvitedScene(modId: string, id: string, action: string, initialize: () => void, eligible?: () => boolean): Promise<void>;
+
+// @public
+export interface StudentRemovalRequest {
+    // (undocumented)
+    charId: string;
+    // (undocumented)
+    eventId: string;
+    expect: unknown;
+    // (undocumented)
+    next: unknown;
+    // (undocumented)
+    reason: string;
+    // (undocumented)
+    run: object;
+}
 
 // @public
 export function submitAction(action: string, gift?: boolean, preset?: Verdict,

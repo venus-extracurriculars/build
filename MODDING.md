@@ -1802,3 +1802,24 @@ and hints, and read/edit/export with a missing provider. No particular mod trait
 Built-in `ModDef` entries may declare `game`, using the same version-range syntax as `vxmod.json` (for example `game: ">=0.9.2 <0.10.0"`). Declare only versions the author supports; do not copy the current version into every mod automatically. This is the Venus University version, not the mod version or VE kit version.
 
 The Mods menu shows the supported range and running game version. Missing declarations are shown as not declared. Enabling a mod with undeclared or out-of-range support asks for confirmation. New Game, Continue and loading a saved game also warn for affected enabled mods; saved games use their recorded per-playthrough enrollment. Warnings are advisory and preserve switches and saved data. They do not claim that a declaration proves testing or that an old declaration means a mod is broken.
+
+## Permanent student removal
+
+The renderer kit exposes `removeStudent(modId, request)`. Declare
+`renderer:removeStudent` in an installed manifest. A request supplies a student
+ID, stable event ID, player-facing reason, the owner's next save-slice value,
+the exact live value it was calculated from (`expect`), and `currentRun()`.
+
+The host writes the native absence archive and the owner's slice in one autosave,
+then applies both to the live game. A refused or failed write applies neither.
+Only a settled story landing is eligible: finish the scene first. Creator,
+replays, pending texts, stale runs, disabled owners and foreign declarations
+are refused. Repeating an already committed event is harmless and does not
+overwrite a later owner slice.
+
+Removal is permanent in that save's timeline, including with the mod disabled
+or uninstalled. Native reload, transfer eligibility and semester continuation
+honor it. The character's state and old conversation are archived; character
+library files and earlier saves are untouched. Mods must explain that lasting
+effect before offering their feature. The API does not invent death prose,
+accusation rules, transfer prompts or game-over conditions.

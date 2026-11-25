@@ -62,6 +62,7 @@ import { hauntAssignmentOf } from './hiddenScheduler'
 
 /** The finished semester's moving state, as the store holds it when the reader goes home. */
 export interface CarryInput {
+  removedStudents?: import('@shared/studentRemoval').RemovedStudents
   date: number
   stats: PlayerStats
   money: number
@@ -349,6 +350,7 @@ export function carryOf(input: CarryInput, view: SemesterView): SemesterHandoff 
 
   const jobs = carriedJobs(input.job, input.jobsClosed, input.formerJobs)
   const carry: SemesterCarry = {
+    ...(input.removedStudents ? { removedStudents: structuredClone(input.removedStudents) } : {}),
     stats: input.stats,
     money: input.money,
     ...(input.bio ? { bio: input.bio } : {}),

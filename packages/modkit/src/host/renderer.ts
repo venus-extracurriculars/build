@@ -61,6 +61,8 @@ export {
   updatesTabs
 } from '../renderer/hooks'
 export type { DeclaredHooks } from '../renderer/hooks'
+export { bindStudentRemoval } from '../renderer/studentRemoval'
+export type { StudentRemovalHost, StudentRemovalRequest } from '../renderer/studentRemoval'
 export { bindModWrites, bindRecordWrites, bindSaveFieldStore, carryModSlices, readModSlices, saveFields, writeModSlices } from '../renderer/saveField'
 export type { ModWrites, ReadModSlices, RecordChange, RecordWrites, SaveFieldStore } from '../renderer/saveField'
 export { bindSceneFieldSaves, bindSceneFieldStore } from '../renderer/sceneField'

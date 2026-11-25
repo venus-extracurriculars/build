@@ -1,3 +1,4 @@
+import { withoutRemovedRecords, type RemovedStudents } from '@shared/studentRemoval'
 import { blocksNewRomance } from '@shared/romanceRequirements'
 import { savedModScene } from '@shared/modScene'
 import { sceneCut, statFloor } from '../mods/hooks'
@@ -298,6 +299,7 @@ const SAVE_KEYS: Record<keyof NativeGameSave, true> & Partial<Record<keyof GameS
   transfers: true,
   scenesSinceRedraft: true,
   schemaVersion: true,
+  removedStudents: true,
   playthroughId: true,
   semester: true,
   saveId: true,
@@ -492,6 +494,7 @@ interface GameStoreState {
   /** Which semester of the playthrough the save is in, from 0. */
   semesterIndex: number
   /** The on-campus roster of the save's semester. */
+  removedStudents: RemovedStudents
   chars: string[]
   /**
    * Every girl who has graduated by this semester, oldest first: loaded and textable, never
@@ -1787,6 +1790,7 @@ const initialState = {
   time: 0 as TimeSlot,
   semesterId: null as string | null,
   semesterIndex: 0,
+  removedStudents: {} as RemovedStudents,
   chars: [] as string[],
   alumni: [] as string[],
   graduatedAfter: {} as Record<string, number>,
@@ -1931,7 +1935,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // A waiting transfer whose character is gone is dropped, and one already on the roster is
     // not waiting; the rest are held apart from the roster's characters until they arrive.
     const waitingStill = (entry: PendingTransfer): boolean =>
-      characters[entry.charId] !== undefined && !semester.chars.includes(entry.charId)
+      characters[entry.charId] !== undefined && !Object.hasOwn(save.removedStudents ?? {}, entry.charId) && !semester.chars.includes(entry.charId)
     const pendingTransfers = rehomedTransfers(
       (save.pendingTransfers ?? []).filter(waitingStill),
       (save.pendingTransfers ?? []).filter((entry) => !waitingStill(entry))
@@ -1939,7 +1943,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const waiting = new Set(pendingTransfers.map((entry) => entry.charId))
     const loaded: Record<string, Character> = {}
     const pendingCharacters: Record<string, Character> = {}
-    for (const [charId, character] of Object.entries(characters)) {
+    for (const [charId, character] of Object.entries(withoutRemovedRecords(characters, save.removedStudents))) {
       if (waiting.has(charId)) pendingCharacters[charId] = character
       else loaded[charId] = character
     }
@@ -1959,6 +1963,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       semesterId: semester.id ?? null,
       semesterIndex: semester.index,
       chars: semester.chars,
+      removedStudents: save.removedStudents ?? {},
       // A graduate whose character is gone is left out, her save entry kept as it is.
       alumni: semester.alumni.filter((charId) => characters[charId] !== undefined),
       graduatedAfter: graduatedAfterOf(semesterChain(record, save.semester)),
@@ -1978,7 +1983,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       // The two halves rejoined; a save entry with no profile falls back to the blank one,
       // which is what a charId the record never knew about would land on.
       charInfo: Object.fromEntries(
-        Object.entries(save.charInfo).map(([charId, state]) => [
+        Object.entries(withoutRemovedRecords(save.charInfo, save.removedStudents)).map(([charId, state]) => [
           charId,
           { ...blankCharInfo(), ...semester.profiles[charId], ...state }
         ])
@@ -3630,7 +3635,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       let classes = state.classes
       // A class a girl who never arrives brought stays with a girl who does and is seated in it.
       const arriving = (entry: PendingTransfer): boolean =>
-        state.pendingCharacters[entry.charId] !== undefined && !state.chars.includes(entry.charId)
+        state.pendingCharacters[entry.charId] !== undefined && !Object.hasOwn(state.removedStudents, entry.charId) && !state.chars.includes(entry.charId)
       const admitted = rehomedTransfers(
         state.pendingTransfers.filter(arriving),
         state.pendingTransfers.filter((entry) => !arriving(entry))
@@ -3674,6 +3679,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         Object.entries(state.charInfo).map(([charId, info]) => [charId, charStateOf(info)])
       ),
       ...(state.transfers.length > 0 ? { transfers: state.transfers } : {}),
+      ...(Object.keys(state.removedStudents).length ? { removedStudents: state.removedStudents } : {}),
       ...(state.pendingTransfers.length > 0 ? { pendingTransfers: state.pendingTransfers } : {}),
       playerSchedule: state.playerSchedule,
       history: state.history,

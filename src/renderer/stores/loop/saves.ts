@@ -1,3 +1,6 @@
+import { assertSafeCharId } from '@shared/characterRules'
+import { saveWithStudentRemoved, withoutRemoved, withoutRemovedRecords, type RemovedStudent } from '@shared/studentRemoval'
+import { bindStudentRemoval, type StudentRemovalRequest } from '@vx/modkit/host/renderer'
 import { appError, toAppError } from '@shared/errors'
 import { modById } from '@shared/mods'
 import { modSceneWith, savedModScene } from '@shared/modScene'
@@ -531,7 +534,8 @@ function withModValues(draft: SaveDraft, next: Readonly<Record<string, unknown>>
 export async function writeModSlices(
   modId: string,
   next: Readonly<Record<string, unknown>>,
-  options: ModWriteOptions = {}
+  options: ModWriteOptions = {},
+  removal?: StudentRemovalRequest
 ): Promise<Result<null>> {
   try {
     const allowed = new Set([modId, ...(modById(modId)?.requires ?? [])])
@@ -543,6 +547,15 @@ export async function writeModSlices(
     const start = useGameStore.getState()
     const playthroughId = start.playthroughId
     if (!playthroughId) return refused('MOD_WRITE_NO_GAME', 'There is no game to save into.')
+    if (removal) {
+      if (runStale(removal.run)) return refused('MOD_WRITE_STALE', STALE_MESSAGE)
+      if (start.createdScene || start.replaying || sceneInProgress()) return refused('MOD_WRITE_WAIT', 'Finish the scene before removing a student.')
+      assertSafeCharId(removal.charId)
+      if (!removal.eventId || removal.eventId.length > 160 || !removal.reason.trim() || removal.reason.length > 1000) return refused('MOD_WRITE_INVALID', 'Invalid removal details.')
+      const prior = Object.hasOwn(start.removedStudents, removal.charId) ? start.removedStudents[removal.charId] : undefined
+      if (prior) return prior.owner === modId && prior.eventId === removal.eventId ? { ok: true, data: null } : refused('MOD_WRITE_GONE', 'That student is already absent.')
+      if (![...start.chars, ...start.alumni].includes(removal.charId)) return refused('MOD_WRITE_GONE', 'That student is not in this game.')
+    }
     if (staleIn(options.expect) !== undefined) return refused('MOD_WRITE_STALE', STALE_MESSAGE)
     if (manualSaveOffer() !== 'open') return refused('MOD_WRITE_WAIT', WAIT_MESSAGE)
     const loads = start.loads
@@ -572,7 +585,26 @@ export async function writeModSlices(
           outcome = refused('MOD_WRITE_WAIT', WAIT_MESSAGE)
           return
         }
-        const result = await window.api.saves.autosave(playthroughId, withModValues(base, next))
+        let draft = withModValues(base, next)
+        let absence: RemovedStudent | undefined
+        if (removal) {
+          if (sceneInProgress() || game.createdScene || game.replaying || runStale(removal.run)) {
+            outcome = refused('MOD_WRITE_WAIT', WAIT_MESSAGE)
+            return
+          }
+          if (![...game.chars, ...game.alumni].includes(removal.charId)) {
+            outcome = refused('MOD_WRITE_GONE', 'That student is no longer in this game.')
+            return
+          }
+          absence = {
+            owner: modId, eventId: removal.eventId, reason: removal.reason,
+            date: game.date, semester: game.semesterIndex,
+            ...(base.charInfo[removal.charId] ? { info: structuredClone(base.charInfo[removal.charId]) } : {}),
+            ...(base.bunnyboard.conversations[removal.charId] ? { conversation: structuredClone(base.bunnyboard.conversations[removal.charId]) } : {})
+          }
+          draft = saveWithStudentRemoved(draft, removal.charId, absence)
+        }
+        const result = await window.api.saves.autosave(playthroughId, draft)
         if (!result.ok) {
           outcome = { ok: false, error: result.error }
           return
@@ -581,8 +613,26 @@ export async function writeModSlices(
         if (!sameGame()) return
         // A capture taken before this transaction committed still has the old mod values.
         lastSavedOrder = ++nextAutosaveOrder
-        useGameStore.setState((state) => ({ modValues: { ...state.modValues, ...next } }))
-        if (loopState.statusBase) loopState.statusBase = withModValues(loopState.statusBase, next)
+        useGameStore.setState((state) => ({
+          modValues: { ...state.modValues, ...next },
+          ...(removal && absence ? {
+            removedStudents: draft.removedStudents!,
+            chars: withoutRemoved(state.chars, draft.removedStudents),
+            alumni: withoutRemoved(state.alumni, draft.removedStudents),
+            graduating: withoutRemoved(state.graduating, draft.removedStudents),
+            characters: withoutRemovedRecords(state.characters, draft.removedStudents),
+            charInfo: withoutRemovedRecords(state.charInfo, draft.removedStudents),
+            charKeyToId: Object.fromEntries(Object.entries(state.charKeyToId).filter(([, id]) => !Object.hasOwn(draft.removedStudents!, id))),
+            bunnyboard: draft.bunnyboard, events: draft.events, npcOverlay: draft.npcOverlay,
+            homecomingVisitor: draft.homecomingVisitor ?? null,
+            springBreakAway: draft.springBreakAway,
+            pendingTransfers: draft.pendingTransfers ?? []
+          } : {})
+        }))
+        if (loopState.statusBase) {
+          loopState.statusBase = withModValues(loopState.statusBase, next)
+          if (removal && absence) loopState.statusBase = saveWithStudentRemoved(loopState.statusBase, removal.charId, absence)
+        }
       })
       return outcome
     } finally {
@@ -683,4 +733,9 @@ bindModWrites({
       lockWatchers.delete(onChange)
     }
   }
+})
+
+// Permanent native effects share the existing atomic mod-save lane.
+bindStudentRemoval({
+  remove: (modId, request) => writeModSlices(modId, { [modId]: request.next }, { expect: { [modId]: request.expect } }, request)
 })
