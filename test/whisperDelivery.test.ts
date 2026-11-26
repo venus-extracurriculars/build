@@ -90,7 +90,7 @@ describe('Wednesday edition and unread state', () => {
     expect(whisperHasUnread(normalizeWhisper({ ...copy, issues: [{ ...copy.issues[0], read: undefined }] }), 0, 2)).toBe(false)
   })
 
-  it('keeps weekly comments and bounded public recall until the following Wednesday', async () => {
+  it('closes weekly comments the following Wednesday while retaining their public recall', async () => {
     api(); const id = await publishWhisper('test', () => true), issue = game().exVenusWhisper.issues[0]
     useGameStore.setState({ date: 8 })
     await commentOnWhisper(id, 'Still wondering about that rematch.', undefined, () => true)
@@ -98,7 +98,7 @@ describe('Wednesday edition and unread state', () => {
     expect(whisperRecall(game().exVenusWhisper, 0, 8, ['a'])).not.toEqual([])
     useGameStore.setState({ date: 9 })
     await expect(commentOnWhisper(id, 'Too late.', undefined, () => true)).rejects.toThrow('archived')
-    expect(whisperRecall(game().exVenusWhisper, 0, 9, ['a'])).toEqual([])
+    expect(whisperRecall(game().exVenusWhisper, 0, 9, ['a']).join('\n')).toContain('Still wondering about that rematch.')
     expect(whisperDiscussionOpen({ ...issue, weekly: undefined }, 0, 4)).toBe(false)
   })
 
