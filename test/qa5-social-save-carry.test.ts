@@ -162,7 +162,8 @@ describe('fifth-pass social save and carry integration controls', () => {
     expect(archive[0].lines).toEqual(lines)
     expect(game().exVenusWhisper.discovery).toEqual(old.exVenusWhisper?.discovery)
     expect(game().exVenusWhisper.issues).toEqual(old.exVenusWhisper?.issues)
-    expect(whisperRecall(game().exVenusWhisper, 1, 0, ['a'])).toEqual([])
+    // The archive stays recallable across terms; enabled hooks decide whether to send it.
+    expect(whisperRecall(game().exVenusWhisper, 1, 0, ['a']).join('\n')).toContain('PUBLIC_GOSSIP_QA5')
     expect(game().exStoryMemory.encounterEdits['term:0:encounter:4:1']).toEqual({ hidden: true })
     expect(game().bunnyboard.conversations.a.summary).toBe('Replacement summary')
     expect(game().bunnyboard.conversations.a.messages.at(-1)?.exReplyTo).toBe('sent')

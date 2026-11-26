@@ -268,6 +268,7 @@ export const MOD_FILES: Record<string, ModSet> = {
       'src/renderer/stores/whisper*',
       'src/renderer/views/VenusWhisperModal.tsx',
       'src/renderer/mods/venusWhisper.tsx',
+      'src/renderer/prompts/whisperRecall.ts',
       'src/renderer/vu_styles/VenusWhisper.css'
     ]
   }

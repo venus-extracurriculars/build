@@ -1,4 +1,5 @@
-import { VENUS_WHISPER_MOD, whisperRecall, whisperHasUnread, whisperTerm } from '../../shared/venusWhisper'
+import { VENUS_WHISPER_MOD, whisperHasUnread, whisperTerm } from '../../shared/venusWhisper'
+import { withWhisperRecall } from '../prompts/whisperRecall'
 import { useGameStore } from '../stores/gameStore'
 import { startWhisperDelivery } from '../stores/whisperDelivery'
 import { VenusWhisperPage } from '../views/VenusWhisperModal'
@@ -19,19 +20,25 @@ registerHooks(VENUS_WHISPER_MOD, {
   bunnyboardPage: { id: 'whisper', word: 'HARE & QUILL', Mark, Page: VenusWhisperPage },
   gameEntered: () => { stopDelivery?.(); stopDelivery = startWhisperDelivery() },
   slotSettled: ctx => { recordWhisperConfession(ctx); recordWhisperObservations(ctx) },
-  requests: { ledger: whisperConfessionRequest },
+  requests: {
+    ledger: whisperConfessionRequest,
+    scene: (request, { cast, state, query }) => {
+      const game = useGameStore.getState()
+      if (!game.playthroughId || game.createdScene || game.replaying || game.playthroughId !== state.playthroughId) return request
+      return withWhisperRecall(request, game.exVenusWhisper, whisperTerm(game), state.date, cast.map(c => c.charId), query)
+    },
+    dm: (request, { character, state, newMessage }) => {
+      const game = useGameStore.getState()
+      if (!game.playthroughId || game.createdScene || game.replaying) return request
+      return withWhisperRecall(request, game.exVenusWhisper, whisperTerm(game), state.date, [character.charId], newMessage)
+    }
+  },
   prompts: {
     scene: { lines: ({ cast, state }) => {
       const game = useGameStore.getState()
       if (!game.playthroughId || game.createdScene || game.replaying || game.playthroughId !== state.playthroughId) return []
       const identity = whisperIdentityContext(state, cast)
-      return [...whisperRecall(game.exVenusWhisper, whisperTerm(game), state.date, cast.map(c => c.charId)),
-        ...(identity ? whisperIdentityLines(identity) : [])]
-    } },
-    dm: { lines: ({ character, state }) => {
-      const game = useGameStore.getState()
-      if (!game.playthroughId || game.createdScene || game.replaying) return []
-      return whisperRecall(game.exVenusWhisper, whisperTerm(game), state.date, [character.charId])
+      return identity ? whisperIdentityLines(identity) : []
     } }
   }
 })

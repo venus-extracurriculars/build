@@ -65,7 +65,7 @@ describe('newsletter identity and semester continuity', () => {
     expect(whisperPeople({ ...game(), chars: [], characters: {}, charInfo: {} }).map(p => p.id)).toEqual(['a', 'b'])
     expect(second.exVenusWhisper?.issues[0].comments[0].id).toBe('c')
     expect(saved.exVenusWhisper).toEqual(before)
-    expect(whisperRecall(second.exVenusWhisper, 2, 0, ['b'])).toEqual([])
+    expect(whisperRecall(second.exVenusWhisper, 2, 0, ['b']).join(' ')).toContain('archived')
     const record = playthroughRecord({ chars: ['b'] })
     game().loadSave({ ...game().toGameSave(), exVenusWhisper: second.exVenusWhisper } as GameSave, record, game().characters)
     expect(game().toGameSave().exVenusWhisper).toEqual(second.exVenusWhisper)
@@ -157,7 +157,7 @@ describe('public evidence and stable writes', () => {
     expect(recall).not.toContain('Sarah is warm')
     expect(recall.length).toBeLessThan(7200)
     expect(whisperRecall(game().exVenusWhisper, 0, 6, ['a'])).toEqual([])
-    expect(whisperRecall(game().exVenusWhisper, 0, 10, ['a'])).toEqual([])
+    expect(whisperRecall(game().exVenusWhisper, 0, 10, ['a']).join(' ')).toContain('An unlikely team')
     expect(whisperRecall(game().exVenusWhisper, 0, 7, ['unrelated'])).toEqual([])
   })
 
