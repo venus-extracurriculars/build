@@ -70,12 +70,14 @@ writeFileSync(
 
 // 3. One report and one rollup per entry point.
 let changed = false
-for (const entry of ['shared', 'renderer', 'main']) {
+for (const entry of ['shared', 'renderer', 'main', 'host-shared']) {
+  const hostOnly = entry === 'host-shared'
+  const entryPath = hostOnly ? 'host/shared.d.ts' : entry + '/index.d.ts'
   const config = ExtractorConfig.prepare({
     configObject: {
       projectFolder: kit,
       newlineKind: 'lf',
-      mainEntryPointFilePath: resolve(dts, 'packages/modkit/src', entry, 'index.d.ts'),
+      mainEntryPointFilePath: resolve(dts, 'packages/modkit/src', entryPath),
       bundledPackages: [],
       compiler: { tsconfigFilePath: resolve(temp, 'tsconfig.json') },
       apiReport: {
@@ -85,7 +87,7 @@ for (const entry of ['shared', 'renderer', 'main']) {
         reportTempFolder: resolve(temp, 'api')
       },
       docModel: { enabled: false },
-      dtsRollup: { enabled: true, untrimmedFilePath: resolve(kit, 'dist', `${entry}.d.ts`) },
+      dtsRollup: { enabled: !hostOnly, untrimmedFilePath: resolve(kit, 'dist', `${entry}.d.ts`) },
       tsdocMetadata: { enabled: false },
       messages: {
         compilerMessageReporting: { default: { logLevel: 'warning', addToApiReportFile: false } },

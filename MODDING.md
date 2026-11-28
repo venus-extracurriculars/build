@@ -1095,6 +1095,10 @@ optionGroups: [{ id: 'loader', label: 'Loading animation', hint: 'The animation 
 
 ## Install sources and pending changes
 
+In `vxsource.json`, a release can carry `changes`, an array of 1–20 non-empty strings, each
+at most 200 characters. Browse shows these lines under the version. It shows a date only
+where the release supplies `approved.at`. A custom source's date does not confer approval.
+
 Core's host shared entry exports `parseSource(json)` for schema-1 `vxsource.json` lists,
 `resolveInstall(input)` and `resolveRemoval(id, installed, builtIn?)`. These are host APIs,
 not mod imports. The parser refuses the whole list on malformed metadata, duplicate IDs or

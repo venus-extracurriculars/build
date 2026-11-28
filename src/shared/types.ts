@@ -2749,6 +2749,7 @@ export type SettingsPatch = Omit<
   | 'updateAsVersion'
   | 'updateFeed'
   | 'modSources'
+  | 'allowUnreviewedMain'
 > & {
   apiKey?: string
   endpointApiKey?: string

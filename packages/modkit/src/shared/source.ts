@@ -4,6 +4,8 @@ import { parseVersion } from './range'
 export const SOURCE_SCHEMA = 1
 export const MAX_SOURCE_SCREENSHOTS = 8
 const MAX_SCREENSHOT_CAPTION_LENGTH = 200
+const MAX_RELEASE_CHANGES = 20
+const MAX_RELEASE_CHANGE_LENGTH = 200
 
 /** A release's approval record. Only the host's approved source can confer trust. */
 export interface SourceApproval {
@@ -20,6 +22,7 @@ export interface SourceRelease {
   readonly sha256?: string
   readonly manifest: Manifest
   readonly approved?: SourceApproval
+  readonly changes?: readonly string[]
 }
 
 /** Every list release has a pinned hash, unlike a GitHub repo release. */
@@ -125,7 +128,7 @@ function readApproval(value: unknown, where: string): SourceApproval | undefined
 function readRelease(value: unknown, id: string, versions: Set<string>): ListedRelease {
   const release = fields(
     value,
-    ['version', 'zip', 'sha256', 'size', 'manifest', 'approved'],
+    ['version', 'zip', 'sha256', 'size', 'manifest', 'approved', 'changes'],
     `${id} release`
   )
   const v = version(release.version, `${id}.version`)
@@ -142,14 +145,30 @@ function readRelease(value: unknown, id: string, versions: Set<string>): ListedR
   const parsed = parseManifest(release.manifest, { id, version: v })
   if (!parsed.ok) refuse(`${where}.manifest: ${parsed.error}`)
   const approved = readApproval(release.approved, where)
+  const changes = release.changes === undefined ? undefined : readChanges(release.changes, where)
   return {
     version: v,
     zip,
     sha256: release.sha256,
     size: release.size as number,
     manifest: parsed.manifest,
-    ...(approved ? { approved } : {})
+    ...(approved ? { approved } : {}),
+    ...(changes ? { changes } : {})
   }
+}
+
+function readChanges(value: unknown, release: string): string[] {
+  const where = release + '.changes'
+  const lines = list(value, where)
+  if (lines.length === 0 || lines.length > MAX_RELEASE_CHANGES) {
+    refuse(where + ' must contain 1–20 lines')
+  }
+  return Array.from(lines, (line, index) => {
+    if (!text(line) || line.length > MAX_RELEASE_CHANGE_LENGTH) {
+      refuse(where + '[' + index + '] must be non-empty text up to 200 characters')
+    }
+    return line
+  })
 }
 
 /** Reads one withdrawal, refusing duplicate versions within the mod. */

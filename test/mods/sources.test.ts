@@ -397,5 +397,15 @@ describe('main-owned modSources', () => {
     await expect(addModSource('file:///not-allowed')).rejects.toMatchObject({
       code: 'MOD_SOURCE_ADDRESS'
     })
+    await expect(addModSource('not a URL')).rejects.toMatchObject({ code: 'MOD_SOURCE_ADDRESS' })
+    await expect(removeModSource(APPROVED_MOD_SOURCE)).rejects.toMatchObject({ code: 'MOD_SOURCE_APPROVED' })
   })
+})
+
+it('refuses artwork that the named source did not list before contacting the network', async () => {
+  const fetcher = vi.fn()
+  const reader = new ModSourceReader({ fetch: fetcher })
+  await expect(reader.readImage([], 'https://example.com/source', 'https://example.com/cover.webp'))
+    .rejects.toMatchObject({ code: 'MOD_IMAGE_UNLISTED' })
+  expect(fetcher).not.toHaveBeenCalled()
 })

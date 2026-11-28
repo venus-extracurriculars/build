@@ -1,5 +1,5 @@
 import { readdirSync, rmSync } from 'fs'
-import { mkdir, rm } from 'fs/promises'
+import { mkdir, rm, rmdir } from 'fs/promises'
 import { appError, toAppError } from '@shared/errors'
 import type { ModSessionTable } from '@shared/modSession'
 import type { PendingModChanges } from '@shared/modInstall'
@@ -7,7 +7,7 @@ import { writeAtomicJson, writeAtomicTextSync } from '../services/jsonFile'
 import { CURRENT_FILE, INACTIVE_RELEASE } from './layout'
 import {
   directoryExists, isModId, isModVersion, isRecord, modPath, readInstalledFile, readModText,
-  writeInstalledFileSync
+  writeInstalledFile, writeInstalledFileSync
 } from './installFiles'
 
 const PENDING_FILE = 'pending.json'
@@ -180,4 +180,41 @@ export async function queueRollback(root: string, id: string, version: string): 
 
 function lstatMarker(root: string, id: string, version: string): boolean {
   return readModText(modPath(root, id, version, INACTIVE_RELEASE)) !== undefined
+}
+
+/** Cancels the journal and discards only unpublished release folders and installer scratch. */
+export async function undoAllPending(root: string): Promise<PendingModChanges> {
+  readPending(root)
+  const staging = modPath(root, STAGING_FOLDER)
+  const paths: string[] = []
+  const touched = new Set<string>()
+  const installed = readInstalledFile(root)
+  const mods = { ...installed.mods }
+  for (const id of idFolders(root)) {
+    const records = Object.hasOwn(mods, id) ? { ...mods[id] } : undefined
+    for (const entry of readdirSync(modPath(root, id), { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue
+      const version = entry.name
+      if (version.endsWith('.partial') && isModVersion(version.slice(0, -8))) {
+        paths.push(modPath(root, id, version))
+        touched.add(id)
+      } else if (isModVersion(version) && lstatMarker(root, id, version)) {
+        paths.push(modPath(root, id, version))
+        touched.add(id)
+        if (records) delete records[version]
+      }
+    }
+    if (records && Object.keys(records).length) mods[id] = records
+    else if (records) delete mods[id]
+  }
+  const next = empty()
+  await writePending(root, next)
+  for (const path of paths) await rm(path, { force: true, recursive: true })
+  for (const id of touched) {
+    const folder = modPath(root, id)
+    if (readdirSync(folder).length === 0) await rmdir(folder)
+  }
+  await rm(staging, { force: true, recursive: true })
+  if (paths.length) await writeInstalledFile(root, { ...installed, mods })
+  return next
 }

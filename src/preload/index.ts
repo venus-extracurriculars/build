@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { ModInstallProgress } from '@shared/modInstall'
+import type { ModInstallProgress, ModUpdateStatus } from '@shared/modInstall'
 import type { VenusUniversityApi } from './api'
 
 /**
@@ -40,6 +40,20 @@ const api: VenusUniversityApi = {
       const wrapped = (_event: unknown, change: Parameters<typeof listener>[0]): void => listener(change)
       ipcRenderer.on('mods:devChanged', wrapped)
       return () => ipcRenderer.removeListener('mods:devChanged', wrapped)
+    },
+    pending: () => ipcRenderer.invoke('mods:pending'),
+    undoAll: () => ipcRenderer.invoke('mods:undoAll'),
+    goBack: (id, version) => ipcRenderer.invoke('mods:goBack', id, version),
+    installed: () => ipcRenderer.invoke('mods:installed'),
+    addSource: (address) => ipcRenderer.invoke('mods:addSource', address),
+    removeSource: (address) => ipcRenderer.invoke('mods:removeSource', address),
+    setAllowUnreviewedMain: (on) => ipcRenderer.invoke('mods:setAllowUnreviewedMain', on),
+    image: (source, url) => ipcRenderer.invoke('mods:image', source, url),
+    updateStatus: () => ipcRenderer.invoke('mods:updateStatus'),
+    onUpdatesChanged: (listener) => {
+      const wrapped = (_event: unknown, status: ModUpdateStatus): void => listener(status)
+      ipcRenderer.on('mods:updatesChanged', wrapped)
+      return () => ipcRenderer.removeListener('mods:updatesChanged', wrapped)
     },
     sources: () => ipcRenderer.invoke('mods:sources'),
     plan: (request) => ipcRenderer.invoke('mods:plan', request),

@@ -8,7 +8,7 @@ import type {
 } from '@shared/customBackgrounds'
 import type { PromptEdit } from '@shared/imagePrompt'
 import type { ModSwitches } from '@shared/mods'
-import type { ModInstallPlan, ModInstallProgress, ModPlan, ModPlanRequest, ModSourceResult, PendingModChanges } from '@shared/modInstall'
+import type { InstalledModInfo, ModUpdateStatus, ModInstallPlan, ModInstallProgress, ModPlan, ModPlanRequest, ModSourceResult, PendingModChanges } from '@shared/modInstall'
 import type { ModSessionTable, ModStatus } from '@shared/modSession'
 import type { LorebookRecord, WorldInfoFile, WorldInfoImport } from '@shared/lorebookRecord'
 import type { OccasionsFile, OccasionsImport } from '@shared/occasionsFile'
@@ -144,6 +144,16 @@ export interface VenusUniversityApi {
     devFolders: () => Promise<Result<string[]>>
     /** A developer folder changed on disk: its `renderer.js` or assets (a reload shows it), or its `main.js` (a restart does). */
     onDevChanged: (listener: (change: { id: string; kind: 'renderer' | 'main' }) => void) => () => void
+    pending: () => Promise<Result<PendingModChanges>>
+    undoAll: () => Promise<Result<PendingModChanges>>
+    goBack: (id: string, version: string) => Promise<Result<PendingModChanges>>
+    installed: () => Promise<Result<InstalledModInfo[]>>
+    addSource: (address: string) => Promise<Result<void>>
+    removeSource: (address: string) => Promise<Result<void>>
+    setAllowUnreviewedMain: (on: boolean) => Promise<Result<void>>
+    image: (source: string, url: string) => Promise<Result<string>>
+    updateStatus: () => Promise<Result<ModUpdateStatus>>
+    onUpdatesChanged: (listener: (status: ModUpdateStatus) => void) => () => void
     sources: () => Promise<Result<ModSourceResult[]>>
     plan: (request: ModPlanRequest) => Promise<Result<ModPlan>>
     install: (plan: ModInstallPlan) => Promise<Result<PendingModChanges>>

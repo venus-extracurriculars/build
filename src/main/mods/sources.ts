@@ -1,3 +1,4 @@
+import { imageTypeOf } from '@shared/imageBytes'
 import { app } from 'electron'
 import { createReadStream } from 'fs'
 import { fileURLToPath } from 'url'
@@ -207,18 +208,18 @@ export class ModSourceReader {
   }
 
   /** One deadline and byte budget cover the entire source, including repo pages and manifests. */
-  private transportReader(): (
+  private transportReader(limit = MOD_SOURCE_MAX_BYTES): (
     address: string,
     allowFile?: boolean
   ) => Promise<{ bytes: Buffer; response?: Response }> {
     const signal = AbortSignal.timeout(this.options.timeoutMs ?? MOD_SOURCE_TIMEOUT_MS)
     const fetcher = this.options.fetch ?? fetch
-    let remaining = MOD_SOURCE_MAX_BYTES
+    let remaining = limit
     return async (address, allowFile = false) => {
       const chunks: Uint8Array[] = []
       const take = (chunk: Uint8Array): void => {
         remaining -= chunk.byteLength
-        if (remaining < 0) fail('MOD_SOURCE_SIZE', 'The mod source exceeds the 2 MB limit.')
+        if (remaining < 0) fail('MOD_SOURCE_SIZE', limit === MOD_SOURCE_MAX_BYTES ? 'The mod source exceeds the 2 MB limit.' : 'The mod image exceeds the 1 MB limit.')
         chunks.push(chunk)
       }
       let response: Response | undefined
@@ -232,7 +233,7 @@ export class ModSourceReader {
               fetcher(url.href, {
                 redirect: 'manual',
                 signal,
-                headers: { Accept: 'application/json', 'User-Agent': 'VenusUniversity-mod-sources' }
+                headers: { Accept: limit === MOD_SOURCE_MAX_BYTES ? 'application/json' : 'image/*', 'User-Agent': 'VenusUniversity-mod-sources' }
               }),
               signal
             )
@@ -255,7 +256,7 @@ export class ModSourceReader {
           const size = Number(response.headers.get('content-length'))
           if (Number.isFinite(size) && size > remaining) {
             cancelBody(response.body)
-            fail('MOD_SOURCE_SIZE', 'The mod source exceeds the 2 MB limit.')
+            fail('MOD_SOURCE_SIZE', limit === MOD_SOURCE_MAX_BYTES ? 'The mod source exceeds the 2 MB limit.' : 'The mod image exceeds the 1 MB limit.')
           }
           const body = response.body.getReader()
           try {
@@ -290,6 +291,18 @@ export class ModSourceReader {
     }
   }
 
+  /** Artwork may only be requested from a listing this process fetched. */
+  async readImage(listings: readonly ModSourceResult[], source: unknown, url: unknown): Promise<string> {
+    if (typeof url !== 'string' || !listings.some((result) => result.ok && result.data.url === source
+        && result.data.source.mods.some((mod) => mod.cover === url || mod.screenshots?.some((shot) => shot.url === url)))) {
+      fail('MOD_IMAGE_UNLISTED', 'This image is not listed by the mod source.')
+    }
+    const { bytes } = await this.transportReader(1024 * 1024)(url)
+    const type = imageTypeOf(bytes)
+    if (!type) fail('MOD_IMAGE_FORMAT', 'This mod image is not a PNG, JPEG or WebP.')
+    return `data:${type};base64,${bytes.toString('base64')}`
+  }
+
   /** Decodes source documents under one transport budget and deadline. */
   private reader(): (
     address: string,
@@ -319,7 +332,10 @@ export class ModSourceReader {
             releases: mod.releases.map(({ approved: _approved, ...release }) => release)
           }))
         }
-    return { url: address, kind: 'list', approvedList, source }
+    const releaseDates = approvedList ? undefined : Object.fromEntries(parsed.source.mods.map((mod) => [
+      mod.id, Object.fromEntries(mod.releases.flatMap((release) => release.approved ? [[release.version, release.approved.at]] : []))
+    ]))
+    return { url: address, kind: 'list', approvedList, source, ...(releaseDates ? { releaseDates } : {}) }
   }
 
   private async readRepo(address: string, owner: string, repo: string): Promise<FetchedModSource> {
@@ -385,18 +401,30 @@ function storedSources(value: unknown): string[] {
 export async function modSources(): Promise<string[]> {
   return storedSources((await getSettings()).modSources)
 }
-export async function addModSource(address: string): Promise<void> {
-  const source = modSourceAddress(address)
-  if (source === APPROVED_MOD_SOURCE) return
+export async function addModSource(address: unknown): Promise<void> {
+  const source = customAddress(address, true)
+  if (!source) return
   await patchStoredSettings((settings) => ({
     ...settings,
     modSources: [...new Set([...storedSources(settings.modSources), source])]
   }))
 }
-export async function removeModSource(address: string): Promise<void> {
-  const source = modSourceAddress(address)
+export async function removeModSource(address: unknown): Promise<void> {
+  const source = customAddress(address)
   await patchStoredSettings((settings) => ({
     ...settings,
     modSources: storedSources(settings.modSources).filter((one) => one !== source)
   }))
+}
+
+function customAddress(address: unknown, adding?: false): string
+function customAddress(address: unknown, adding: true): string | undefined
+function customAddress(address: unknown, adding = false): string | undefined {
+  if (typeof address !== 'string') fail('MOD_SOURCE_ADDRESS', 'Enter an HTTPS source address.')
+  const source = modSourceAddress(address)
+  if (source === APPROVED_MOD_SOURCE || source === modSourceReader.approvedAddress()) {
+    if (adding) return undefined
+    fail('MOD_SOURCE_APPROVED', 'The approved mod source is fixed.')
+  }
+  return source
 }

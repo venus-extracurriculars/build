@@ -1,3 +1,4 @@
+import { confirmMissingModInstall, useModBrowserStore, watchModUpdates } from '../stores/modBrowserStore'
 import { confirmModCompatibility, confirmSetupCompatibility } from './ModCompatibilityWarning'
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -87,6 +88,9 @@ export function MainMenu(): JSX.Element {
   const openModal = useUiStore((s) => s.openModal)
   const setView = useUiStore((s) => s.setView)
   const playthroughs = useSaveStore((s) => s.playthroughs)
+  const modUpdateCount = useModBrowserStore((state) => state.status.count)
+  useEffect(watchModUpdates, [])
+
   const loadPlaythroughs = useSaveStore((s) => s.loadPlaythroughs)
   // The listing being read again as the menu comes up: until it lands, the newest playthrough is
   // the one the last listing named, which a New Game just left may no longer be.
@@ -218,6 +222,7 @@ export function MainMenu(): JSX.Element {
       return
     }
 
+    if (!(await confirmMissingModInstall(resumed.record))) return
     if (!(await confirmModCompatibility(resumed.record))) return
     const { save, record, characters } = resumed
     // The read is over, so the game is handed to `coverSwap` separately, with `enterGame`
@@ -472,7 +477,9 @@ export function MainMenu(): JSX.Element {
               onClick={() => openModal('mods')}
             >
               Mods
-              <span className="vu-menu-mods-count">{modsOn(modSwitches).length}</span>
+              {modUpdateCount > 0 && !isWebBuild()
+                ? <span id="menu-mods-updates" className="vu-menu-mods-count" aria-label={`${modUpdateCount} mod ${modUpdateCount === 1 ? 'update' : 'updates'} available`}>{modUpdateCount}</span>
+                : <span className="vu-menu-mods-count">{modsOn(modSwitches).length}</span>}
             </motion.button>
           </div>
           {/* Ungated and last. */}

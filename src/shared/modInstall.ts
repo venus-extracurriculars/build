@@ -7,6 +7,8 @@ export interface FetchedModSource {
   /** Source identity. Trust requires a matching pinned hash. */
   readonly approvedList: boolean
   readonly source: ModSource
+  /** Release dates copied from custom-list approvals for display only. */
+  readonly releaseDates?: Readonly<Record<string, Readonly<Record<string, string>>>>
 }
 
 export type ModSourceResult =
@@ -16,6 +18,7 @@ export type ModSourceResult =
 export type ModPlanRequest =
   | { readonly kind: 'install'; readonly mods: Readonly<Record<string, InstallRequest>> }
   | { readonly kind: 'remove'; readonly id: string }
+  | { readonly kind: 'rollback'; readonly id: string; readonly version: string }
 
 export interface ModInstallPlan {
   readonly kind: 'install'
@@ -23,7 +26,7 @@ export interface ModInstallPlan {
   readonly changes: readonly InstallChange[]
 }
 
-export type ModPlan = ModInstallPlan | {
+export type ModPlan = ModInstallPlan | Extract<ModPlanRequest, { kind: 'rollback' }> | {
   readonly kind: 'remove'
   readonly id: string
   readonly orphaned: readonly string[]
@@ -43,3 +46,23 @@ export type ModInstallProgress = {
   | { readonly phase: 'downloading'; readonly bytesDone: number; readonly bytesTotal: number }
   | { readonly phase: 'checking' | 'unpacking' | 'recorded' }
 )
+
+export interface InstalledModInfo {
+  readonly id: string
+  readonly version: string
+  readonly name: string
+  readonly source?: string
+  readonly approved: boolean
+  readonly origin: 'built-in' | 'developer' | 'installed'
+  readonly status: import('./modSession').ModStatus
+  readonly otherVersions: readonly string[]
+  readonly withdrawn?: string
+  readonly library?: boolean
+  readonly requires: readonly string[]
+}
+
+export interface ModUpdateStatus {
+  readonly checkedAt: number | null
+  readonly sources: readonly ModSourceResult[]
+  readonly count: number
+}

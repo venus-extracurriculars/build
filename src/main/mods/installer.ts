@@ -11,7 +11,7 @@ import { redactUrl } from '../services/downloadService'
 import { checkInstallRelease, installPlan, revokeWithdrawn } from './install'
 import { isModId, isModVersion, isRecord, modPath, readInstalledFile, readModText } from './installFiles'
 import { findInstalledMods } from './layout'
-import { queueRollback, readPending, scheduleOldVersionCleanup, withoutPendingChange, writePending } from './pending'
+import { queueRollback, readPending, scheduleOldVersionCleanup, undoAllPending, withoutPendingChange, writePending } from './pending'
 
 interface InstallerOptions {
   root: () => string
@@ -70,6 +70,7 @@ function requiredBy(installed: Readonly<Record<string, InstalledMod>>, removed: 
 /** Owns the shared write queue across installs, removals, undo, revocation and boot cleanup. */
 export class ModInstaller {
   private last: Promise<unknown> = Promise.resolve()
+  latestSources: readonly ModSourceResult[] = []
 
   constructor(private readonly options: InstallerOptions) {}
 
@@ -101,6 +102,7 @@ export class ModInstaller {
         }
       }
     }
+    this.latestSources = results
     return results
   }
 
@@ -210,7 +212,22 @@ export class ModInstaller {
       if (!isModId(id)) fail('MOD_PLAN_REQUEST', 'Expected a mod id.')
       const root = this.options.root()
       const before = readPending(root)
-      const next = withoutPendingChange(before, id)
+      let next = withoutPendingChange(before, id)
+      // The root and its selected orphans formed one removal. Restore any queued
+      // removals the root needs before validating the graph.
+      if (before.remove.includes(id)) {
+        const available = installedSnapshot(root, { ...before, remove: [] })
+        const queue = [id]
+        const restored = new Set(queue)
+        for (const one of queue) {
+          for (const dependency of Object.keys(available[one]?.requires ?? {})) {
+            if (!before.remove.includes(dependency) || restored.has(dependency)) continue
+            restored.add(dependency)
+            queue.push(dependency)
+            next = withoutPendingChange(next, dependency)
+          }
+        }
+      }
       const protectedMods = this.protectedMods()
       const previous = { ...installedSnapshot(root, before), ...protectedMods }
       const changed = { ...installedSnapshot(root, next), ...protectedMods }
@@ -227,6 +244,14 @@ export class ModInstaller {
       await writePending(root, next)
       return next
     })
+  }
+
+  pending(): Promise<PendingModChanges> {
+    return this.queue(() => readPending(this.options.root()))
+  }
+
+  undoAll(): Promise<PendingModChanges> {
+    return this.queue(() => undoAllPending(this.options.root()))
   }
 
   rollback(id: string, version: string): Promise<PendingModChanges> {

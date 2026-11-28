@@ -355,3 +355,20 @@ describe('parseSource', () => {
     expect(Object.isFrozen(parsed.source.mods[0].screenshots?.[0])).toBe(true)
   })
 })
+
+it('refuses invalid release changes and preserves valid lines', () => {
+  const base = sourceList(sourceRelease())
+  const mod = base.mods[0]
+  const release = mod.releases[0]
+  const withChanges = (changes: unknown) => ({
+    ...base, mods: [{ ...mod, releases: [{ ...release, changes }] }]
+  })
+  for (const changes of [null, 'text', [], Array(21).fill('line'), [''], ['   '], [1], ['x'.repeat(201)]]) {
+    const result = parseSource(withChanges(changes))
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.error).toContain('changes')
+  }
+  const lines = ['A release note', 'x'.repeat(200)]
+  const result = parseSource(withChanges(lines))
+  expect(result.ok && result.source.mods[0].releases[0].changes).toEqual(lines)
+})

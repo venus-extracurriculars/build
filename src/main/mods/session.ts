@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, type IpcMainInvokeEvent } from 'electron'
 import { readFileSync } from 'fs'
 import { basename, resolve } from 'path'
-import { toAppError } from '@shared/errors'
+import { appError, toAppError } from '@shared/errors'
 import type { PendingModChanges } from '@shared/modInstall'
 import type { ModSessionTable, ModStatus, SafeStart } from '@shared/modSession'
 import { BUILD, MODS, setInstalledMods, type ModSwitches } from '@shared/mods'
@@ -16,8 +16,10 @@ import { handleModProtocol } from './protocol'
 import type { MainContext } from './require'
 import { ModInvocations } from './invoke'
 import { ModInstaller } from './installer'
+import { isModId, isModVersion, isRecord } from './installFiles'
 import { applyPending } from './pending'
-import { readModSources } from './sources'
+import { addModSource, modSourceReader, readModSources, removeModSource } from './sources'
+import { installedModInfo, ModUpdateCheck, updateCount } from './updateStatus'
 
 /**
  * The one mod session of this run: the loader's result, held for the protocol, the bridge and
@@ -43,6 +45,7 @@ const installer = new ModInstaller({
   allowUnreviewedMain: () => loaderSettings().allowUnreviewedMain,
   readSources: readModSources
 })
+const modCheck = new ModUpdateCheck(getModsDirPath)
 let bootConfirmed = false
 let pendingReplayFailed = false
 
@@ -221,6 +224,36 @@ function devFolderChanged(folder: string, kind: DevChangeKind, files: readonly s
   }
 }
 
+function installedForScreen(sources = modCheck.status().sources) {
+  return installedModInfo(getModsDirPath(), BUILT_IN, modSession(), sources)
+}
+
+async function countModUpdates(sources: ReturnType<ModUpdateCheck['status']>['sources']): Promise<number> {
+  try {
+    return updateCount(installedForScreen(sources), sources, await installer.pending(), loaderSettings().allowUnreviewedMain)
+  } catch {
+    // There is no title-screen error for an unavailable update count.
+    return 0
+  }
+}
+
+async function checkMods(force: boolean) {
+  const status = await modCheck.run(force, async () => {
+    const sources = await installer.sources()
+    return { sources, count: await countModUpdates(sources) }
+  })
+  const current = { ...status, count: await countModUpdates(status.sources) }
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.webContents.isDestroyed()) window.webContents.send('mods:updatesChanged', current)
+  }
+  return current
+}
+
+/** The first visible window makes a background check when the daily interval has elapsed. */
+export function startModUpdateCheck(): void {
+  void checkMods(false)
+}
+
 /** Registers `ipcMain.handle` for one channel, answering a `Result` as the rest of the bridge does. */
 type Handle = <Args extends unknown[], T>(
   channel: string,
@@ -256,8 +289,32 @@ export function registerModIpc(handle: Handle): void {
   })
   handle('mods:removeDevFolder', (_event, folder: string) => removeDevFolder(folder))
   handle('mods:devFolders', () => devFolders())
-  handle('mods:sources', () => installer.sources())
-  handle('mods:plan', (_event, request: unknown) => installer.plan(request))
+  handle('mods:sources', async () => (await checkMods(true)).sources)
+  handle('mods:updateStatus', () => modCheck.status())
+  handle('mods:pending', () => installer.pending())
+  handle('mods:undoAll', () => installer.undoAll())
+  handle('mods:goBack', (_event, id: string, version: string) => rollbackMod(id, version))
+  handle('mods:installed', () => installedForScreen())
+  handle('mods:addSource', (_event, address: unknown) => addModSource(address))
+  handle('mods:removeSource', (_event, address: unknown) => removeModSource(address))
+  handle('mods:setAllowUnreviewedMain', async (_event, on: unknown) => {
+    if (typeof on !== 'boolean') throw appError('MOD_TRUST_SETTING', 'Choose whether to allow unreviewed main code.')
+    await patchStoredSettings((settings) => ({ ...settings, allowUnreviewedMain: on }))
+  })
+  handle('mods:image', (_event, source: unknown, url: unknown) =>
+    modSourceReader.readImage(installer.latestSources, source, url)
+  )
+  handle('mods:plan', (_event, request: unknown) => {
+    if (isRecord(request) && request.kind === 'rollback') {
+      const { id, version } = request
+      const installed = installedForScreen().find((row) => row.id === id && row.origin === 'installed')
+      if (!isModId(id) || !isModVersion(version) || !installed?.otherVersions.includes(version)) {
+        throw appError('MOD_ROLLBACK_VERSION', 'The previous mod version is unavailable.')
+      }
+      return { kind: 'rollback' as const, id, version }
+    }
+    return installer.plan(request)
+  })
   handle('mods:install', (event, plan: unknown) =>
     installer.install(plan, (progress) => {
       if (!event.sender.isDestroyed()) event.sender.send('mods:installProgress', progress)

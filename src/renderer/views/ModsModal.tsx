@@ -1,4 +1,5 @@
 import { useState, type JSX } from 'react'
+import { compareModVersions } from '@shared/modUpdates'
 import { compatibilityWarning } from '@shared/modCompatibility'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
@@ -18,7 +19,10 @@ import { useModalShell } from '../components/useModalShell'
 import { TitleTab } from '../components/TitleTab'
 import { modDetail, optionControl, optionPreview } from '../mods/hooks'
 import { SlotBoundary } from '../mods/ModSlot'
-import { isWebBuild } from '../platform'
+import { ModAction, ModRowError, ModsInstallQuestion, ModsProgress, ModsSources } from './ModsInstallPanels'
+import { ModsBrowse, type BrowseSelection } from './ModsBrowse'
+import { ModsRestartOffer } from './ModsRestartOffer'
+import { useModInstallerPanel } from './useModInstallerPanel'
 import { ModsAuthorsFold } from './ModsAuthorsFold'
 import { notRunningLine, useModSessionStore } from '../stores/modSessionStore'
 import { useModsStore } from '../stores/modsStore'
@@ -46,8 +50,8 @@ function scopeWords(mod: ModDef): string {
 /** Where a mod came from, in a word for its tag. */
 function originWords(session: ModSessionEntry | undefined): string {
   // A built-in with a main entry has a session row too.
-  if (!session || isBuiltInRow(session)) return 'built in'
-  return session.dev ? 'from folder' : 'installed'
+  if (!session || isBuiltInRow(session)) return 'part of this build'
+  return session.dev ? 'developer folder' : 'installed folder'
 }
 
 /** The folder's own name, which is what a row has room for. */
@@ -118,7 +122,15 @@ export interface ModWarning {
  */
 export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalProps): JSX.Element | null {
   const closeModal = useUiStore((s) => s.closeModal)
-  const close = onClose ?? ((): void => closeModal('mods'))
+  const panel = useModInstallerPanel(inGame || useUiStore.getState().view === 'game')
+  const [tab, setTab] = useState<'Installed' | 'Browse' | 'Sources'>('Installed')
+  const [browseMod, setBrowseMod] = useState<BrowseSelection | null>(null)
+  const tabs = ['Installed', 'Browse', 'Sources'] as const
+  const close = (): void => {
+    if (panel.busy) return
+    if (onClose) onClose()
+    else closeModal('mods')
+  }
   const [asking, setAsking] = useState<{ change: ModChange; warning: ModWarning } | null>(null)
 
   /** Makes a change, or asks first where the screen underneath says it costs something. */
@@ -146,13 +158,18 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
   const running = useModSessionStore((s) => s.running)
   const dataNotes = useModSessionStore((s) => s.dataNotes)
   // A library has no switch and no row; the mods that need it name it on theirs.
+  const priority = new Set(panel.updates.filter(({ mod, offer }) => offer && mod.status === 'needs-update').map(({ mod }) => mod.id))
   const listed = MODS.filter((mod) => !mod.library)
+    .sort((a, b) => Number(priority.has(b.id)) - Number(priority.has(a.id)))
   // A folder whose manifest could not be read has no entry in the list: it gets a row of its own, by folder.
   const unreadable = table.mods.filter((mod) => mod.def === null)
   const sessionOf = (id: string): ModSessionEntry | undefined => sessionRow(table, id)
   const [selectedId, setSelectedId] = useState(listed[0]?.id ?? null)
 
-  const { host, overlayProps } = useModalShell(close)
+  const { host, overlayProps } = useModalShell(() => {
+    if (tab === 'Browse' && browseMod) setBrowseMod(null)
+    else close()
+  })
   if (!host) return null
 
   const selected = listed.find((mod) => mod.id === selectedId) ?? null
@@ -182,6 +199,40 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
       >
         <TitleTab>Mods</TitleTab>
 
+        {panel.desktop && <>
+          <ModsRestartOffer panel={panel} />
+          <nav className="vu-mods-tabs" role="tablist" aria-label="Mods" onKeyDown={(event) => {
+            const index = tabs.indexOf(tab)
+            const next = event.key === 'ArrowRight' ? tabs[(index + 1) % tabs.length]
+              : event.key === 'ArrowLeft' ? tabs[(index + tabs.length - 1) % tabs.length]
+              : event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs[tabs.length - 1] : undefined
+            if (next) {
+              event.preventDefault()
+              setTab(next)
+              document.getElementById(`mods-tab-${next.toLowerCase()}`)?.focus()
+            }
+          }}>
+            {tabs.map((one) => <button id={`mods-tab-${one.toLowerCase()}`} key={one} role="tab"
+              aria-selected={one === tab} aria-pressed={one === tab} aria-controls="mods-tab-panel"
+              tabIndex={one === tab ? 0 : -1} className="vu-btn vu-btn--quiet" type="button" onClick={() => setTab(one)}>{one}</button>)}
+          </nav>
+          <ModsProgress panel={panel} />
+          <ModRowError panel={panel} id="screen" />
+          <ModRowError panel={panel} id="updates" />
+        </>}
+
+        {panel.desktop && <div className="vu-mods-tab-panel" id={tab === 'Browse' ? 'mods-tab-panel' : undefined}
+          role="tabpanel" aria-labelledby="mods-tab-browse" hidden={tab !== 'Browse'}>
+          <ModsBrowse panel={panel} active={tab === 'Browse'} selectedId={browseMod} setSelectedId={setBrowseMod} />
+        </div>}
+        {panel.desktop && tab === 'Sources' && <div className="vu-mods-tab-panel" id="mods-tab-panel" role="tabpanel" aria-labelledby="mods-tab-sources">
+          <ModsSources panel={panel} authors={<ModsAuthorsFold />} trustSwitch={<Switch
+            id="mods-allow-main" label="Allow unreviewed main code" on={panel.allowMain} disabled={Boolean(panel.busy)} onChange={panel.setTrust} />} />
+        </div>}
+
+        {tab === 'Installed' && <div className="vu-mods-tab-panel" id="mods-tab-panel" role={panel.desktop ? 'tabpanel' : undefined}
+          aria-labelledby={panel.desktop ? 'mods-tab-installed' : undefined}>
+
         <header className="vu-mods-head">
           <div>
             <h2 className="vu-mods-build">{BUILD.name}</h2>
@@ -190,6 +241,8 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
               Dev
             </p>
           </div>
+          {panel.desktop && panel.updates.some((row) => row.offer) && <ModAction id="mods-update-all"
+            disabled={Boolean(panel.busy)} onClick={panel.updateAll}>Update all</ModAction>}
           <span id="mods-count" className="vu-mods-count">
             {count} of {listed.length} on
           </span>
@@ -207,6 +260,13 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
               const session = sessionOf(mod.id)
               const isRunning = running(mod.id)
               const standing = standingOf(switches, mod, isRunning)
+              const install = panel.installed.find((entry) => entry.id === mod.id)
+              const update = panel.updates.find((entry) => entry.mod.id === mod.id)
+              const offer = update?.offer
+              const unavailable = update?.unavailable
+              const pending = panel.parts.some((entry) => entry.id === mod.id)
+              const previous = !isRunning && !shiftStart && !table.safeStart && install?.otherVersions.find((version) => compareModVersions(version, mod.version) < 0)
+              const libraries = mod.requires?.filter((id) => MODS.find((entry) => entry.id === id)?.library) ?? []
               return (
                 <li key={mod.id} className="vu-mods-row" data-selected={mod.id === selectedId}>
                   <button
@@ -219,6 +279,8 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
                     <span className="vu-mods-name">{mod.name}</span>
                     <span className="vu-mods-meta">
                       {mod.author} · {scopeWords(mod)}
+                      {panel.desktop ? ` · ${mod.version}` : ''}
+                      {panel.desktop ? ` · ${install?.approved ? 'approved' : install?.source ? `from ${install.source}` : originWords(session)}` : ''}
                       {session?.dev ? ` · from folder ${folderName(session.folder)}` : ''}
                     </span>
                     {session && !isRunning && (
@@ -229,6 +291,9 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
                     {session && isRunning && session.warnings.length > 0 && (
                       <span className="vu-mods-row-line">{session.warnings.join(' · ')}</span>
                     )}
+                    {libraries.length > 0 && <span className="vu-mods-row-line">Uses {libraries.map(panel.nameOf).join(', ')}</span>}
+                    {install?.withdrawn && <span className="vu-mods-row-line" data-kind="needs">Withdrawn · {install.withdrawn}</span>}
+                    {unavailable && <span className="vu-mods-row-line" data-kind="unavailable">{unavailable.release.version} · {unavailable.problem}</span>}
                     {dataNotes[mod.id] && <span className="vu-mods-row-line">{dataNotes[mod.id]}</span>}
                   </button>
                   <span className="vu-mods-standing" data-kind={standing.kind}>
@@ -244,6 +309,18 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
                       request({ modId: mod.id, optionId: null, on })
                     }}
                   />
+                  {panel.desktop && (install?.origin === 'installed' || pending || panel.error?.key === mod.id) && <div className="vu-mods-row-actions">
+                    <div className="vu-mods-actions">
+                      {pending ? <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.undo(mod.id)}>Undo</ModAction> : <>
+                        {offer && <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.plan({
+                          kind: 'install', mods: { [mod.id]: { version: offer.release.version, source: offer.source.url } }
+                        }, mod.id)}>Update to {offer.release.version}</ModAction>}
+                        {previous && <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.goBack(mod.id, previous)}>Go back to {previous}</ModAction>}
+                        <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.plan({ kind: 'remove', id: mod.id }, mod.id)}>Remove</ModAction>
+                      </>}
+                    </div>
+                    <ModRowError panel={panel} id={mod.id} />
+                  </div>}
                 </li>
               )
             })}
@@ -278,7 +355,7 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
               )}
               <p className="vu-mods-blurb">{selected.blurb}</p>
               <p className="vu-mods-tags">
-                <span className="vu-mods-tag">{originWords(selectedSession)}</span>
+                <span className="vu-mods-tag">{panel.installed.find((row) => row.id === selected.id)?.approved ? 'approved' : originWords(selectedSession)}</span>
                 <span className="vu-mods-tag">{scopeWords(selected)}</span>
                 {selectedSession?.manifest && <span className="vu-mods-tag">kit {selectedSession.manifest.kit}</span>}
               </p>
@@ -408,15 +485,15 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
           </p>
         </div>
 
-        {/* The browser build installs nothing, so it has no folders to load from. */}
-        {!isWebBuild() && <ModsAuthorsFold />}
+        </div>}
 
         <div className="vu-foot">
           <motion.button
             id="mods-close"
             className="vu-btn vu-btn--primary vu-paper vu-btn--panel"
             type="button"
-            {...gestures(false, lift, press)}
+            disabled={Boolean(panel.busy)}
+            {...gestures(Boolean(panel.busy), lift, press)}
             onClick={close}
           >
             Close
@@ -424,6 +501,9 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
         </div>
       </motion.div>
 
+      <AnimatePresence>
+        {panel.question && <ModsInstallQuestion key="mods-installer-question" panel={panel} theme={theme} />}
+      </AnimatePresence>
       <AnimatePresence>
         {asking && (
           <ConfirmModal

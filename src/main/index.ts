@@ -6,7 +6,7 @@ import { handleImageProtocols, registerImageSchemes } from './imageProtocols'
 import { registerIpcHandlers } from './ipc'
 import { installConsoleLog } from './logFile'
 import { modScheme } from './mods/protocol'
-import { handleModSession, startModSession } from './mods/session'
+import { handleModSession, startModSession, startModUpdateCheck } from './mods/session'
 import { redact } from './redact'
 import { migrateEditedCast } from './services/castMigration'
 import { sweepStaging } from './services/characterService'
@@ -145,6 +145,8 @@ function createWindow(fullscreen: boolean): void {
   })
 
   bindShortcuts(mainWindow)
+
+  mainWindow.once('show', () => setImmediate(startModUpdateCheck))
 
   mainWindow.on('ready-to-show', () => {
     if (!fullscreen) fillIfOversized(mainWindow)

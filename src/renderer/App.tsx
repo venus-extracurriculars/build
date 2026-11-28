@@ -19,6 +19,8 @@ import { SetupView } from './views/SetupView'
 import { AppSettingsModal } from './views/AppSettingsModal'
 import { CreditsModal } from './views/CreditsModal'
 import { ModsModal } from './views/ModsModal'
+import { MissingModsNotice } from './views/MissingModsNotice'
+import { useModBrowserStore } from './stores/modBrowserStore'
 import { ModsNoticeModal } from './views/ModsNoticeModal'
 import { DownloadModal } from './views/DownloadModal'
 import { FeedbackModal } from './views/FeedbackModal'
@@ -146,6 +148,7 @@ function App(): JSX.Element {
   const offer = useUpdateStore((s) => s.offer)
   const updateFailure = useUpdateStore((s) => s.failure)
   // The quiet notice is the toast's, not a modal.
+  const missingMods = useModBrowserStore((state) => state.missing)
   const modNotice = useModSessionStore((s) => (s.notice?.kind === 'unversioned' ? null : s.notice))
   // The Game View's own key: a save switched over a running game replaces
   // this store's state under the curtain, and its React state — crossfade pairs, `sending`,
@@ -185,7 +188,7 @@ function App(): JSX.Element {
       {/* The gate itself is what a closing modal has to outlive, so it is the presence's
           child: the exits run inside it, and it unmounts once they finish. */}
       <AnimatePresence>
-        {(modals.length > 0 || error || download || offer || updateFailure || modNotice) && (
+        {(modals.length > 0 || error || download || offer || updateFailure || modNotice || missingMods) && (
           <AppModals key="app-modals" />
         )}
       </AnimatePresence>
@@ -216,6 +219,7 @@ function AppModals(): JSX.Element {
 
   const [theme] = useState(heldScreenTheme)
 
+  const missing = useModBrowserStore((state) => state.missing)
   return (
     <>
       {/* `propagate`, so the last modal to close still leaves: this component is itself
@@ -224,6 +228,7 @@ function AppModals(): JSX.Element {
         {modals.includes('settings') && <AppSettingsModal key="settings" theme={theme} />}
         {modals.includes('credits') && <CreditsModal key="credits" theme={theme} />}
         {modals.includes('mods') && <ModsModal key="mods" theme={theme} />}
+        {missing && <MissingModsNotice key="mods-missing" theme={theme} />}
         {modNotice && <ModsNoticeModal key="mods-notice" theme={theme} notice={modNotice} />}
         {modals.includes('feedback') && <FeedbackModal key="feedback" theme={theme} />}
         {modals.includes('support') && <SupportModal key="support" theme={theme} />}
