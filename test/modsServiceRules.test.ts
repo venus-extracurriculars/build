@@ -12,13 +12,14 @@ import { FIXTURES, installFixture, recordInstall } from './mods/fixtureMods'
  * from disk says so; off whatever its switch while its `main.js` failed. Only Electron is a stub.
  */
 let root = ''
+let noMods = false
 vi.mock('electron', () => ({
   app: {
     isPackaged: false,
     getAppPath: () => root,
     getPath: () => root,
     getVersion: () => '0.6.0',
-    commandLine: { hasSwitch: () => false }
+    commandLine: { hasSwitch: (name: string) => name === 'no-mods' && noMods }
   },
   BrowserWindow: { getAllWindows: () => [] },
   ipcMain: { on: () => {}, handle: () => {} },
@@ -45,6 +46,7 @@ async function installBroken(data: string): Promise<void> {
 
 describe('shared rules in main', () => {
   beforeEach(async () => {
+    noMods = false
     root = await mkdtemp(join(tmpdir(), 'vu-mods-'))
     const data = join(root, 'data')
     installFixture(data, 'hello-mod')
@@ -60,6 +62,44 @@ describe('shared rules in main', () => {
   })
   afterEach(async () => {
     await rm(root, { recursive: true, force: true })
+  })
+
+  it('applies pending removal before loading with --no-mods', async () => {
+    const folder = join(root, 'data', 'mods')
+    const known = join(folder, 'known.json')
+    await rm(known)
+    await writeFile(join(folder, 'pending.json'), JSON.stringify({ pending: 1, current: {}, remove: ['broken'] }))
+    noMods = true
+    startModSession()
+    expect(modSession().safeStart).toBe('flag')
+    expect(modSession().mods.map((row) => row.id)).not.toContain('broken')
+    const records = JSON.parse(readFileSync(join(folder, 'installed.json'), 'utf8'))
+    expect(records.mods).not.toHaveProperty('broken')
+    await vi.waitFor(() => {
+      const snapshot = JSON.parse(readFileSync(known, 'utf8'))
+      expect(snapshot.mods).not.toHaveProperty('broken')
+    })
+  })
+
+  it('reports a replay failure synchronously and skips installed main code', async () => {
+    const folder = join(root, 'data', 'mods')
+    const known = join(folder, 'known.json')
+    const pending = join(folder, 'pending.json')
+    const journal = JSON.stringify({ pending: 1, current: { 'hello-mod': '1.0.0' }, remove: [] })
+    await rm(known)
+    await mkdir(join(folder, 'hello-mod', 'current'))
+    await writeFile(pending, journal)
+
+    startModSession()
+
+    const session = modSession()
+    expect(session.safeStart).toBe('flag')
+    expect(session.loaderError).toBeTruthy()
+    expect(session.mods.find((mod) => mod.id === 'broken')?.status).not.toBe('failed')
+    expect(readFileSync(pending, 'utf8')).toBe(journal)
+    await vi.waitFor(() => {
+      expect(JSON.parse(readFileSync(known, 'utf8')).mods).toHaveProperty('hello-mod')
+    })
   })
 
   it('list the installed mods, and answer for a loaded one from the switches main last read or wrote', async () => {

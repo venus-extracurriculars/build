@@ -6,7 +6,7 @@ import { handleImageProtocols, registerImageSchemes } from './imageProtocols'
 import { registerIpcHandlers } from './ipc'
 import { installConsoleLog } from './logFile'
 import { modScheme } from './mods/protocol'
-import { handleModSession, startModSession } from './mods/session'
+import { handleModSession, startModSession, startModUpdateCheck } from './mods/session'
 import { redact } from './redact'
 import { migrateEditedCast } from './services/castMigration'
 import { sweepStaging } from './services/characterService'
@@ -146,6 +146,8 @@ function createWindow(fullscreen: boolean): void {
 
   bindShortcuts(mainWindow)
 
+  mainWindow.once('show', () => setImmediate(startModUpdateCheck))
+
   mainWindow.on('ready-to-show', () => {
     if (!fullscreen) fillIfOversized(mainWindow)
     mainWindow.show()
@@ -211,8 +213,8 @@ function createWindow(fullscreen: boolean): void {
 // Before anything can print: the app log wraps the console for the whole run.
 installConsoleLog()
 
-// The installed mods: their manifests read and checked, and each `main.js` required, before the
-// window exists. Synchronous, so the table is whole when the preload asks for it.
+// Apply pending changes, then check the installed manifests and require each `main.js` before
+// Electron is ready. The session is built synchronously so the preload reads a complete table.
 startModSession()
 
 // Custom schemes must be declared before the app is ready, in one call.

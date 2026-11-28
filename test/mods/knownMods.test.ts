@@ -54,9 +54,9 @@ describe('known.json', () => {
   it('records each built-in and installed mod with its switch as the player left it', () => {
     const file = knownModsOf({ builtIn: builtIn(), table: run().table, switches, previous: null })
     expect(file.schemaVersion).toBe(1)
-    expect(file.mods['own-mod']).toEqual({ id: 'own-mod', version: '2.1.0', scope: 'playthrough', defaultOn: false, switchedOn: true, builtIn: true })
-    expect(file.mods['hello-mod']).toEqual({ id: 'hello-mod', version: '1.0.0', scope: 'anytime', defaultOn: true, switchedOn: false, builtIn: false })
-    expect(file.mods['throws']).toEqual({ id: 'throws', version: '1.0.0', scope: 'anytime', defaultOn: true, switchedOn: true, builtIn: false })
+    expect(file.mods['own-mod']).toEqual({ id: 'own-mod', name: 'Own mod', version: '2.1.0', scope: 'playthrough', defaultOn: false, switchedOn: true, builtIn: true })
+    expect(file.mods['hello-mod']).toEqual({ id: 'hello-mod', name: 'Hello mod', version: '1.0.0', scope: 'anytime', defaultOn: true, switchedOn: false, builtIn: false })
+    expect(file.mods['throws']).toEqual({ id: 'throws', name: 'Throws', version: '1.0.0', scope: 'anytime', defaultOn: true, switchedOn: true, builtIn: false })
     expect(Object.keys(file.mods)).toEqual([...originalIds, 'hello-mod', 'own-mod', 'throws'].sort())
   })
 

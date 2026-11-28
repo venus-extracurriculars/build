@@ -3334,11 +3334,11 @@ export function enterGame(
   save: GameSave,
   record: PlaythroughRecord,
   characters: Record<string, Character>,
-  /** An exam's calls already settled before a replay held the game, claimed rather than sent. */
-  examCalls?: {
-    textLedger: Promise<LedgerResponse | null>
-    opening: Promise<BankedOpening | null>
-  }
+  { examCalls, acknowledgedMissingMods }: {
+    /** An exam's calls already settled before a replay held the game. */
+    examCalls?: { textLedger: Promise<LedgerResponse | null>; opening: Promise<BankedOpening | null> }
+    acknowledgedMissingMods?: readonly string[]
+  } = {}
 ): void {
   resetLoop()
   // Held for a replay's return, which enters the same game again.
@@ -3347,7 +3347,7 @@ export function enterGame(
   const unversionedSeen = useSettingsStore.getState().settings?.modUnversionedSeen
   useModSessionStore
     .getState()
-    .gameEntered(record, save.playthroughId, Array.isArray(unversionedSeen) ? unversionedSeen : [])
+    .gameEntered(record, save.playthroughId, Array.isArray(unversionedSeen) ? unversionedSeen : [], acknowledgedMissingMods)
   const game = useGameStore.getState()
   game.loadSave(save, record, characters)
   // A read nothing on screen is waiting on: the profile is not open yet.
@@ -3578,7 +3578,7 @@ export function endReplay(): void {
     held.examTextLedger && held.examOpening
       ? { textLedger: held.examTextLedger, opening: held.examOpening }
       : undefined
-  enterGame(held.save, held.record, held.characters, examCalls)
+  enterGame(held.save, held.record, held.characters, { examCalls })
   loopState.decisionSave = held.decisionSave
   loopState.slotSaveId = held.slotSaveId
   useGameStore.getState().setInputDraft(held.inputDraft)

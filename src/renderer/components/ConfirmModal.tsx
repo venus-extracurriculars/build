@@ -146,8 +146,10 @@ export function ConfirmModal({
             {paragraph}
           </p>
         ))
-      ) : (
+      ) : typeof message === 'string' ? (
         <p className="vu-note-text">{message}</p>
+      ) : (
+        <div className="vu-note-text">{message}</div>
       )}
       {aside}
     </DialogFrame>,
