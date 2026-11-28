@@ -1095,8 +1095,8 @@ optionGroups: [{ id: 'loader', label: 'Loading animation', hint: 'The animation 
 
 ## Install sources and pending changes
 
-In `vxsource.json`, a release can carry `changes`, an array of 1–20 non-empty strings, each
-at most 200 characters. Browse shows these lines under the version. It shows the date from
+In `vxsource.json`, a release can carry `changes`, an array of 1–40 non-empty strings, each
+at most 500 characters. Browse shows these lines under the version. It shows the date from
 `approved.at` only for releases on the approved list.
 
 Core's host shared entry exports `parseSource(json)` for schema-1 `vxsource.json` lists,
