@@ -44,6 +44,8 @@ export function ModsMigrationModal({ theme }: { theme: 'day' | 'night' }) {
   const chosen = offer.rows.filter((row) => ticked(row) && !staged(row.id))
   const restartNeeded = !installing && offer.rows.some((row) => staged(row.id))
   const onlyLater = restartNeeded && chosen.length === 0
+  // Staged, with nothing left that could be ticked: what is left to do is restart.
+  const settled = restartNeeded && !offer.rows.some((row) => row.offer && !staged(row.id))
 
   function bring(): void {
     panel.installNow({
@@ -93,7 +95,7 @@ export function ModsMigrationModal({ theme }: { theme: 'day' | 'night' }) {
     title="Bring your mods across"
     message={<>
       {missing.length > 0 && <>
-        <p>These mods are no longer part of this build. Tick the ones you want to install.</p>
+        <p>{settled ? 'Restart to finish bringing your mods across.' : 'These mods are no longer part of this build. Tick the ones you want to install.'}</p>
         <ul className="vu-mods-missing-rows">{missing.map(rowOf)}</ul>
       </>}
       {bundled.length > 0 && <>
