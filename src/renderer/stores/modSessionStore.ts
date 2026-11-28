@@ -131,10 +131,11 @@ export const useModSessionStore = create<ModSessionState>((set, get) => ({
 
   gameEntered: (record, playthroughId, seen, acknowledgedMissingMods = []) => {
     const { table, running, notice, unversionedTold } = get()
-    const missing = table.mods.filter(
-      (mod) => !acknowledgedMissingMods.includes(mod.id) && record.mods?.includes(mod.id) &&
-        modById(mod.id, MODS)?.scope === 'playthrough' && !running(mod.id)
-    )
+    const missing = [...new Set(record.mods)].flatMap((id) => {
+      if (acknowledgedMissingMods.includes(id) || modById(id, MODS)?.scope !== 'playthrough' || running(id)) return []
+      const row = sessionRow(table, id)
+      return row ? [row] : []
+    })
     // No map is a record from before the versions were kept (a new one holds an empty map where
     // no mod was on); a build with no mod has nothing to say of it. Said once a playthrough,
     // however often and in however many sessions the same game is entered.

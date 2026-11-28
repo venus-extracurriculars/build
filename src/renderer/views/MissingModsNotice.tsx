@@ -7,7 +7,8 @@ export function MissingModsNotice({ theme }: { theme: 'day' | 'night' }) {
   const missing = useModBrowserStore((state) => state.missing)
   const panel = useModInstallerPanel(false, 'notice')
   if (!missing) return null
-  const restartNeeded = missing.mods.some((mod) => Object.hasOwn(panel.pending?.current ?? {}, mod.id))
+  const installing = panel.activePlan !== null
+  const restartNeeded = !installing && missing.mods.some((mod) => Object.hasOwn(panel.pending?.current ?? {}, mod.id))
   return <>
     <ConfirmModal
       id="mods-missing-notice"
@@ -17,13 +18,17 @@ export function MissingModsNotice({ theme }: { theme: 'day' | 'night' }) {
         <ul className="vu-mods-missing-rows">
           {missing.mods.map((mod) => {
             const version = panel.pending?.current[mod.id]
+            const install = mod.install
+            const installingMod = panel.activePlan?.key === mod.id
+            const caption = `Installing ${mod.name}…`
             return <li key={mod.id} className="vu-mods-missing-row">
               <div className="vu-mods-missing-row-heading">
-                <span>{version ? `${mod.name} ${version} is ready to install.` : `${mod.name} isn’t installed.`}</span>
-                {mod.install && !version && <ModAction disabled={Boolean(panel.busy || panel.question)}
-                  onClick={() => { if (mod.install) panel.plan(mod.install, mod.id) }}>Install</ModAction>}
+                {installingMod ? <span role="status">{caption}</span>
+                  : <span>{version ? `${mod.name} ${version} is ready to install.` : `${mod.name} isn’t installed.`}</span>}
+                {install && !version && !installing && <ModAction disabled={Boolean(panel.busy || panel.question)}
+                  onClick={() => panel.plan(install, mod.id)}>Install</ModAction>}
               </div>
-              <ModsProgress panel={panel} operation={mod.id} />
+              <ModsProgress panel={panel} operation={mod.id} caption={caption} hideCaption />
               <ModRowError panel={panel} id={mod.id} />
             </li>
           })}
@@ -38,7 +43,7 @@ export function MissingModsNotice({ theme }: { theme: 'day' | 'night' }) {
       lockOut={Boolean(panel.question)}
       confirmDisabled={Boolean(panel.question)}
       onConfirm={restartNeeded ? panel.restart : () => missing.answer(true)}
-      onCancel={() => { if (!panel.question) missing.answer(false) }}
+      onCancel={installing ? undefined : () => { if (!panel.question) missing.answer(false) }}
     />
     <ModsInstallQuestion panel={panel} theme={theme} />
   </>

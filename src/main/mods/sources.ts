@@ -332,10 +332,7 @@ export class ModSourceReader {
             releases: mod.releases.map(({ approved: _approved, ...release }) => release)
           }))
         }
-    const releaseDates = approvedList ? undefined : Object.fromEntries(parsed.source.mods.map((mod) => [
-      mod.id, Object.fromEntries(mod.releases.flatMap((release) => release.approved ? [[release.version, release.approved.at]] : []))
-    ]))
-    return { url: address, kind: 'list', approvedList, source, ...(releaseDates ? { releaseDates } : {}) }
+    return { url: address, kind: 'list', approvedList, source }
   }
 
   private async readRepo(address: string, owner: string, repo: string): Promise<FetchedModSource> {

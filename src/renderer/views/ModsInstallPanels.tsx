@@ -33,12 +33,14 @@ export function ModVersionUnavailable({ version, problem }: { version: string; p
   </span>
 }
 
-export function ModsProgress({ panel, operation }: { panel: ModInstallerPanel; operation: string }) {
+export function ModsProgress({ panel, operation, caption, hideCaption = false }: {
+  panel: ModInstallerPanel; operation: string; caption?: string; hideCaption?: boolean
+}) {
   const active = panel.activePlan
   if (active?.key !== operation) return null
   const { changes, request } = active.plan
   const targets = changes.filter(({ id, release }) => Object.hasOwn(request.mods, id) && !release.manifest.library)
-  const label = targets.length === 1 ? `Installing ${targets[0].release.manifest.name}…` : 'Installing mods…'
+  const label = caption ?? (targets.length === 1 ? `Installing ${targets[0].release.manifest.name}…` : 'Installing mods…')
   const total = changes.reduce((sum, { release }) => sum + release.size, 0)
   const done = changes.reduce((sum, { id, release }) => {
     const event = panel.progress.find((item) => item.id === id && item.version === release.version)
@@ -50,7 +52,7 @@ export function ModsProgress({ panel, operation }: { panel: ModInstallerPanel; o
   }, 0)
   const percent = total ? Math.round(100 * done / total) : 0
   return <div className="vu-mods-progress">
-    <p className="vu-mods-about" role="status">{label}</p>
+    {!hideCaption && <p className="vu-mods-about" role="status">{label}</p>}
     <div className="vu-track" role="progressbar" aria-label={label} aria-valuenow={percent}>
       <span className="vu-bar" style={{ width: `${percent}%` }} />
     </div>

@@ -143,7 +143,7 @@ export function ModsBrowse({
                         {isCurrent ? 'Uninstall' : current ? `Update to ${picked.release.version}`
                           : newerRefusal ? `Install ${picked.release.version}` : 'Install'}
                       </ModAction>}
-                  <ModsProgress panel={panel} operation={pageKey} />
+                  <ModsProgress panel={panel} operation={pageKey} caption="Installing…" />
                   <ModRowError panel={panel} id={pageKey} />
                   <ModRowError panel={panel} id={selected.id} />
                 </div>
@@ -184,7 +184,7 @@ export function ModsBrowse({
                     }))} />
                 </div>
               </details>}
-              <Changelog source={source} mod={selected} releases={choices.map((item) => item.release)} installed={current} />
+              <Changelog reviewed={isReviewedSource(source)} releases={choices.map((item) => item.release)} installed={current} />
             </div>
           </div>
         )}
@@ -196,15 +196,15 @@ export function ModsBrowse({
   )
 }
 
-function Changelog({ source, mod, releases, installed }: {
-  source: FetchedModSource; mod: SourceMod; releases: readonly SourceRelease[]; installed?: string
+function Changelog({ reviewed, releases, installed }: {
+  reviewed: boolean; releases: readonly SourceRelease[]; installed?: string
 }) {
   const documented = releases.filter((release) => release.changes?.length)
   if (!documented.length) return null
   return <section className="vu-mods-store-changelog">
     <h4 className="vu-mods-label">Changelog</h4>
     {documented.map((release) => {
-      const date = release.approved?.at ?? source.releaseDates?.[mod.id]?.[release.version]
+      const date = reviewed ? release.approved?.at : undefined
       return <div key={release.version}>
         <h5 className="vu-mods-about">
           {release.version}{date ? <> · <time dateTime={date}>{new Date(date).toLocaleDateString(undefined, {

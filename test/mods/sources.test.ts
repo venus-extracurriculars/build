@@ -65,10 +65,11 @@ describe('bounded source fetching', () => {
     expect(reader.approvedAddress()).toBe(APPROVED_MOD_SOURCE)
     const approved = await reader.readApproved()
     expect(approved.approvedList).toBe(true)
-    expect(approved.source.mods[0].releases[0].approved).toBeDefined()
+    expect(approved.source.mods[0].releases[0].approved?.at).toBe('2026-11-10')
     const custom = await reader.readCustom('https://example.com/list')
     expect(custom.approvedList).toBe(false)
     expect(custom.source.mods[0].releases[0]).not.toHaveProperty('approved')
+    expect(custom).not.toHaveProperty('releaseDates')
   })
   it('allows a file override only in development, never as a custom source', async () => {
     const folder = await mkdtemp(join(tmpdir(), 'vu-source-'))

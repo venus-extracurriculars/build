@@ -591,6 +591,15 @@
   flex: none;
 }
 
+.vu-mods-missing-row-heading span {
+  font-family: var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.vu-mods-missing-row .vu-mods-progress {
+  width: 100%;
+}
+
 .vu-mods-source-form .vu-field {
   flex: 1;
 }
@@ -616,7 +625,7 @@
 .vu-mods-browse { display: flex; flex: 1; flex-direction: column; gap: 12px; min-height: 0; }
 .vu-mods-store-sources { overflow: hidden auto; padding: 0 12px 12px; margin: 0 -12px; }
 .vu-mods-store-source + .vu-mods-store-source { margin-top: 18px; }
-.vu-mods-store-source .vu-mods-store-grid { overflow: visible; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.vu-mods-store-source .vu-mods-store-grid { overflow: visible; }
 .vu-mods-store-shot .vu-mods-art-wait { aspect-ratio: 16 / 9; }
 .vu-mods-store-scroll .vu-mods-store-changelog { gap: 16px; }
 .vu-mods-store-changelog h5 { margin: 0; }

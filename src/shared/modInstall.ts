@@ -7,8 +7,6 @@ export interface FetchedModSource {
   /** Source identity. Trust requires a matching pinned hash. */
   readonly approvedList: boolean
   readonly source: ModSource
-  /** Release dates copied from custom-list approvals for display only. */
-  readonly releaseDates?: Readonly<Record<string, Readonly<Record<string, string>>>>
 }
 
 export type ModSourceResult =
