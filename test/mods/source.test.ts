@@ -363,12 +363,12 @@ it('refuses invalid release changes and preserves valid lines', () => {
   const withChanges = (changes: unknown) => ({
     ...base, mods: [{ ...mod, releases: [{ ...release, changes }] }]
   })
-  for (const changes of [null, 'text', [], Array(21).fill('line'), [''], ['   '], [1], ['x'.repeat(201)]]) {
+  for (const changes of [null, 'text', [], Array(41).fill('line'), [''], ['   '], [1], ['x'.repeat(501)]]) {
     const result = parseSource(withChanges(changes))
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error).toContain('changes')
   }
-  const lines = ['A release note', 'x'.repeat(200)]
+  const lines = ['A release note', 'x'.repeat(500)]
   const result = parseSource(withChanges(lines))
   expect(result.ok && result.source.mods[0].releases[0].changes).toEqual(lines)
 })

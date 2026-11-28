@@ -4,8 +4,8 @@ import { parseVersion } from './range'
 export const SOURCE_SCHEMA = 1
 export const MAX_SOURCE_SCREENSHOTS = 8
 const MAX_SCREENSHOT_CAPTION_LENGTH = 200
-const MAX_RELEASE_CHANGES = 20
-const MAX_RELEASE_CHANGE_LENGTH = 200
+const MAX_RELEASE_CHANGES = 40
+const MAX_RELEASE_CHANGE_LENGTH = 500
 
 /** A release's approval record. Only the host's approved source can confer trust. */
 export interface SourceApproval {
@@ -161,11 +161,11 @@ function readChanges(value: unknown, release: string): string[] {
   const where = release + '.changes'
   const lines = list(value, where)
   if (lines.length === 0 || lines.length > MAX_RELEASE_CHANGES) {
-    refuse(where + ' must contain 1–20 lines')
+    refuse(where + ' must contain 1–' + MAX_RELEASE_CHANGES + ' lines')
   }
   return Array.from(lines, (line, index) => {
     if (!text(line) || line.length > MAX_RELEASE_CHANGE_LENGTH) {
-      refuse(where + '[' + index + '] must be non-empty text up to 200 characters')
+      refuse(where + '[' + index + '] must be non-empty text up to ' + MAX_RELEASE_CHANGE_LENGTH + ' characters')
     }
     return line
   })
