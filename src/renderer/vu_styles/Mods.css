@@ -449,6 +449,10 @@
 }
 
 .vu-mods-tabs { display: flex; gap: 10px; }
+.vu-mods-tabs .vu-btn--quiet {
+  padding: 11px 26px 11px 29px;
+  font: 700 19px var(--font-body);
+}
 .vu-mods-tabs [aria-selected='true'] { background: var(--vu-tint); color: var(--vu-accent); }
 
 .vu-mods-actions {
@@ -467,8 +471,16 @@
   padding: 0 12px 8px;
 }
 
-.vu-mods-row [data-kind='unavailable'] {
+.vu-mods-version-unavailable {
+  display: block;
   color: var(--vu-text-muted);
+  font: 700 12px var(--font-mono);
+}
+
+.vu-mods-version-unavailable small {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
 }
 
 .vu-mods-meta,
@@ -533,11 +545,34 @@
 
 .vu-mods-source-row,
 .vu-mods-source-form,
-.vu-mods-notice-row {
+.vu-mods-missing-row-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.vu-mods-missing-rows {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vu-mods-missing-row {
+  display: grid;
+  gap: 8px;
+  padding: 8px 0 8px 14px;
+  border-bottom: 1px solid var(--vu-border);
+}
+
+.vu-mods-missing-row-heading .vu-btn {
+  flex: none;
+}
+
+.vu-mods-missing-row .vu-mods-progress {
+  margin: 0;
 }
 
 .vu-mods-source-form .vu-field {

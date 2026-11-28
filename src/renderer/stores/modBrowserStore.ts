@@ -19,13 +19,11 @@ interface MissingMod {
 interface BrowserState {
   status: ModUpdateStatus
   missing: { mods: MissingMod[]; answer: (proceed: boolean) => void } | null
-  initialRequest: InstallRequest | null
 }
 
 export const useModBrowserStore = create<BrowserState>(() => ({
   status: { checkedAt: null, sources: [], count: 0 },
-  missing: null,
-  initialRequest: null
+  missing: null
 }))
 
 export function watchModUpdates(): () => void {

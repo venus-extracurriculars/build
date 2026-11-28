@@ -18,7 +18,7 @@ type Question =
   | { kind: 'trust' }
   | { kind: 'restart' }
 
-export function useModInstallerPanel(inGame: boolean) {
+export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notice' = 'screen') {
   const desktop = !isWebBuild()
   const sources = useModBrowserStore((state) => state.status.sources)
   const checkedAt = useModBrowserStore((state) => state.status.checkedAt)
@@ -31,7 +31,7 @@ export function useModInstallerPanel(inGame: boolean) {
   const [accepted, setAccepted] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const active = useRef(false)
-  const [checking, setChecking] = useState(desktop)
+  const [checking, setChecking] = useState(desktop && surface === 'screen')
   const [error, setError] = useState<{ key: string; message: string } | null>(null)
   const [progress, setProgress] = useState<readonly ModInstallProgress[]>([])
 
@@ -87,14 +87,9 @@ export function useModInstallerPanel(inGame: boolean) {
       setProgress((previous) => [...previous.filter((one) => one.id !== event.id), event])
     })
     void readDisk().catch((err: unknown) => setError({ key: 'screen', message: toAppError(err).message }))
-    void refresh()
-    const request = useModBrowserStore.getState().initialRequest
-    if (request) {
-      useModBrowserStore.setState({ initialRequest: null })
-      plan(request, Object.keys(request.mods)[0])
-    }
+    if (surface === 'screen') void refresh()
     return unsubscribe
-  }, [desktop])
+  }, [desktop, surface])
 
   function askSource(address: string): void {
     if (address.trim()) setQuestion({ kind: 'source', address: address.trim() })

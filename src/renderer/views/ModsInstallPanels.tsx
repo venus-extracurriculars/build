@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { APPROVED_MOD_SOURCE } from '@shared/modSource'
+import type { ModReleaseProblem } from '@shared/modUpdates'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { CheckField } from '../components/CheckField'
 import { TextField } from '../components/TextField'
@@ -21,6 +22,15 @@ export function ModRowError({ panel, id }: { panel: ModInstallerPanel; id: strin
   return panel.error?.key === id
     ? <p className="vu-mods-note" data-kind="needs" role="alert">{panel.error.message}</p>
     : null
+}
+
+export function ModVersionUnavailable({ version, problem }: { version: string; problem: ModReleaseProblem }) {
+  return <span className="vu-mods-version-unavailable">
+    {version} · {problem.message}
+    {problem.missing && <small>
+      {problem.missing.length === 1 ? 'Missing hook' : 'Missing hooks'} · {problem.missing.join(', ')}
+    </small>}
+  </span>
 }
 
 export function ModsProgress({ panel }: { panel: ModInstallerPanel }) {

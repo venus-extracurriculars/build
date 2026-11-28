@@ -228,11 +228,11 @@ function AppModals(): JSX.Element {
         {modals.includes('settings') && <AppSettingsModal key="settings" theme={theme} />}
         {modals.includes('credits') && <CreditsModal key="credits" theme={theme} />}
         {modals.includes('mods') && <ModsModal key="mods" theme={theme} />}
-        {missing && <MissingModsNotice key="mods-missing" theme={theme} />}
         {modNotice && <ModsNoticeModal key="mods-notice" theme={theme} notice={modNotice} />}
         {modals.includes('feedback') && <FeedbackModal key="feedback" theme={theme} />}
         {modals.includes('support') && <SupportModal key="support" theme={theme} />}
         {modals.includes('loadGame') && <LoadGameModal key="load-game" theme={theme} />}
+        {missing && <MissingModsNotice key="mods-missing" theme={theme} />}
         {download && (
           <DownloadModal key="download" theme={theme} name={download.name} url={download.url} />
         )}

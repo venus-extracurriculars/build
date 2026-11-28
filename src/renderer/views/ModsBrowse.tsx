@@ -6,7 +6,7 @@ import { compareModVersions, isReviewedSource, releaseProblem } from '@shared/mo
 import { SelectField } from '../components/SelectField'
 import { Lightbox } from '../components/Lightbox'
 import { useDismissLayer } from '../components/useModalShell'
-import { ModAction, ModRowError } from './ModsInstallPanels'
+import { ModAction, ModRowError, ModVersionUnavailable } from './ModsInstallPanels'
 import { gestures, lift, press, cardLift } from './motion'
 import type { ModInstallerPanel } from './useModInstallerPanel'
 
@@ -46,7 +46,7 @@ export function ModsBrowse({
   const isCurrent = Boolean(current && picked?.release.version === current)
   const refusal = install?.origin === 'built-in' ? 'Part of this build.'
     : install?.origin === 'developer' ? 'This mod is loaded from a developer folder.'
-      : isCurrent ? undefined : picked?.problem
+      : undefined
   const waiting = !active || panel.checking
 
   function pick(source: FetchedModSource, mod: SourceMod): void {
@@ -127,13 +127,12 @@ export function ModsBrowse({
                   <h3 className="vu-mods-detail-name">{picked.release.manifest.name}</h3>
                   <p className="vu-mods-about">by {picked.release.manifest.author} · {picked.release.version}</p>
                   {!isReviewedSource(source) && <p className="vu-mods-about">{source.source.name} · not reviewed</p>}
-                  {newerRefusal && <p className="vu-mods-about" data-kind="unavailable">
-                    {newerRefusal.release.version} · {newerRefusal.problem}
-                  </p>}
+                  {newerRefusal?.problem && <ModVersionUnavailable version={newerRefusal.release.version} problem={newerRefusal.problem} />}
                 </div>
                 <div className="vu-mods-store-action">
                   {pending ? <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.undo(selected.id)}>Undo</ModAction>
-                    : refusal ? <p className="vu-mods-about" data-kind="unavailable">{refusal}</p>
+                    : refusal ? <p className="vu-mods-about">{refusal}</p>
+                      : picked.problem && !isCurrent ? <ModVersionUnavailable version={picked.release.version} problem={picked.problem} />
                       : <ModAction id={isCurrent ? 'mods-browse-uninstall' : 'mods-install'} primary={!isCurrent}
                         disabled={Boolean(panel.busy)}
                         onClick={() => isCurrent
@@ -141,7 +140,8 @@ export function ModsBrowse({
                           : panel.plan({ kind: 'install', mods: { [selected.id]: {
                             version: picked.release.version, source: source.url
                           } } }, pageKey)}>
-                        {isCurrent ? 'Uninstall' : current ? `Update to ${picked.release.version}` : 'Install'}
+                        {isCurrent ? 'Uninstall' : current ? `Update to ${picked.release.version}`
+                          : newerRefusal ? `Install ${picked.release.version}` : 'Install'}
                       </ModAction>}
                   <ModRowError panel={panel} id={pageKey} />
                   <ModRowError panel={panel} id={selected.id} />
@@ -176,7 +176,11 @@ export function ModsBrowse({
                 <div className="vu-disc-body">
                   <SelectField id="mods-release" label="Release" value={picked.release.version}
                     disabled={Boolean(panel.busy)} onChange={setVersion}
-                    options={choices.map(({ release }) => ({ value: release.version, label: release.version }))} />
+                    options={choices.map(({ release, problem }) => ({
+                      value: release.version,
+                      label: problem ? `${release.version} · ${problem.message}` : release.version,
+                      disabled: Boolean(problem && release.version !== current)
+                    }))} />
                 </div>
               </details>}
               <Changelog source={source} mod={selected} releases={choices.map((item) => item.release)} installed={current} />
@@ -200,7 +204,9 @@ function Changelog({ source, mod, releases, installed }: {
       const date = release.approved?.at ?? source.releaseDates?.[mod.id]?.[release.version]
       return <div key={release.version}>
         <h5 className="vu-mods-about">
-          {release.version}{date ? <> · <time dateTime={date}>{date}</time></> : null}
+          {release.version}{date ? <> · <time dateTime={date}>{new Date(date).toLocaleDateString(undefined, {
+            month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+          })}</time></> : null}
           {installed === release.version ? ' · installed' : ''}
         </h5>
         {release.changes && <ul className="vu-mods-changes">

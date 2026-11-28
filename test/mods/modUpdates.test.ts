@@ -21,7 +21,7 @@ describe('mod update choices', () => {
     const updates = modUpdates([installed('one'), installed('two', 'needs-update')], sources, null, false)
     expect(updates.map((item) => [item.mod.id, item.offer?.release.version])).toEqual([['two', '1.1.0'], ['one', '1.2.0']])
     expect(updates[1].unavailable?.release.version).toBe('1.3.0')
-    expect(updates[1].unavailable?.problem).toContain('absent-hook')
+    expect(updates[1].unavailable?.problem?.missing).toEqual(['absent-hook'])
   })
 
   it('waits one day unless the saved check is missing or ahead of the clock', () => {

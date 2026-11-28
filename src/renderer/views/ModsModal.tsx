@@ -19,7 +19,7 @@ import { useModalShell } from '../components/useModalShell'
 import { TitleTab } from '../components/TitleTab'
 import { modDetail, optionControl, optionPreview } from '../mods/hooks'
 import { SlotBoundary } from '../mods/ModSlot'
-import { ModAction, ModRowError, ModsInstallQuestion, ModsProgress, ModsSources } from './ModsInstallPanels'
+import { ModAction, ModRowError, ModVersionUnavailable, ModsInstallQuestion, ModsProgress, ModsSources } from './ModsInstallPanels'
 import { ModsBrowse, type BrowseSelection } from './ModsBrowse'
 import { ModsRestartOffer } from './ModsRestartOffer'
 import { useModInstallerPanel } from './useModInstallerPanel'
@@ -199,6 +199,19 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
       >
         <TitleTab>Mods</TitleTab>
 
+        <header className="vu-mods-head">
+          <div>
+            <h2 className="vu-mods-build">{BUILD.name}</h2>
+            <p className="vu-mods-about">
+              version {BUILD.version} · unofficial community mods · not made or supported by Venus
+              Dev
+            </p>
+          </div>
+          <span id="mods-count" className="vu-mods-count">
+            {count} of {listed.length} on
+          </span>
+        </header>
+
         {panel.desktop && <>
           <ModsRestartOffer panel={panel} />
           <nav className="vu-mods-tabs" role="tablist" aria-label="Mods" onKeyDown={(event) => {
@@ -212,9 +225,10 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
               document.getElementById(`mods-tab-${next.toLowerCase()}`)?.focus()
             }
           }}>
-            {tabs.map((one) => <button id={`mods-tab-${one.toLowerCase()}`} key={one} role="tab"
-              aria-selected={one === tab} aria-pressed={one === tab} aria-controls="mods-tab-panel"
-              tabIndex={one === tab ? 0 : -1} className="vu-btn vu-btn--quiet" type="button" onClick={() => setTab(one)}>{one}</button>)}
+            {tabs.map((one) => <motion.button id={`mods-tab-${one.toLowerCase()}`} key={one} role="tab"
+              aria-selected={one === tab} aria-controls="mods-tab-panel" tabIndex={one === tab ? 0 : -1}
+              className="vu-btn vu-btn--quiet" type="button" {...gestures(false, lift, press)}
+              onClick={() => setTab(one)}>{one}</motion.button>)}
           </nav>
           <ModsProgress panel={panel} />
           <ModRowError panel={panel} id="screen" />
@@ -233,20 +247,9 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
         {tab === 'Installed' && <div className="vu-mods-tab-panel" id="mods-tab-panel" role={panel.desktop ? 'tabpanel' : undefined}
           aria-labelledby={panel.desktop ? 'mods-tab-installed' : undefined}>
 
-        <header className="vu-mods-head">
-          <div>
-            <h2 className="vu-mods-build">{BUILD.name}</h2>
-            <p className="vu-mods-about">
-              version {BUILD.version} · unofficial community mods · not made or supported by Venus
-              Dev
-            </p>
-          </div>
-          {panel.desktop && panel.updates.some((row) => row.offer) && <ModAction id="mods-update-all"
-            disabled={Boolean(panel.busy)} onClick={panel.updateAll}>Update all</ModAction>}
-          <span id="mods-count" className="vu-mods-count">
-            {count} of {listed.length} on
-          </span>
-        </header>
+        {panel.desktop && panel.updates.some((row) => row.offer) && <div className="vu-mods-actions">
+          <ModAction id="mods-update-all" disabled={Boolean(panel.busy)} onClick={panel.updateAll}>Update all</ModAction>
+        </div>}
 
         <div className="vu-mods-panes">
           {listed.length === 0 && unreadable.length === 0 && (
@@ -293,7 +296,7 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
                     )}
                     {libraries.length > 0 && <span className="vu-mods-row-line">Uses {libraries.map(panel.nameOf).join(', ')}</span>}
                     {install?.withdrawn && <span className="vu-mods-row-line" data-kind="needs">Withdrawn · {install.withdrawn}</span>}
-                    {unavailable && <span className="vu-mods-row-line" data-kind="unavailable">{unavailable.release.version} · {unavailable.problem}</span>}
+                    {unavailable?.problem && <ModVersionUnavailable version={unavailable.release.version} problem={unavailable.problem} />}
                     {dataNotes[mod.id] && <span className="vu-mods-row-line">{dataNotes[mod.id]}</span>}
                   </button>
                   <span className="vu-mods-standing" data-kind={standing.kind}>

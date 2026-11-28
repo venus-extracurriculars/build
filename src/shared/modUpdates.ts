@@ -14,12 +14,21 @@ export function compareModVersions(a: string, b: string): number {
   return left && right ? compareVersions(left, right) : 0
 }
 
-export function releaseProblem(source: FetchedModSource, mod: SourceMod, release: SourceRelease, allowMain: boolean): string | undefined {
+export interface ModReleaseProblem {
+  message: string
+  missing?: readonly string[]
+}
+
+export function releaseProblem(source: FetchedModSource, mod: SourceMod, release: SourceRelease, allowMain: boolean): ModReleaseProblem | undefined {
   const withdrawal = mod.withdrawn?.find((item) => item.version === release.version)
-  if (withdrawal) return withdrawal.reason
+  if (withdrawal) return { message: withdrawal.reason }
   const compat = checkCompat(release.manifest.hooks.filter((hook) => hookNameKind(hook).kind !== 'export'))
-  if (compat.status !== 'loads') return compat.message
-  if (release.manifest.main && !allowMain && !isReviewedSource(source)) return 'This mod has unreviewed main code.'
+  if (compat.status === 'needs-update') return {
+    message: compat.missing.every((hook) => !hook.removedIn) ? 'Needs a newer game' : 'Unavailable in this game',
+    missing: compat.missing.map((hook) => hook.name)
+  }
+  if (compat.status === 'refused') return { message: compat.message }
+  if (release.manifest.main && !allowMain && !isReviewedSource(source)) return { message: 'This mod has unreviewed main code.' }
   return undefined
 }
 
@@ -31,7 +40,7 @@ export interface ListedModRelease {
   source: FetchedModSource
   mod: SourceMod
   release: SourceRelease
-  problem?: string
+  problem?: ModReleaseProblem
 }
 
 export function listedReleases(id: string, results: readonly ModSourceResult[], allowMain: boolean): ListedModRelease[] {
