@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from 'util'
-import { parseManifest, resolveInstall, resolveRemoval, type InstalledMod, type InstallRequest } from '@vx/modkit/host/shared'
+import { parseManifest, resolveInstall, resolveRemoval, type InstallChange, type InstalledMod, type InstallRequest } from '@vx/modkit/host/shared'
 import { appError, toAppError } from '@shared/errors'
 import type {
   FetchedModSource, ModInstallPlan, ModInstallProgress, ModPlan, ModPlanRequest, ModSourceResult,
@@ -124,8 +124,12 @@ export class ModInstaller {
   private async resolve(request: Extract<ModPlanRequest, { kind: 'install' }>): Promise<{
     plan: ModInstallPlan; sources: FetchedModSource[]
   }> {
-    const root = this.options.root()
     const sources = (await this.fetchSources()).flatMap((one) => one.ok ? [one.data] : [])
+    return { plan: this.resolveAgainst(request, sources), sources }
+  }
+
+  private resolveAgainst(request: Extract<ModPlanRequest, { kind: 'install' }>, sources: FetchedModSource[]): ModInstallPlan {
+    const root = this.options.root()
     const protectedMods = this.protectedMods()
     const options = this.installOptions()
     for (const [id, desired] of Object.entries(request.mods)) {
@@ -153,7 +157,21 @@ export class ModInstaller {
       const dependency = Object.keys(change.release.manifest.requires ?? {}).find((id) => trusted.get(id) === false)
       if (dependency) fail('MOD_INSTALL_PLAN', `${change.id} requires an approved release of ${dependency}.`)
     }
-    return { plan: { kind: 'install', request, changes: result.install }, sources }
+    return { kind: 'install', request, changes: result.install }
+  }
+
+  /**
+   * The changes a request would make against listings already read, as {@link plan} resolves them,
+   * or `null` where it cannot be installed. Reads nothing from the network.
+   */
+  preview(mods: Readonly<Record<string, InstallRequest>>, results: readonly ModSourceResult[]): Promise<InstallChange[] | null> {
+    return this.queue(() => {
+      try {
+        return [...this.resolveAgainst({ kind: 'install', mods }, results.flatMap((one) => one.ok ? [one.data] : [])).changes]
+      } catch {
+        return null
+      }
+    })
   }
 
   plan(request: unknown): Promise<ModPlan> {

@@ -5,6 +5,7 @@ import type { ModSessionTable } from '@shared/modSession'
 import type { PendingModChanges } from '@shared/modInstall'
 import { writeAtomicJson, writeAtomicTextSync } from '../services/jsonFile'
 import { CURRENT_FILE, INACTIVE_RELEASE } from './layout'
+import { dismissRemovedSync } from './known'
 import {
   directoryExists, isModId, isModVersion, isRecord, modPath, readInstalledFile, readModText,
   writeInstalledFile, writeInstalledFileSync
@@ -109,6 +110,12 @@ export function applyPending(
     afterPhase?.('current')
 
     for (const path of removals) rmSync(path, { recursive: true, force: true })
+    // A removed mod is not one to offer back. A record that cannot be written costs only that.
+    try {
+      dismissRemovedSync(root, pending.remove)
+    } catch (error) {
+      warn(`[mods] removed mods not recorded as left out: ${toAppError(error).message}`)
+    }
     afterPhase?.('remove')
 
     for (const path of cleanup) rmSync(path, { recursive: true, force: true })

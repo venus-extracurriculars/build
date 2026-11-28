@@ -1134,6 +1134,14 @@ the loader even on safe starts. Older copies are kept through the first successf
 mod boot, then scheduled for cleanup on the following start. The approved list can withdraw
 a release and clear its recorded approval while leaving its installed files in place.
 
+`data/mods/known.json` records, at every start, each mod of the build with its switch. A mod it
+holds that the build no longer has is offered back once, on the title screen, with the approved
+list's newest release that loads: ticked where it was on or a playthrough uses it, unticked where
+only a save holds its data. Installing goes through the same plan and restart. A mod left out of
+the offer, or removed through the installer, is listed in the record as dismissed and not offered
+again while it stays out of the build. A player with no record before gets the same offer from
+`mods.json`, the playthrough records and the saves, plus the approved list's `bundledIn` mods.
+
 ## Where the code is
 
 | File | What it is |

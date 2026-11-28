@@ -1,15 +1,18 @@
 import { app, BrowserWindow, ipcMain, type IpcMainInvokeEvent } from 'electron'
 import { readFileSync } from 'fs'
-import { basename, resolve } from 'path'
+import { readFile, stat } from 'fs/promises'
+import { basename, join, resolve } from 'path'
 import { appError, toAppError } from '@shared/errors'
-import type { PendingModChanges } from '@shared/modInstall'
+import type { MigrationOffer, PendingModChanges } from '@shared/modInstall'
 import type { ModSessionTable, ModStatus, SafeStart } from '@shared/modSession'
 import { BUILD, MODS, setInstalledMods, type ModSwitches } from '@shared/mods'
-import type { Settings } from '@shared/types'
-import { getModsDirPath, getSettingsPath } from '../paths'
+import { AUTOSAVE_ID, type PlaythroughRecord, type Settings } from '@shared/types'
+import { getModsDirPath, getSaveFilePath, getSettingsPath } from '../paths'
 import { bindModSession, readModSwitches } from '../services/modsService'
 import { patchStoredSettings } from '../services/settingsService'
-import { writeKnownMods } from './known'
+import { playthroughIds, readPlaythroughRecord, saveIdsOf } from '../services/saveService'
+import { addKnownLists, KNOWN_FILE, readKnownFile, writeKnownMods, type KnownFile } from './known'
+import { migrationOffer, missingMods, type SavedModUse } from './migration'
 import { addDevFolder, devFolders, removeDevFolder, watchDevFolder, type DevChangeKind } from './devFolders'
 import { loadMods, type LoaderResult } from './loader'
 import { handleModProtocol } from './protocol'
@@ -106,7 +109,7 @@ export function startModSession(): void {
     warn: (line) => console.warn(line)
   }))
   bindModSession(modSession)
-  void recordKnownMods()
+  startRecord = knownWrite(recordKnownMods)
 }
 
 /** Queues an older version for the next start. The Mods screen supplies the choice. */
@@ -114,22 +117,121 @@ export function rollbackMod(id: string, version: string): Promise<PendingModChan
   return installer.rollback(id, version)
 }
 
+/** What this start read and recorded: the offer to bring mods across is worked out from it. */
+interface StartRecord {
+  readonly switches: ModSwitches
+  readonly use: SavedModUse
+}
+
+/** `known.json` is written by one write at a time: this start's record, then each answer to the offer. */
+let knownWrites: Promise<unknown> = Promise.resolve()
+function knownWrite<T>(work: () => Promise<T>): Promise<T> {
+  const next = knownWrites.then(work)
+  knownWrites = next.catch(() => {})
+  return next
+}
+
+/** This start's record once written; `null` where `mods.json` did not read. */
+let startRecord: Promise<StartRecord | null> = Promise.resolve(null)
+
 /**
  * Writes `data/mods/known.json` from the table this start settled on and the switches in
- * `mods.json`. Runs alongside the rest of the start and never stops it: a `mods.json` that will
- * not read leaves the last record as it was, rather than writing every switch at its default.
+ * `mods.json`, with what the saves say of the mods they used. Runs alongside the rest of the start
+ * and never stops it: a `mods.json` that will not read leaves the last record as it was, rather
+ * than writing every switch at its default.
  */
-async function recordKnownMods(): Promise<void> {
+async function recordKnownMods(): Promise<StartRecord | null> {
   let switches: ModSwitches
   try {
     switches = await readModSwitches()
   } catch (err) {
     const failure = toAppError(err)
     console.warn(`[mods] known.json not written: mods.json did not read: ${failure.detail ?? failure.message}`)
-    return
+    return null
   }
+  const use = await readSavedModUse()
   const builtIn = MODS.filter((mod) => BUILT_IN_IDS.includes(mod.id))
-  await writeKnownMods(getModsDirPath(), { builtIn, table: modSession(), switches }, (line) => console.warn(line))
+  const playedBefore = use.playthroughs.length > 0 || use.saveData.length > 0 || Object.keys(switches.on).length > 0
+  await writeKnownMods(getModsDirPath(), { builtIn, table: modSession(), switches, playedBefore }, (line) => console.warn(line))
+  return { switches, use }
+}
+
+/** The record as it stands on disk; `null` where there is none this build can read. */
+async function readKnown(): Promise<KnownFile | null> {
+  try {
+    return readKnownFile(JSON.parse(await readFile(join(getModsDirPath(), KNOWN_FILE), 'utf8')))
+  } catch {
+    return null
+  }
+}
+
+/**
+ * The offer to bring across the mods this build no longer has, from this start's record and the
+ * approved list read now. `null` where nothing is missing, or the list could not be read: nothing is
+ * shown, and the next start asks again.
+ */
+async function modMigration(): Promise<MigrationOffer | null> {
+  const start = await startRecord
+  if (!start) return null
+  const known = await knownWrite(readKnown)
+  const pending = await installer.pending().catch(() => null)
+  const present = new Set([
+    ...BUILT_IN_IDS, ...modSession().mods.map((row) => row.id), ...Object.keys(pending?.current ?? {})
+  ])
+  const missing = missingMods({ known, present, switches: start.switches, ...start.use })
+  if (!missing.length && known?.fallback !== true) return null
+  // A check this session made a moment ago, as the Mods screen makes on opening, is not made again.
+  const sources = Date.now() - sessionCheckedAt < 60_000 ? modCheck.status().sources : (await checkMods(true)).sources
+  return migrationOffer(missing, {
+    known, present, sources, allowMain: loaderSettings().allowUnreviewedMain,
+    resolve: (request) => installer.preview(request, sources)
+  })
+}
+
+/** A save's `ex` ids, read off the file without the save's own checks: only the keys are wanted. */
+async function exIdsOf(path: string): Promise<string[]> {
+  try {
+    const ex = (JSON.parse(await readFile(path, 'utf8')) as { ex?: unknown }).ex
+    return ex && typeof ex === 'object' && !Array.isArray(ex) ? Object.keys(ex) : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Every playthrough record, and the `ex` ids of each playthrough's newest save, which carries every
+ * slice its game still holds. A playthrough or save that will not read is passed over.
+ */
+async function readSavedModUse(): Promise<SavedModUse> {
+  const playthroughs: Pick<PlaythroughRecord, 'mods' | 'modVersions'>[] = []
+  const saveData = new Set<string>()
+  let ids: string[] = []
+  try {
+    ids = await playthroughIds()
+  } catch {
+    return { playthroughs, saveData: [] }
+  }
+  for (const id of ids) {
+    try {
+      const record = await readPlaythroughRecord(id)
+      playthroughs.push({ mods: record.mods, modVersions: record.modVersions })
+    } catch {
+      // No record yet, or one that will not read.
+    }
+    try {
+      const groups = await saveIdsOf(id)
+      const saveIds = [...(groups.autosave ? [AUTOSAVE_ID] : []), ...groups.slots, ...groups.manual]
+      const stamped = await Promise.all(saveIds.map(async (saveId) => ({
+        path: getSaveFilePath(id, saveId),
+        at: await stat(getSaveFilePath(id, saveId)).then((info) => info.mtimeMs).catch(() => -1)
+      })))
+      const newest = stamped.filter((one) => one.at >= 0).sort((a, b) => b.at - a.at)[0]
+      if (newest) for (const one of await exIdsOf(newest.path)) saveData.add(one)
+    } catch {
+      // A folder that will not list has no save to read.
+    }
+  }
+  return { playthroughs, saveData: [...saveData].sort() }
 }
 
 /** The table as it stands; empty until {@link startModSession} has run. */
@@ -237,9 +339,13 @@ async function countModUpdates(sources: ReturnType<ModUpdateCheck['status']>['so
   }
 }
 
+/** When this session last read the sources itself, rather than finding the last check on disk. */
+let sessionCheckedAt = 0
+
 async function checkMods(force: boolean) {
   const status = await modCheck.run(force, async () => {
     const sources = await installer.sources()
+    sessionCheckedAt = Date.now()
     return { sources, count: await countModUpdates(sources) }
   })
   const current = { ...status, count: await countModUpdates(status.sources) }
@@ -322,6 +428,13 @@ export function registerModIpc(handle: Handle): void {
   )
   handle('mods:remove', (_event, id: unknown, orphaned: unknown) => installer.remove(id, orphaned))
   handle('mods:undoPending', (_event, id: unknown) => installer.undo(id))
+  handle('mods:migration', () => modMigration())
+  handle('mods:migrationAnswer', async (_event, kind: unknown, ids: unknown) => {
+    if ((kind !== 'offered' && kind !== 'dismissed') || !Array.isArray(ids) || !ids.every(isModId)) {
+      throw appError('MOD_MIGRATION_ANSWER', 'Expected mod ids.')
+    }
+    await knownWrite(() => addKnownLists(getModsDirPath(), { [kind]: ids }))
+  })
   handle('mods:booted', async () => {
     if (bootConfirmed) return
     await installer.booted(modSession())

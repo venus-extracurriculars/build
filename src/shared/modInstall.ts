@@ -69,3 +69,31 @@ export interface ModUpdateStatus {
   readonly sources: readonly ModSourceResult[]
   readonly count: number
 }
+
+/** Why a mod that left the build is wanted back. */
+export type MigrationReason = 'switched-on' | 'playthrough' | 'save-data'
+
+/** One mod the offer to bring mods across lists. */
+export interface MigrationRow {
+  readonly id: string
+  readonly name: string
+  readonly reasons: readonly MigrationReason[]
+  /** Listed under "Also part of Venus Extracurriculars": a player with no record, and a mod the approved list says the bundle carried. */
+  readonly bundled: boolean
+  /** Ticked to start with: installable, and switched on or used by a playthrough. */
+  readonly ticked: boolean
+  /** Shown with the offer before, at a start where it could be installed. */
+  readonly offered: boolean
+  /** The newest approved release that loads, with what comes with it; absent while the approved list has none. */
+  readonly offer?: {
+    readonly version: string
+    readonly source: string
+    readonly main: boolean
+    /** The other mods the install brings or updates, libraries included. */
+    readonly with: readonly { readonly id: string; readonly name: string; readonly version: string; readonly from?: string }[]
+  }
+}
+
+export interface MigrationOffer {
+  readonly rows: readonly MigrationRow[]
+}

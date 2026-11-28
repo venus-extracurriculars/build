@@ -600,6 +600,25 @@
   width: 100%;
 }
 
+/* The offer to bring mods across: a tick, or the name alone where there is nothing to install. */
+.vu-mods-migrate-row .vu-check,
+.vu-mods-migrate-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.vu-mods-migrate-text {
+  display: grid;
+  gap: 2px;
+}
+
+/* Every line under a name starts where the name does: past the tick box and its gap. */
+.vu-mods-migrate-text,
+.vu-mods-migrate-row > .vu-mods-row-line,
+.vu-mods-migrate-row > .vu-mods-note {
+  margin-left: 40px;
+}
+
 .vu-mods-source-form .vu-field {
   flex: 1;
 }

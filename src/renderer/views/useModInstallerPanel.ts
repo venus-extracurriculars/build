@@ -5,6 +5,7 @@ import { toAppError } from '@shared/errors'
 import type { Result } from '@shared/types'
 import { isWebBuild } from '../platform'
 import { useModBrowserStore } from '../stores/modBrowserStore'
+import { checkModMigration } from '../stores/modMigrationStore'
 import { useSettingsStore } from '../stores/settingsStore'
 
 function dataOf<T>(result: Result<T>): T {
@@ -49,6 +50,7 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
       const status = dataOf(await window.api.mods.updateStatus())
       useModBrowserStore.setState({ status: { ...status, sources: listing } })
       await readDisk()
+      if (surface === 'screen') void checkModMigration(false)
     } catch (err) {
       setError({ key: 'screen', message: toAppError(err).message })
     } finally {
@@ -79,6 +81,17 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
       const next = dataOf(await window.api.mods.plan(request))
       setOrphaned(next.kind === 'remove' ? next.orphaned : [])
       setQuestion({ kind: 'plan', key, plan: next })
+    })
+  }
+
+  /** Plans a request and installs it at once, for a surface that has shown the plan already. */
+  function installNow(request: Extract<ModPlanRequest, { kind: 'install' }>, key: string): void {
+    void run(key, async () => {
+      const next = dataOf(await window.api.mods.plan(request))
+      if (next.kind !== 'install') return
+      setActivePlan({ key, plan: next })
+      dataOf(await window.api.mods.install(next))
+      await readDisk()
     })
   }
 
@@ -181,7 +194,7 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
     desktop, sources, checkedAt, customSources, allowMain, installed, pending, checking, error, busy, progress, activePlan, updates,
     parts: pendingChangeParts(pending, installed, sources),
     question, orphaned, setOrphaned, accepted, setAccepted, confirm, cancel: () => setQuestion(null),
-    plan, refresh, updateAll, nameOf, planParts, askSource, setTrust, removeSource, restart,
+    plan, installNow, refresh, reread: readDisk, updateAll, nameOf, planParts, askSource, setTrust, removeSource, restart,
     undoAll: () => changePending('pending', () => window.api.mods.undoAll()),
     undo: (id: string) => changePending(id, () => window.api.mods.undoPending(id)),
     goBack: (id: string, version: string) => plan({ kind: 'rollback', id, version }, id)

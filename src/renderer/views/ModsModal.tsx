@@ -1,4 +1,4 @@
-import { useState, type JSX } from 'react'
+import { useEffect, useRef, useState, type JSX } from 'react'
 import { compareModVersions } from '@shared/modUpdates'
 import { compatibilityWarning } from '@shared/modCompatibility'
 import { createPortal } from 'react-dom'
@@ -27,6 +27,7 @@ import { ModsAuthorsFold } from './ModsAuthorsFold'
 import { notRunningLine, useModSessionStore } from '../stores/modSessionStore'
 import { useModsStore } from '../stores/modsStore'
 import { useUiStore } from '../stores/uiStore'
+import { openModMigration, useModMigrationStore } from '../stores/modMigrationStore'
 import { gestures, lift, press, panelUnderTab, veilIn } from './motion'
 import '../vu_styles/Mods.css'
 
@@ -132,6 +133,17 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
     else closeModal('mods')
   }
   const [asking, setAsking] = useState<{ change: ModChange; warning: ModWarning } | null>(null)
+  const migration = useModMigrationStore((state) => state.offer)
+  const migrating = useModMigrationStore((state) => state.open)
+  // The offer installs on its own panel: once it closes, this screen reads the disk again.
+  const wasMigrating = useRef(migrating)
+  useEffect(() => {
+    if (wasMigrating.current && !migrating) void panel.reread().catch(() => {})
+    wasMigrating.current = migrating
+  }, [migrating])
+  const migrationNames = panel.desktop && !inGame && useUiStore.getState().view !== 'game'
+    ? (migration?.rows ?? []).filter((row) => !Object.hasOwn(panel.pending?.current ?? {}, row.id)).map((row) => row.name)
+    : []
 
   /** Makes a change, or asks first where the screen underneath says it costs something. */
   function request(change: ModChange): void {
@@ -245,6 +257,16 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
 
         {tab === 'Installed' && <div className="vu-mods-tab-panel" id="mods-tab-panel" role={panel.desktop ? 'tabpanel' : undefined}
           aria-labelledby={panel.desktop ? 'mods-tab-installed' : undefined}>
+
+        {migrationNames.length > 0 && <section id="mods-migrate-banner" className="vu-mods-restart" aria-label="Bring your mods across">
+          <div>
+            <strong>Bring your mods across</strong>
+            <p>{migrationNames.join(' and ')} {migrationNames.length === 1 ? 'is' : 'are'} no longer part of this build.</p>
+          </div>
+          <div className="vu-mods-actions">
+            <ModAction id="mods-migrate-review" disabled={Boolean(panel.busy)} onClick={openModMigration}>Review</ModAction>
+          </div>
+        </section>}
 
         {panel.desktop && panel.updates.some((row) => row.offer) && <div className="vu-mods-actions">
           <ModAction id="mods-update-all" disabled={Boolean(panel.busy)} onClick={panel.updateAll}>Update all</ModAction>

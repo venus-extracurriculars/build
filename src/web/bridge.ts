@@ -205,6 +205,9 @@ export function buildApi(): VenusUniversityApi {
       remove: () => desktopOnly('mods.remove'),
       undoPending: () => desktopOnly('mods.undoPending'),
       onInstallProgress: () => () => {},
+      // The browser build installs nothing, so it has nothing to bring across.
+      migration: () => Promise.resolve({ ok: true, data: null }),
+      migrationAnswer: () => desktopOnly('mods.migrationAnswer'),
       booted: () => desktopOnly('mods.booted'),
       restart: () => Promise.resolve({ ok: true, data: undefined })
     },

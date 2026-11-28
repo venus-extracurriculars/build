@@ -1,4 +1,5 @@
 import { confirmMissingModInstall, useModBrowserStore, watchModUpdates } from '../stores/modBrowserStore'
+import { checkModMigrationAtTitle } from '../stores/modMigrationStore'
 import { confirmModCompatibility, confirmSetupCompatibility } from './ModCompatibilityWarning'
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -110,6 +111,11 @@ export function MainMenu(): JSX.Element {
   )
 
   const crossing = useCrossingStore((s) => s.phase !== 'idle')
+
+  // The offer to bring mods across, asked for once the boot's cover has lifted off this screen.
+  useEffect(() => {
+    if (!crossing) checkModMigrationAtTitle()
+  }, [crossing])
 
   // The community mods' switches: how many are on rides the Mods button and the footer's line.
   const modSwitches = useModsStore((s) => s.switches)

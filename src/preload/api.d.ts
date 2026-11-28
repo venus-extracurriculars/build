@@ -8,7 +8,7 @@ import type {
 } from '@shared/customBackgrounds'
 import type { PromptEdit } from '@shared/imagePrompt'
 import type { ModSwitches } from '@shared/mods'
-import type { InstalledModInfo, ModUpdateStatus, ModInstallPlan, ModInstallProgress, ModPlan, ModPlanRequest, ModSourceResult, PendingModChanges, PendingModDetails } from '@shared/modInstall'
+import type { InstalledModInfo, MigrationOffer, ModUpdateStatus, ModInstallPlan, ModInstallProgress, ModPlan, ModPlanRequest, ModSourceResult, PendingModChanges, PendingModDetails } from '@shared/modInstall'
 import type { ModSessionTable, ModStatus } from '@shared/modSession'
 import type { LorebookRecord, WorldInfoFile, WorldInfoImport } from '@shared/lorebookRecord'
 import type { OccasionsFile, OccasionsImport } from '@shared/occasionsFile'
@@ -161,6 +161,10 @@ export interface VenusUniversityApi {
     undoPending: (id: string) => Promise<Result<PendingModChanges>>
     onInstallProgress: (listener: (progress: ModInstallProgress) => void) => () => void
     /** Confirms the normal renderer mod boot completed so main can schedule old-release cleanup. */
+    /** The offer to bring across the mods this build no longer has; `null` where there is none to make. */
+    migration: () => Promise<Result<MigrationOffer | null>>
+    /** Records mods as shown with the offer, or as left out of it for good. */
+    migrationAnswer: (kind: 'offered' | 'dismissed', ids: string[]) => Promise<Result<void>>
     booted: () => Promise<Result<void>>
     /** Starts the app again, for a `main.js` that changed. */
     restart: () => Promise<Result<void>>

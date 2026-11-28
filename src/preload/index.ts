@@ -65,6 +65,8 @@ const api: VenusUniversityApi = {
       ipcRenderer.on('mods:installProgress', wrapped)
       return () => ipcRenderer.removeListener('mods:installProgress', wrapped)
     },
+    migration: () => ipcRenderer.invoke('mods:migration'),
+    migrationAnswer: (kind: 'offered' | 'dismissed', ids: string[]) => ipcRenderer.invoke('mods:migrationAnswer', kind, ids),
     booted: () => ipcRenderer.invoke('mods:booted'),
     restart: () => ipcRenderer.invoke('mods:restart')
   },
