@@ -74,7 +74,7 @@ async function downloadZip(change: InstallChange, path: string, options: Install
   } catch (error) {
     const { code } = toAppError(error, 'MOD_INSTALL_DOWNLOAD')
     if (controller.signal.aborted) fail('MOD_INSTALL_STALLED', 'The mod download stalled.', zip)
-    fail(code, `Could not download ${id} ${version}.`, zip)
+    fail(code, `Could not download ${release.manifest.name} ${version}.`, zip)
   } finally {
     clearTimeout(timer)
   }
@@ -152,7 +152,7 @@ export async function installPlan(
     if (lstatSync(target, { throwIfNoEntry: false })
         && (!directoryExists(target) || !inactive(root, id, version)
           || (Object.hasOwn(pending.current, id) && pending.current[id] === version))) {
-      fail('MOD_INSTALL_EXISTS', `${id} ${version} already exists in the mods folder.`)
+      fail('MOD_INSTALL_EXISTS', `${release.manifest.name} ${version} already exists in the mods folder.`)
     }
     modPath(root, id, version + '.partial')
     return { change, approved }

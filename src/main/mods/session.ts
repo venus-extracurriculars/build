@@ -19,7 +19,7 @@ import { ModInstaller } from './installer'
 import { isModId, isModVersion, isRecord } from './installFiles'
 import { applyPending } from './pending'
 import { addModSource, modSourceReader, readModSources, removeModSource } from './sources'
-import { installedModInfo, ModUpdateCheck, updateCount } from './updateStatus'
+import { installedModInfo, ModUpdateCheck, pendingModDetails, updateCount } from './updateStatus'
 
 /**
  * The one mod session of this run: the loader's result, held for the protocol, the bridge and
@@ -291,7 +291,7 @@ export function registerModIpc(handle: Handle): void {
   handle('mods:devFolders', () => devFolders())
   handle('mods:sources', async () => (await checkMods(true)).sources)
   handle('mods:updateStatus', () => modCheck.status())
-  handle('mods:pending', () => installer.pending())
+  handle('mods:pending', async () => pendingModDetails(getModsDirPath(), await installer.pending()))
   handle('mods:undoAll', () => installer.undoAll())
   handle('mods:goBack', (_event, id: string, version: string) => rollbackMod(id, version))
   handle('mods:installed', () => installedForScreen())

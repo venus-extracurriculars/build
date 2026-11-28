@@ -229,6 +229,11 @@
   color: var(--vu-text);
 }
 
+.vu-mods-note[data-kind='error'] {
+  background: var(--vu-danger-tint);
+  color: var(--vu-danger);
+}
+
 .vu-mods-label {
   margin: 0;
   color: var(--vu-text-muted);
@@ -508,20 +513,20 @@
 }
 
 .vu-mods-progress {
-  flex: none;
-  font: 700 12px var(--font-mono);
+  display: grid;
+  gap: 6px;
+  width: min(100%, 260px);
 }
 
-.vu-mods-progress li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+.vu-mods-progress p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.vu-mods-progress progress {
-  width: 160px;
-  accent-color: var(--vu-accent);
+.vu-mods-progress .vu-track {
+  width: 100%;
 }
 
 .vu-mods-source-group {
@@ -535,6 +540,21 @@
   margin: 0;
   font: 700 16px var(--font-body);
   overflow-wrap: anywhere;
+}
+
+.vu-mods-source-address {
+  margin: 0;
+  color: var(--vu-text-body);
+  font: 500 14px var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.vu-mods-source-row.vu-row {
+  background: var(--vu-tint);
+}
+
+.vu-mods-source-row .vu-mods-actions {
+  flex: none;
 }
 
 .vu-mods-sources {
@@ -571,10 +591,6 @@
   flex: none;
 }
 
-.vu-mods-missing-row .vu-mods-progress {
-  margin: 0;
-}
-
 .vu-mods-source-form .vu-field {
   flex: 1;
 }
@@ -602,7 +618,7 @@
 .vu-mods-store-source + .vu-mods-store-source { margin-top: 18px; }
 .vu-mods-store-source .vu-mods-store-grid { overflow: visible; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .vu-mods-store-shot .vu-mods-art-wait { aspect-ratio: 16 / 9; }
-.vu-mods-store-scroll .vu-mods-store-changelog { gap: 0; }
+.vu-mods-store-scroll .vu-mods-store-changelog { gap: 16px; }
 .vu-mods-store-changelog h5 { margin: 0; }
 .vu-mods-changes { margin: 6px 0 0; padding-left: 18px; color: var(--vu-text-body); font: 500 14px var(--font-body); line-height: 1.45; }
 

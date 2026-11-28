@@ -230,7 +230,6 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
               className="vu-btn vu-btn--quiet" type="button" {...gestures(false, lift, press)}
               onClick={() => setTab(one)}>{one}</motion.button>)}
           </nav>
-          <ModsProgress panel={panel} />
           <ModRowError panel={panel} id="screen" />
           <ModRowError panel={panel} id="updates" />
         </>}
@@ -249,6 +248,7 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
 
         {panel.desktop && panel.updates.some((row) => row.offer) && <div className="vu-mods-actions">
           <ModAction id="mods-update-all" disabled={Boolean(panel.busy)} onClick={panel.updateAll}>Update all</ModAction>
+          <ModsProgress panel={panel} operation="updates" />
         </div>}
 
         <div className="vu-mods-panes">
@@ -322,6 +322,7 @@ export function ModsModal({ theme, onClose, inGame = false, warn }: ModsModalPro
                         <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.plan({ kind: 'remove', id: mod.id }, mod.id)}>Remove</ModAction>
                       </>}
                     </div>
+                    <ModsProgress panel={panel} operation={mod.id} />
                     <ModRowError panel={panel} id={mod.id} />
                   </div>}
                 </li>

@@ -81,6 +81,19 @@ describe('MODS with the installed mods', () => {
     expect(modIsOn('zebra')).toBe(true)
   })
 
+  it('only warns about non-running mods not already named by the missing-mod notice', async () => {
+    const { useModSessionStore } = await import('../../src/renderer/stores/modSessionStore')
+    const { setInstalledMods } = await import('@shared/mods')
+    setInstalledMods([def('apple', { scope: 'playthrough' }), def('zebra', { scope: 'playthrough' })], [])
+    useModSessionStore.setState({ table: { ...table, mods: table.mods.filter((mod) => mod.def) }, shiftStart: true })
+    const record = { mods: ['apple', 'zebra'], modVersions: { apple: '1.0.0', zebra: '1.0.0' } }
+    useModSessionStore.getState().gameEntered(record, 'save', [], ['apple'])
+    expect(useModSessionStore.getState().notice?.mods.map((mod) => mod.id)).toEqual(['zebra'])
+    useModSessionStore.getState().dismissNotice()
+    useModSessionStore.getState().gameEntered(record, 'save', [])
+    expect(useModSessionStore.getState().notice?.mods.map((mod) => mod.id)).toEqual(['zebra', 'apple'])
+  })
+
   it('asks a library while a mod that is on requires it, and not once that mod is off', async () => {
     await import('../../src/renderer/stores/modsStore')
     const hooks = await import('../../src/renderer/mods/hooks')

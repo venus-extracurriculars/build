@@ -63,7 +63,8 @@ interface ModSessionState {
   gameEntered: (
     record: Pick<PlaythroughRecord, 'mods' | 'modVersions'>,
     playthroughId: string,
-    seen: readonly string[]
+    seen: readonly string[],
+    acknowledgedMissingMods?: readonly string[]
   ) => void
   dismissNotice: () => void
   setDevChange: (change: DevChange | null) => void
@@ -128,10 +129,11 @@ export const useModSessionStore = create<ModSessionState>((set, get) => ({
     void window.api.mods.noticesSeen(Object.fromEntries(silent.map((mod) => [mod.id, noticeKeyOf(mod)])))
   },
 
-  gameEntered: (record, playthroughId, seen) => {
+  gameEntered: (record, playthroughId, seen, acknowledgedMissingMods = []) => {
     const { table, running, notice, unversionedTold } = get()
     const missing = table.mods.filter(
-      (mod) => record.mods?.includes(mod.id) && modById(mod.id, MODS)?.scope === 'playthrough' && !running(mod.id)
+      (mod) => !acknowledgedMissingMods.includes(mod.id) && record.mods?.includes(mod.id) &&
+        modById(mod.id, MODS)?.scope === 'playthrough' && !running(mod.id)
     )
     // No map is a record from before the versions were kept (a new one holds an empty map where
     // no mod was on); a build with no mod has nothing to say of it. Said once a playthrough,

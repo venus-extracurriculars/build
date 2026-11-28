@@ -20,7 +20,7 @@ export function ModAction({ children, onClick, disabled, primary = false, id }: 
 
 export function ModRowError({ panel, id }: { panel: ModInstallerPanel; id: string }) {
   return panel.error?.key === id
-    ? <p className="vu-mods-note" data-kind="needs" role="alert">{panel.error.message}</p>
+    ? <p className="vu-mods-note" data-kind="error" role="alert">{panel.error.message}</p>
     : null
 }
 
@@ -33,18 +33,28 @@ export function ModVersionUnavailable({ version, problem }: { version: string; p
   </span>
 }
 
-export function ModsProgress({ panel }: { panel: ModInstallerPanel }) {
-  if (!panel.busy || !panel.progress.length) return null
-  const phases = { downloading: 'Downloading', checking: 'Checking', unpacking: 'Unpacking', recorded: 'Recorded' }
-  return <ul id="mods-progress" className="vu-rows vu-mods-progress" aria-live="polite">
-    {panel.progress.map((item) => <li key={item.id}>
-      <span>{panel.nameOf(item.id)} {item.version} · {phases[item.phase]}</span>
-      {item.phase === 'downloading' && <>
-        <span className="vu-mods-about">{item.bytesDone.toLocaleString()} / {item.bytesTotal.toLocaleString()} bytes</span>
-        <progress aria-label={phases[item.phase]} max={item.bytesTotal} value={item.bytesDone} />
-      </>}
-    </li>)}
-  </ul>
+export function ModsProgress({ panel, operation }: { panel: ModInstallerPanel; operation: string }) {
+  const active = panel.activePlan
+  if (active?.key !== operation) return null
+  const { changes, request } = active.plan
+  const targets = changes.filter(({ id, release }) => Object.hasOwn(request.mods, id) && !release.manifest.library)
+  const label = targets.length === 1 ? `Installing ${targets[0].release.manifest.name}…` : 'Installing mods…'
+  const total = changes.reduce((sum, { release }) => sum + release.size, 0)
+  const done = changes.reduce((sum, { id, release }) => {
+    const event = panel.progress.find((item) => item.id === id && item.version === release.version)
+    if (!event) return sum
+    // Leave room on the bar for validation, unpacking and recording the transaction.
+    const fraction = event.phase === 'downloading' ? 0.9 * Math.min(1, event.bytesDone / event.bytesTotal)
+      : event.phase === 'checking' ? 0.9 : event.phase === 'unpacking' ? 0.95 : 1
+    return sum + fraction * release.size
+  }, 0)
+  const percent = total ? Math.round(100 * done / total) : 0
+  return <div className="vu-mods-progress">
+    <p className="vu-mods-about" role="status">{label}</p>
+    <div className="vu-track" role="progressbar" aria-label={label} aria-valuenow={percent}>
+      <span className="vu-bar" style={{ width: `${percent}%` }} />
+    </div>
+  </div>
 }
 
 export function ModsSources({ panel, authors, trustSwitch }: { panel: ModInstallerPanel; authors: ReactNode; trustSwitch: ReactNode }) {
@@ -57,7 +67,7 @@ export function ModsSources({ panel, authors, trustSwitch }: { panel: ModInstall
       <h3>Approved list</h3>
       <p className="vu-mods-about">{approvedUrl}</p>
       <p className="vu-mods-about">{panel.checkedAt ? `Last checked ${new Date(panel.checkedAt).toLocaleString()}` : 'Waiting for first check'}</p>
-      {approved?.ok === false && <p className="vu-mods-note" data-kind="needs">{approved.error.message}</p>}
+      {approved?.ok === false && <p className="vu-mods-note" data-kind="error">{approved.error.message}</p>}
     </section>
     <section className="vu-mods-source-group">
       <h3>Custom sources</h3>
@@ -65,24 +75,29 @@ export function ModsSources({ panel, authors, trustSwitch }: { panel: ModInstall
         const result = customResults[index]
         return <div className="vu-row vu-mods-source-row" key={url}>
           <div>
-            <p className="vu-mods-about">{url}</p>
-            {result?.ok === false && <p className="vu-mods-note" data-kind="needs">{result.error.message}</p>}
+            <p className="vu-mods-source-address">{url}</p>
+            {result?.ok === false && <p className="vu-mods-note" data-kind="error">{result.error.message}</p>}
           </div>
-          <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.removeSource(url)}>Remove</ModAction>
+          <div className="vu-mods-actions">
+            <ModAction disabled={Boolean(panel.busy)} onClick={() => panel.removeSource(url)}>Remove</ModAction>
+          </div>
         </div>
       })}
-      <form className="vu-mods-source-form" onSubmit={(event) => { event.preventDefault(); panel.askSource(address) }}>
-        <TextField id="mods-source-address" label="Source address" value={address} onChange={setAddress} />
+      <form className="vu-mods-source-form" onSubmit={(event) => {
+        event.preventDefault()
+        panel.askSource(address, () => setAddress(''))
+      }}>
+        <TextField id="mods-source-address" label="Source address" value={address} onChange={setAddress} disabled={Boolean(panel.busy)} />
         <button type="submit" className="vu-btn vu-btn--quiet" disabled={!address.trim() || Boolean(panel.busy)}>Add source</button>
       </form>
       <ModRowError panel={panel} id="sources" />
     </section>
-    <section className="vu-mods-source-group">
-      <div className="vu-mods-source-row">
+    <section className="vu-mods-source-group vu-mods-source-row">
+      <div>
         <h3 id="mods-trust-label">Allow unreviewed main code</h3>
-        {trustSwitch}
+        <p className="vu-mods-about">Changes apply at the next start.</p>
       </div>
-      <p className="vu-mods-note">Changes apply at the next start.</p>
+      {trustSwitch}
     </section>
     {authors}
   </div>

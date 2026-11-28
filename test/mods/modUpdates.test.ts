@@ -40,4 +40,12 @@ describe('mod update choices', () => {
       ['one', 'update'], ['two', 'restore'], ['three', 'install'], ['four', 'remove']
     ])
   })
+
+  it('keeps the names and library flags of queued releases even without a listing', () => {
+    const parts = pendingChangeParts({
+      pending: 1, current: { hello: '1.0.0', lib: '1.0.0' }, remove: [],
+      staged: { hello: { name: 'Hello mod' }, lib: { name: 'Lib', library: true } }
+    }, [], [])
+    expect(parts.map(({ name, library }) => [name, library])).toEqual([['Hello mod', false], ['Lib', true]])
+  })
 })

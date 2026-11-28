@@ -39,6 +39,11 @@ export interface PendingModChanges {
   readonly cleanup?: Readonly<Record<string, { readonly keep: string; readonly versions: readonly string[] }>>
 }
 
+/** Screen metadata for staged releases, including when their source is offline. */
+export interface PendingModDetails extends PendingModChanges {
+  readonly staged: Readonly<Record<string, { readonly name: string; readonly library?: boolean }>>
+}
+
 export type ModInstallProgress = {
   readonly id: string
   readonly version: string

@@ -40,8 +40,8 @@ export function watchModUpdates(): () => void {
 }
 
 /** Pauses desktop save entry at the missing-mod notice. Uses only the last received listing. */
-export function confirmMissingModInstall(record: Pick<PlaythroughRecord, 'mods' | 'modVersions'>): Promise<boolean> {
-  if (isWebBuild() || useUiStore.getState().view === 'game') return Promise.resolve(true)
+export function confirmMissingModInstall(record: Pick<PlaythroughRecord, 'mods' | 'modVersions'>): Promise<readonly string[] | null> {
+  if (isWebBuild() || useUiStore.getState().view === 'game') return Promise.resolve([])
   const state = useModBrowserStore.getState()
   const table = useModSessionStore.getState().table
   const allowMain = useSettingsStore.getState().settings?.allowUnreviewedMain === true
@@ -56,12 +56,12 @@ export function confirmMissingModInstall(record: Pick<PlaythroughRecord, 'mods' 
         install: offer ? { kind: 'install', mods: { [id]: { version: offer.release.version, source: offer.source.url } } } : undefined
       }
     })
-  if (!mods.length) return Promise.resolve(true)
+  if (!mods.length) return Promise.resolve([])
   state.missing?.answer(false)
   return new Promise((resolve) => {
     useModBrowserStore.setState({ missing: { mods, answer: (proceed) => {
       useModBrowserStore.setState({ missing: null })
-      resolve(proceed)
+      resolve(proceed ? mods.map((mod) => mod.id) : null)
     } } })
   })
 }

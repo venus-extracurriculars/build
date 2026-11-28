@@ -6,7 +6,7 @@ import { compareModVersions, isReviewedSource, releaseProblem } from '@shared/mo
 import { SelectField } from '../components/SelectField'
 import { Lightbox } from '../components/Lightbox'
 import { useDismissLayer } from '../components/useModalShell'
-import { ModAction, ModRowError, ModVersionUnavailable } from './ModsInstallPanels'
+import { ModAction, ModRowError, ModsProgress, ModVersionUnavailable } from './ModsInstallPanels'
 import { gestures, lift, press, cardLift } from './motion'
 import type { ModInstallerPanel } from './useModInstallerPanel'
 
@@ -65,7 +65,7 @@ export function ModsBrowse({
             {panel.sources.map((result, index) => {
               if (!result.ok) return <section key={index} className="vu-mods-source-group">
                 <h3>{result.approvedList ? 'Approved list' : result.url ?? 'Custom source'}</h3>
-                <p className="vu-mods-note" data-kind="needs" role="status">{result.error.message}</p>
+                <p className="vu-mods-note" data-kind="error" role="status">{result.error.message}</p>
                 <ModAction disabled={panel.checking} onClick={panel.refresh}>Try again</ModAction>
               </section>
               const source = result.data
@@ -73,7 +73,7 @@ export function ModsBrowse({
               return <section key={source.url} className="vu-mods-store-source">
                 <header className="vu-mods-source-group">
                   <h3>{source.source.name}</h3>
-                  <p className="vu-mods-about">{isReviewedSource(source) ? 'Approved list' : 'not reviewed'}</p>
+                  {!isReviewedSource(source) && <p className="vu-mods-about">not reviewed</p>}
                 </header>
                 {!mods.length && <p className="vu-empty vu-empty--flush">No mods to browse.</p>}
                 <div className="vu-mods-store-grid">
@@ -143,6 +143,7 @@ export function ModsBrowse({
                         {isCurrent ? 'Uninstall' : current ? `Update to ${picked.release.version}`
                           : newerRefusal ? `Install ${picked.release.version}` : 'Install'}
                       </ModAction>}
+                  <ModsProgress panel={panel} operation={pageKey} />
                   <ModRowError panel={panel} id={pageKey} />
                   <ModRowError panel={panel} id={selected.id} />
                 </div>
@@ -198,9 +199,11 @@ export function ModsBrowse({
 function Changelog({ source, mod, releases, installed }: {
   source: FetchedModSource; mod: SourceMod; releases: readonly SourceRelease[]; installed?: string
 }) {
+  const documented = releases.filter((release) => release.changes?.length)
+  if (!documented.length) return null
   return <section className="vu-mods-store-changelog">
     <h4 className="vu-mods-label">Changelog</h4>
-    {releases.map((release) => {
+    {documented.map((release) => {
       const date = release.approved?.at ?? source.releaseDates?.[mod.id]?.[release.version]
       return <div key={release.version}>
         <h5 className="vu-mods-about">
@@ -209,9 +212,9 @@ function Changelog({ source, mod, releases, installed }: {
           })}</time></> : null}
           {installed === release.version ? ' · installed' : ''}
         </h5>
-        {release.changes && <ul className="vu-mods-changes">
-          {release.changes.map((line, index) => <li key={index}>{line}</li>)}
-        </ul>}
+        <ul className="vu-mods-changes">
+          {release.changes?.map((line, index) => <li key={index}>{line}</li>)}
+        </ul>
       </div>
     })}
   </section>

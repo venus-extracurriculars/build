@@ -23,10 +23,7 @@ export function MissingModsNotice({ theme }: { theme: 'day' | 'night' }) {
                 {mod.install && !version && <ModAction disabled={Boolean(panel.busy || panel.question)}
                   onClick={() => { if (mod.install) panel.plan(mod.install, mod.id) }}>Install</ModAction>}
               </div>
-              {panel.busy === mod.id && <>
-                {!panel.progress.length && <p className="vu-mods-about" role="status">Preparing {mod.name}…</p>}
-                <ModsProgress panel={panel} />
-              </>}
+              <ModsProgress panel={panel} operation={mod.id} />
               <ModRowError panel={panel} id={mod.id} />
             </li>
           })}

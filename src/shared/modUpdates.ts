@@ -1,6 +1,6 @@
 import { checkCompat, hookNameKind, type SourceMod, type SourceRelease } from '@vx/modkit/host/shared'
 import { compareVersions, parseVersion } from '../../packages/modkit/src/shared/range'
-import type { FetchedModSource, InstalledModInfo, ModSourceResult, PendingModChanges } from './modInstall'
+import type { FetchedModSource, InstalledModInfo, ModSourceResult, PendingModChanges, PendingModDetails } from './modInstall'
 
 export const MOD_CHECK_INTERVAL = 24 * 60 * 60 * 1000
 
@@ -68,16 +68,27 @@ export function modUpdates(
   }).sort((a, b) => Number(b.mod.status === 'needs-update') - Number(a.mod.status === 'needs-update'))
 }
 
-export function pendingChangeParts(pending: PendingModChanges | null, installed: readonly InstalledModInfo[], sources: readonly ModSourceResult[]) {
+export function pendingChangeParts(pending: PendingModDetails | PendingModChanges | null, installed: readonly InstalledModInfo[], sources: readonly ModSourceResult[]) {
   if (!pending) return []
-  const display = (id: string) => installed.find((row) => row.id === id)?.name
-    ?? listedReleases(id, sources, true)[0]?.release.manifest.name ?? id
+  const describe = (id: string, version?: string) => {
+    const staged = 'staged' in pending && Object.hasOwn(pending.staged, id) ? pending.staged[id] : undefined
+    const row = installed.find((mod) => mod.id === id)
+    const listed = listedReleases(id, sources, true).find(({ release }) => release.version === (version ?? row?.version))?.release.manifest
+    return {
+      row,
+      name: staged?.name ?? row?.name ?? listed?.name ?? id,
+      library: staged?.library ?? row?.library ?? listed?.library ?? false
+    }
+  }
   return [
     ...Object.entries(pending.current).map(([id, version]) => {
-      const row = installed.find((mod) => mod.id === id)
-      return { id, name: display(id), version, action: !row ? 'install' as const
+      const { row, name, library } = describe(id, version)
+      return { id, name, library, version, action: !row ? 'install' as const
         : compareModVersions(version, row.version) < 0 ? 'restore' as const : 'update' as const }
     }),
-    ...pending.remove.map((id) => ({ id, name: display(id), version: undefined, action: 'remove' as const }))
+    ...pending.remove.map((id) => {
+      const { name, library } = describe(id)
+      return { id, name, library, version: undefined, action: 'remove' as const }
+    })
   ]
 }

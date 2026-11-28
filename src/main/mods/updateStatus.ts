@@ -1,6 +1,7 @@
 import { mkdir } from 'fs/promises'
+import { parseManifest } from '@vx/modkit/host/shared'
 import { isBuiltInRow, type ModSessionTable } from '@shared/modSession'
-import type { InstalledModInfo, ModSourceResult, ModUpdateStatus, PendingModChanges } from '@shared/modInstall'
+import type { InstalledModInfo, ModSourceResult, ModUpdateStatus, PendingModChanges, PendingModDetails } from '@shared/modInstall'
 import { compareModVersions, modCheckDue, modUpdates } from '@shared/modUpdates'
 import type { ModDef } from '@shared/mods'
 import { writeAtomicJson } from '../services/jsonFile'
@@ -11,6 +12,21 @@ import { redactUrl } from '../services/downloadService'
 
 const FILE = 'update-check.json'
 const empty: ModUpdateStatus = { checkedAt: null, sources: [], count: 0 }
+
+export function pendingModDetails(root: string, pending: PendingModChanges): PendingModDetails {
+  const staged = Object.entries(pending.current).flatMap(([id, version]) => {
+    try {
+      const text = readModText(modPath(root, id, version, 'vxmod.json'))
+      if (!text) return []
+      const parsed = parseManifest(JSON.parse(text), { id, version })
+      return parsed.ok ? [[id, { name: parsed.manifest.name, library: parsed.manifest.library === true }] as const] : []
+    } catch {
+      // The journal still describes the change if its manifest has gone away.
+      return []
+    }
+  })
+  return { ...pending, staged: Object.fromEntries(staged) }
+}
 
 export function installedModInfo(
   root: string, builtIn: readonly ModDef[], table: ModSessionTable, sources: readonly ModSourceResult[]

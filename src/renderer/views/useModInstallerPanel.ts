@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { InstalledModInfo, ModInstallPlan, ModInstallProgress, ModPlan, ModPlanRequest, PendingModChanges } from '@shared/modInstall'
+import type { InstalledModInfo, ModInstallPlan, ModInstallProgress, ModPlan, ModPlanRequest, PendingModChanges, PendingModDetails } from '@shared/modInstall'
 import { listedReleases, modUpdates, pendingChangeParts } from '@shared/modUpdates'
 import { toAppError } from '@shared/errors'
 import type { Result } from '@shared/types'
@@ -14,7 +14,7 @@ function dataOf<T>(result: Result<T>): T {
 
 type Question =
   | { kind: 'plan'; key: string; plan: ModPlan }
-  | { kind: 'source'; address: string }
+  | { kind: 'source'; address: string; added: () => void }
   | { kind: 'trust' }
   | { kind: 'restart' }
 
@@ -25,7 +25,7 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
   const allowMain = useSettingsStore((state) => state.settings?.allowUnreviewedMain === true)
   const customSources = useSettingsStore((state) => state.settings?.modSources)
   const [installed, setInstalled] = useState<readonly InstalledModInfo[]>([])
-  const [pending, setPending] = useState<PendingModChanges | null>(null)
+  const [pending, setPending] = useState<PendingModDetails | null>(null)
   const [question, setQuestion] = useState<Question | null>(null)
   const [orphaned, setOrphaned] = useState<readonly string[]>([])
   const [accepted, setAccepted] = useState(false)
@@ -34,6 +34,7 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
   const [checking, setChecking] = useState(desktop && surface === 'screen')
   const [error, setError] = useState<{ key: string; message: string } | null>(null)
   const [progress, setProgress] = useState<readonly ModInstallProgress[]>([])
+  const [activePlan, setActivePlan] = useState<{ key: string; plan: ModInstallPlan } | null>(null)
 
   async function readDisk(): Promise<void> {
     const [rows, journal] = await Promise.all([window.api.mods.installed(), window.api.mods.pending()])
@@ -69,6 +70,7 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
       active.current = false
       setBusy(null)
       setProgress([])
+      setActivePlan(null)
     }
   }
 
@@ -91,8 +93,8 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
     return unsubscribe
   }, [desktop, surface])
 
-  function askSource(address: string): void {
-    if (address.trim()) setQuestion({ kind: 'source', address: address.trim() })
+  function askSource(address: string, added: () => void): void {
+    if (address.trim()) setQuestion({ kind: 'source', address: address.trim(), added })
   }
 
   function setTrust(on: boolean): void {
@@ -115,9 +117,10 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
     })
   }
 
-  function changePending(key: string, action: () => Promise<Result<PendingModChanges>>): void {
+  function changePending(key: string, action: () => Promise<Result<PendingModChanges>>, plan?: ModInstallPlan): void {
     void run(key, async () => {
-      setPending(dataOf(await action()))
+      if (plan) setActivePlan({ key, plan })
+      dataOf(await action())
       await readDisk()
     })
   }
@@ -135,10 +138,11 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
       changePending(question.key, () => action.kind === 'install'
         ? window.api.mods.install(action)
         : action.kind === 'remove' ? window.api.mods.remove(action.id, orphaned)
-          : window.api.mods.goBack(action.id, action.version))
+          : window.api.mods.goBack(action.id, action.version), action.kind === 'install' ? action : undefined)
     } else if (question.kind === 'source') {
       void run('sources', async () => {
         dataOf(await window.api.mods.addSource(question.address))
+        question.added()
         await useSettingsStore.getState().load()
         await refresh()
       })
@@ -174,7 +178,7 @@ export function useModInstallerPanel(inGame: boolean, surface: 'screen' | 'notic
   }
 
   return {
-    desktop, sources, checkedAt, customSources, allowMain, installed, pending, checking, error, busy, progress, updates,
+    desktop, sources, checkedAt, customSources, allowMain, installed, pending, checking, error, busy, progress, activePlan, updates,
     parts: pendingChangeParts(pending, installed, sources),
     question, orphaned, setOrphaned, accepted, setAccepted, confirm, cancel: () => setQuestion(null),
     plan, refresh, updateAll, nameOf, planParts, askSource, setTrust, removeSource, restart,
