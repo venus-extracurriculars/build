@@ -1093,6 +1093,43 @@ options: [
 optionGroups: [{ id: 'loader', label: 'Loading animation', hint: 'The animation shown while…' }]
 ```
 
+## Install sources and pending changes
+
+Core's host shared entry exports `parseSource(json)` for schema-1 `vxsource.json` lists,
+`resolveInstall(input)` and `resolveRemoval(id, installed, builtIn?)`. These are host APIs,
+not mod imports. The parser refuses the whole list on malformed metadata, duplicate IDs or
+versions, or a release manifest that disagrees with its entry. It returns a frozen listing.
+Covers and screenshots use HTTPS. Each mod can list up to eight screenshots with optional
+nonblank captions of at most 200 characters.
+
+An install request maps each id to `{ version, source }`, where `source` is the address of one
+of the supplied `{ url, source }` lists. Installed and built-in snapshots carry version,
+requirements and optionals; installed snapshots may carry their source address. Snapshots may
+also carry hooks and library exports, which let the resolver check retained and built-in
+dependents against candidate libraries. All required ranges in the prospective installed graph
+must hold. Built-ins cannot be replaced. An installed version meeting its ranges and known
+export uses stays; otherwise the highest compatible version from the requiring source is
+picked once, without backtracking. A library candidate must provide every export its known
+dependents use, and the final graph uses the loader's same export check. Missing snapshot hooks
+remain optional for older callers. Optional dependencies participate only when present and in
+range. The result lists changes in dependency order, including each update's old version.
+Removal refuses dependents and offers newly orphaned libraries as selected by default.
+
+`src/main/mods/sources.ts` reads lists and GitHub release sources, under a 2 MiB byte budget and
+a deadline. Repo answers are cached for the session; custom approval blocks are ignored.
+`VU_MOD_SOURCE` replaces the approved list only in development and may then name a `file:` URL.
+Custom addresses are kept in main-written `Settings.modSources`; ordinary settings patches
+preserve this field. `readModSources()` returns the approved result followed by each custom
+source's listing or refusal in settings order.
+
+Main recomputes install plans from the current source and dependency snapshots before it
+downloads anything. Release archives must match the listed manifest and any pinned hash.
+Verified copies are unpacked under the mods directory and activated through `pending.json`
+on restart. Removals and rollbacks also go through that journal. Startup replays it before
+the loader even on safe starts. Older copies are kept through the first successful normal
+mod boot, then scheduled for cleanup on the following start. The approved list can withdraw
+a release and clear its recorded approval while leaving its installed files in place.
+
 ## Where the code is
 
 | File | What it is |

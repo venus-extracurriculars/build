@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- The host freezes parsed source listings and validates their artwork metadata. Main returns an
+  independent result for each configured source. Out-of-range optional libraries are left out of
+  the install planner and loader's export checks.
+
+- Install planning checks library exports with the loader's shared rule, including retained
+  dependents. Source stream cleanup preserves deadlines and the original refusal.
+
+- Host shared parses strict `vxsource.json` lists and plans greedy installs and removals with
+  the loader's dependency ordering. Main reads bounded list/repo sources and owns `modSources`;
+  fetching does not confer approval on custom sources. No screen or install IPC is added.
 - Optional `ModDef.game` declares supported Venus University versions. Manifest `game`
   ranges now propagate to mod-menu metadata; undeclared or out-of-range support is
   shown with advisory confirmation before enabling mods and game entry.
