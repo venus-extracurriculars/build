@@ -90,7 +90,7 @@ describe('MODS with the installed mods', () => {
     useModSessionStore.setState({ table: { ...table, mods: table.mods.filter((mod) => mod.id !== 'apple') }, shiftStart: true })
     const record = { mods: ['apple', 'zebra', 'zebra'], modVersions: { apple: '1.0.0', zebra: '1.0.0' } }
     const pending = confirmMissingModInstall(record)
-    expect(useModBrowserStore.getState().missing?.mods.map((mod) => mod.id)).toEqual(['apple'])
+    await vi.waitFor(() => expect(useModBrowserStore.getState().missing?.mods.map((mod) => mod.id)).toEqual(['apple']))
     useModBrowserStore.getState().missing?.answer(true)
     const acknowledged = await pending
     expect(acknowledged).toEqual(['apple'])

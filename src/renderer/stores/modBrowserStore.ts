@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import type { ModPlanRequest, ModUpdateStatus } from '@shared/modInstall'
 import type { PlaythroughRecord } from '@shared/types'
-import { MODS } from '@shared/mods'
 import { listedReleases } from '@shared/modUpdates'
 import { isWebBuild } from '../platform'
 import { useModSessionStore } from './modSessionStore'
@@ -40,8 +39,10 @@ export function watchModUpdates(): () => void {
 }
 
 /** Pauses desktop save entry at the missing-mod notice. Uses only the last received listing. */
-export function confirmMissingModInstall(record: Pick<PlaythroughRecord, 'mods' | 'modVersions'>): Promise<readonly string[] | null> {
-  if (isWebBuild() || useUiStore.getState().view === 'game') return Promise.resolve([])
+export async function confirmMissingModInstall(record: Pick<PlaythroughRecord, 'mods' | 'modVersions'>): Promise<readonly string[] | null> {
+  if (isWebBuild() || useUiStore.getState().view === 'game') return []
+  // The mod list is read here, not at import, so the title screen's imports never reach the mods' own code.
+  const { MODS } = await import('@shared/mods')
   const state = useModBrowserStore.getState()
   const table = useModSessionStore.getState().table
   const allowMain = useSettingsStore.getState().settings?.allowUnreviewedMain === true
@@ -56,7 +57,7 @@ export function confirmMissingModInstall(record: Pick<PlaythroughRecord, 'mods' 
         install: offer ? { kind: 'install', mods: { [id]: { version: offer.release.version, source: offer.source.url } } } : undefined
       }
     })
-  if (!mods.length) return Promise.resolve([])
+  if (!mods.length) return []
   state.missing?.answer(false)
   return new Promise((resolve) => {
     useModBrowserStore.setState({ missing: { mods, answer: (proceed) => {
