@@ -1,3 +1,4 @@
+import { confirmMissingModInstall } from '../stores/modBrowserStore'
 import { confirmModCompatibility, confirmSetupCompatibility } from './ModCompatibilityWarning'
 import { useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react'
 import { createPortal } from 'react-dom'
@@ -87,6 +88,7 @@ interface Entering {
   save: GameSave
   record: PlaythroughRecord
   characters: Character[]
+  acknowledgedMissingMods: readonly string[]
 }
 
 /** When a file was written, in the machine's own locale. */
@@ -353,6 +355,8 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
   async function load(playthroughId: string, entry: ResolvedSave): Promise<void> {
     const whole = await readSave(playthroughId, entry.saveId)
     if (!whole || whole.unloadable) return
+    const acknowledgedMissingMods = onClose ? [] : await confirmMissingModInstall(whole.record)
+    if (acknowledgedMissingMods === null) return
     if (!(await confirmModCompatibility(whole.record))) return
     // The cover goes up on the click and the game is hydrated under it, wearing the hour the
     // save is set in rather than the panel's. A refused cover — only reachable from the Game
@@ -363,7 +367,8 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
     setEntering({
       save: whole.save,
       record: whole.record,
-      characters: whole.characters
+      characters: whole.characters,
+      acknowledgedMissingMods
     })
   }
 
@@ -581,7 +586,8 @@ export function LoadGameModal({ theme, onClose }: LoadGameModalProps): JSX.Eleme
       enterGame(
         entry.save,
         entry.record,
-        Object.fromEntries(entry.characters.map((c) => [c.charId, c]))
+        Object.fromEntries(entry.characters.map((c) => [c.charId, c])),
+        { acknowledgedMissingMods: entry.acknowledgedMissingMods }
       )
       close()
       setView('game')

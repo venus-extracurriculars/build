@@ -4,6 +4,7 @@
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
     "src/shared/index.ts",
+    "src/host/shared.ts",
     "src/renderer/index.ts",
     "src/main/index.ts",
     "../../src/renderer/env.d.ts",

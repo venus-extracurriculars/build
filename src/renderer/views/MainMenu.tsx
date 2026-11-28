@@ -1,8 +1,9 @@
+import { confirmMissingModInstall, useModBrowserStore, watchModUpdates } from '../stores/modBrowserStore'
 import { confirmModCompatibility, confirmSetupCompatibility } from './ModCompatibilityWarning'
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toAppError } from '@shared/errors'
-import { buildLine, modsOn } from '@shared/mods'
+import { buildLine } from '@shared/mods'
 import { seasonOf } from '@shared/semesters'
 import { writerReady } from '@shared/settingsRules'
 import { shuffle } from '@shared/shuffle'
@@ -87,6 +88,9 @@ export function MainMenu(): JSX.Element {
   const openModal = useUiStore((s) => s.openModal)
   const setView = useUiStore((s) => s.setView)
   const playthroughs = useSaveStore((s) => s.playthroughs)
+  const modUpdateCount = useModBrowserStore((state) => state.status.count)
+  useEffect(watchModUpdates, [])
+
   const loadPlaythroughs = useSaveStore((s) => s.loadPlaythroughs)
   // The listing being read again as the menu comes up: until it lands, the newest playthrough is
   // the one the last listing named, which a New Game just left may no longer be.
@@ -218,13 +222,15 @@ export function MainMenu(): JSX.Element {
       return
     }
 
+    const acknowledgedMissingMods = await confirmMissingModInstall(resumed.record)
+    if (acknowledgedMissingMods === null) return
     if (!(await confirmModCompatibility(resumed.record))) return
     const { save, record, characters } = resumed
     // The read is over, so the game is handed to `coverSwap` separately, with `enterGame`
     // deciding when the curtain may open, wherever the save lands it.
     beginCrossing(undefined, entryCrossing(theme, save, record))
     coverSwap(() => {
-      enterGame(save, record, Object.fromEntries(characters.map((c) => [c.charId, c])))
+      enterGame(save, record, Object.fromEntries(characters.map((c) => [c.charId, c])), { acknowledgedMissingMods })
       setView('game')
     })
   }
@@ -472,7 +478,8 @@ export function MainMenu(): JSX.Element {
               onClick={() => openModal('mods')}
             >
               Mods
-              <span className="vu-menu-mods-count">{modsOn(modSwitches).length}</span>
+              {modUpdateCount > 0 && !isWebBuild() &&
+                <span id="menu-mods-updates" className="vu-menu-mods-count" aria-label={`${modUpdateCount} mod ${modUpdateCount === 1 ? 'update' : 'updates'} available`}>{modUpdateCount}</span>}
             </motion.button>
           </div>
           {/* Ungated and last. */}

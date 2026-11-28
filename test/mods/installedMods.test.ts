@@ -81,6 +81,29 @@ describe('MODS with the installed mods', () => {
     expect(modIsOn('zebra')).toBe(true)
   })
 
+  it('only warns about non-running mods not already named by the missing-mod notice', async () => {
+    const { useModSessionStore } = await import('../../src/renderer/stores/modSessionStore')
+    const { confirmMissingModInstall, useModBrowserStore } = await import('../../src/renderer/stores/modBrowserStore')
+    const { setInstalledMods } = await import('@shared/mods')
+    const zebra = def('zebra', { scope: 'playthrough' })
+    setInstalledMods([zebra], [])
+    useModSessionStore.setState({ table: { ...table, mods: table.mods.filter((mod) => mod.id !== 'apple') }, shiftStart: true })
+    const record = { mods: ['apple', 'zebra', 'zebra'], modVersions: { apple: '1.0.0', zebra: '1.0.0' } }
+    const pending = confirmMissingModInstall(record)
+    await vi.waitFor(() => expect(useModBrowserStore.getState().missing?.mods.map((mod) => mod.id)).toEqual(['apple']))
+    useModBrowserStore.getState().missing?.answer(true)
+    const acknowledged = await pending
+    expect(acknowledged).toEqual(['apple'])
+    // If the table changes between the notice and entry, the previous answer still applies.
+    setInstalledMods([def('apple', { scope: 'playthrough' }), zebra], [])
+    useModSessionStore.setState({ table })
+    useModSessionStore.getState().gameEntered(record, 'save', [], acknowledged ?? [])
+    expect(useModSessionStore.getState().notice?.mods.map((mod) => mod.id)).toEqual(['zebra'])
+    useModSessionStore.getState().dismissNotice()
+    useModSessionStore.getState().gameEntered(record, 'save', [])
+    expect(useModSessionStore.getState().notice?.mods.map((mod) => mod.id)).toEqual(['apple', 'zebra'])
+  })
+
   it('asks a library while a mod that is on requires it, and not once that mod is off', async () => {
     await import('../../src/renderer/stores/modsStore')
     const hooks = await import('../../src/renderer/mods/hooks')

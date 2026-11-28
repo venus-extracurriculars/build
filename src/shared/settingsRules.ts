@@ -33,7 +33,7 @@ export const SETTINGS_SCHEMA_VERSION = 1
  * which ComfyUI draws with its URL and both sources' model picks and LoRA weights, the default
  * tags, Gemini's secondary model, the group volumes, the browser build's key-remembering, the
  * sampling fields, the memory and secret budgets, the graduation picture's cap and the custom
- * scene persona and the installed mods’ three main-written fields are all optional.
+ * scene persona and the main-written mod fields are all optional.
  */
 const SETTINGS_REQUIRED: Record<
   keyof Omit<
@@ -86,6 +86,7 @@ const SETTINGS_REQUIRED: Record<
     | 'endingPictureMax'
     | 'scenePersona'
     | 'devModFolders'
+    | 'modSources'
     | 'allowUnreviewedMain'
     | 'modNoticesSeen'
     | 'modUnversionedSeen'
@@ -289,6 +290,7 @@ export function defaultSettings(): Settings {
     noNsfwImages: false,
     lessNsfwText: false,
     sfwAsked: false,
+    modSources: [],
     removedDefaults: []
   }
 }
